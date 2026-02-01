@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 
 namespace MINT.EShop.Core.Entities
 {
-   public class User
+   public class User : IdentityUser<Guid>
     {
-        public Guid Id { get; set; }
-        public string? Name { get; set; }
-        public required string? Email  { get; set; }
-        public required string? Password { get; set; }
+        public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
+        public Client? Client { get; set; }
     }
 }
