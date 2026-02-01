@@ -1,0 +1,6 @@
+@MINT.EShop.API_HostAddress = http://localhost:5285
+
+GET {{MINT.EShop.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
