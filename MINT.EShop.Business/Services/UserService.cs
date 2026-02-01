@@ -9,48 +9,45 @@ using System.Threading.Tasks;
 
 namespace MINT.EShop.Business.Services
 {
-    public class UserService : IUserService
+    public class UserService(IUserRepository userRepository) : IUserService
     {
-        private readonly IUserRepository _repo;
-        public UserService(IUserRepository repo)
-        {
-            _repo = repo;
-        }
+        private readonly IUserRepository _userRepository = userRepository;
+
         public async Task<IEnumerable<User>> GetAllAsync()
         {
-            return await _repo.GetAllAsync();
+            return await _userRepository.GetAllAsync();
         }
 
         public async Task<User?> GetByIdAsync(Guid id)
         {
-            return await _repo.GetUserByIdAsync(id);
+            return await _userRepository.GetByIdAsync(id);
         }
 
         public async Task<User> CreateAsync(User user)
         {
             user.Id = Guid.NewGuid();
-            await _repo.AddUserAsync(user);
+            await _userRepository.AddAsync(user);
             return user;
         }
 
         public async Task<User?> UpdateAsync(User user)
         {
-            var existingUser = await _repo.GetUserByIdAsync(user.Id);
+            var existingUser = await _userRepository.GetByIdAsync(user.Id);
             if (existingUser == null)
                 return null;
             existingUser.Name = user.Name;
             existingUser.Email = user.Email;
             existingUser.Password = user.Password;
-            await _repo.UpdateUserAsync(existingUser);
+            await _userRepository.UpdateAsync(existingUser);
             return existingUser;
         }
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var existingUser = await _repo.GetUserByIdAsync(id);
+            var existingUser = await _userRepository.GetByIdAsync(id);
             if (existingUser == null)
                 return false;
-            await _repo.DeleteUserAsync(id);
+            await _userRepository.DeleteAsync(id);
             return true;
         }
     }

@@ -9,10 +9,10 @@ namespace MINT.EShop.Core.Interfaces
 {
     public interface IOrderItemRepository
     {
-        Task<OrderItem?> GetOrderItemByIdAsync(Guid orderItemId);
+        Task<OrderItem?> GetByIdAsync(Guid orderItemId);
         Task<IEnumerable<OrderItem>> GetAllAsync();
-        Task AddOrderItemAsync(OrderItem orderItem);
-        Task UpdateOrderItemAsync(OrderItem orderItem);
-        Task DeleteOrderItemAsync(Guid orderItemId);
+        Task AddAsync(OrderItem orderItem);
+        Task UpdateAsync(OrderItem orderItem);
+        Task DeleteAsync(Guid orderItemId);
     }
 }

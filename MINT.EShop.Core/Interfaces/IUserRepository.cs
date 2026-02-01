@@ -9,11 +9,11 @@ namespace MINT.EShop.Core.Interfaces
 {
     public interface IUserRepository
     {
-        Task<User?> GetUserByIdAsync(Guid userId);
+        Task<User?> GetByIdAsync(Guid userId);
         Task<IEnumerable<User>> GetAllAsync();
-        Task AddUserAsync(User user);
-        Task UpdateUserAsync(User user);
-        Task DeleteUserAsync(Guid userId);
+        Task AddAsync(User user);
+        Task UpdateAsync(User user);
+        Task DeleteAsync(Guid userId);
 
     }
 }
