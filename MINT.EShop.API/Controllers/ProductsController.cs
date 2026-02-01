@@ -47,6 +47,7 @@ namespace MINT.EShop.API.Controllers
             if (updated == null) return NotFound();
             return Ok(updated);
         }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
