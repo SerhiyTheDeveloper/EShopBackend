@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 
 namespace MINT.EShop.Core.Entities
 {
-    internal class Client
+    public class Client
     {
+        public Guid Id { get; set; }
+        public required string FirstName { get; set; }
+        public required string LastName { get; set; }
+        public required Guid UserId { get; set; }
+        public User User { get; set; } = null!;
+        public List<Order.Order> Orders { get; set; } = [];
     }
 }

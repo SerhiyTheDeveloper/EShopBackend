@@ -9,7 +9,7 @@ namespace MINT.EShop.Core.Entities.Order
     public class Order
     {
         public Guid Id { get; set; }
-        public required Guid UserId { get; set; }
+        public required Guid ClientId { get; set; }
         public required DateTime OrderDate { get; set; }
         public required decimal TotalAmount { get; set; }
         public List<OrderItem> OrderItems { get; set; } = [];
