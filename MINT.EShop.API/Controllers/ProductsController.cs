@@ -1,13 +1,16 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MINT.EShop.API.Wrappers;
+using MINT.EShop.Business.DTOs.Products;
 using MINT.EShop.Business.Interfaces;
 using MINT.EShop.Core.Entities;
 using System.Net.WebSockets;
 
 namespace MINT.EShop.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
+    [Produces("application/json")]
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -16,44 +19,115 @@ namespace MINT.EShop.API.Controllers
         {
             _productService = productService;
         }
-
+        /// <summary>
+        /// Отримати інформацію про всі товари, доступні в магазині.
+        /// </summary>
+        /// <returns>Повертає послідовність всіх товарів у форматі APIResponse.</returns>
         [HttpGet]
+        [ProducesResponseType(typeof(APIResponse<IEnumerable<ProductResponse>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
-            var users = await _productService.GetAllAsync();
-            return Ok(users);
+            // Отримуємо результат бізнес-логіки
+            var products = await _productService.GetAllAsync();
+
+            // Формуємо відповідь у форматі ApiResponse
+            var response = APIResponse<IEnumerable<ProductResponse>>.SuccessResponse(products);
+
+            // Надсилаємо відповідь
+            return Ok(response);
         }
 
+        /// <summary>
+        /// Отримати інформацію про товар за його ідентифікатором.
+        /// </summary>
+        /// <param name="id">Унікальний ідентифікатор товару (GUID).</param>
+        /// <returns>Повертає об'єкт товару у форматі APIResponse.</returns>
+        /// <response code="200">Товар успішно знайдено.</response>
+        /// <response code="404">Товар з таким ID не існує в базі.</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(APIResponse<ProductResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
+
         public async Task<IActionResult> GetById(Guid id)
         {
+            // Отримуємо результат бізнес-логіки та перевіряємо його на null
             var product = await _productService.GetByIdAsync(id);
-            if (product == null) return NotFound();
-            return Ok(product);
+            if (product == null) return NotFound(APIResponse<object>.FailureResponse("Product not found"));
+
+            // Формуємо відповідь у форматі ApiResponse
+            var response = APIResponse<ProductResponse>.SuccessResponse(product);
+
+            // Надсилаємо відповідь
+            return Ok(response);
         }
 
+        /// <summary>
+        /// Створити новий товар у магазині.
+        /// </summary>
+        /// <param name="request">UpdateProductRequest (поля: назва, опис, ціна).</param>
+        /// <returns>Повертає створений товар у форматі APIResponse.</returns>
+        /// <response code="201">Товар успішно створено.</response>
+        /// <response code="400">Некоректні дані для створення товару.</response>
         [HttpPost]
-        public async Task<IActionResult> Create(Product product)
+        [ProducesResponseType(typeof(APIResponse<ProductResponse>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
         {
-            var created = await _productService.CreateAsync(product);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            // Отримуємо результат бізнес-логіки
+            var product = await _productService.CreateAsync(request);
+
+            // Формулюємо відповідь у форматі ApiResponse
+            var response = APIResponse<ProductResponse>.SuccessResponse(product);
+
+            // Надсилаємо відповідь
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, response);
         }
 
+        /// <summary>
+        /// Оновити інформацію про існуючий товар за його ідентифікатором.
+        /// </summary>
+        /// <param name="id">Унікальний ідентифікатор товару (GUID).</param>
+        /// <param name="request">UpdateProductRequest (поля: назва, опис, ціна).</param>
+        /// <returns>Повертає оновлений товар у форматі APIResponse.</returns>
+        /// <response code="200">Товар успішно оновлено.</response>
+        /// <response code="404">Товар з таким ID не існує в базі.</response>
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Product product)
+        [ProducesResponseType(typeof(APIResponse<ProductResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest request)
         {
-            product.Id = id;
-            var updated = await _productService.UpdateAsync(product);
-            if (updated == null) return NotFound();
-            return Ok(updated);
+            // Отримуємо результат бізнес-логіки та перевіряємо його на null
+            var updated = await _productService.UpdateAsync(id, request);
+            if (updated == null) return NotFound(APIResponse<object>.FailureResponse("Product not found"));
+
+            // Формуємо відповідь у форматі ApiResponse
+            var response = APIResponse<ProductResponse>.SuccessResponse(updated);
+
+            // Надсилаємо відповідь
+            return Ok(response);
         }
 
+        /// <summary>
+        /// Видалити товар з магазину за його ідентифікатором.
+        /// </summary>
+        /// <param name="id">Унікальний ідентифікатор товару (GUID).</param>
+        /// <returns>Повертає ID видаленого товару.</returns>
+        /// <response code="204">Товар успішно видалено.</response>
+        /// <response code="404">Товар з таким ID не існує в базі.</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(typeof(APIResponse<Guid>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var deleted = await _productService.DeleteAsync(id);
-            if (!deleted) return NotFound();
-            return NoContent();
+            // Отримуємо результат бізнес-логіки
+            var isDeleted = await _productService.DeleteAsync(id);
+
+            // Якщо товар не знайдено, повертаємо 404 Not Found
+            if (!isDeleted) return NotFound(APIResponse<object>.FailureResponse($"Product with ID {id} not found"));
+
+            // Повертаємо успішну відповідь про видалення товару
+            return Ok(APIResponse<Guid>.SuccessResponse(id));
         }
     }
 }
