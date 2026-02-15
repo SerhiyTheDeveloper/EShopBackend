@@ -1,0 +1,31 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MINT.EShop.Business.DTOs.Products
+{
+    public record CreateProductRequest
+    {
+        /// <summary>
+        /// Назва товару.
+        /// </summary>
+        /// <example>iPhone 15 Pro</example>
+        [Required]
+        public required string Name { get; init; }
+        /// <summary>
+        /// Опис товару.
+        /// </summary>
+        /// <example>Новий смартфон з покращеною камерою.</example>
+        [Required]
+        public required string Description { get; init; }
+        /// <summary>
+        /// Ціна товару.
+        /// </summary>
+        /// <example>15999</example>
+        [Required]
+        public required decimal Price { get; init; }
+    }
+}

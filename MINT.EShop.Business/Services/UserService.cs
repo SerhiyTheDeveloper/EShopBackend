@@ -35,9 +35,6 @@ namespace MINT.EShop.Business.Services
             var existingUser = await _userRepository.GetByIdAsync(user.Id);
             if (existingUser == null)
                 return null;
-            existingUser.Name = user.Name;
-            existingUser.Email = user.Email;
-            existingUser.Password = user.Password;
             await _userRepository.UpdateAsync(existingUser);
             return existingUser;
         }

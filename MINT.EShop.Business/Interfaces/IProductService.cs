@@ -1,4 +1,5 @@
-﻿using MINT.EShop.Core.Entities;
+﻿using MINT.EShop.Business.DTOs.Products;
+using MINT.EShop.Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,10 @@ namespace MINT.EShop.Business.Interfaces
 {
     public interface IProductService
     {
-        Task<IEnumerable<Product>> GetAllAsync();
-        Task<Product?> GetByIdAsync(Guid id);
-        Task<Product> CreateAsync(Product product);
-        Task<Product?> UpdateAsync(Product product);
+        Task<IEnumerable<ProductResponse>> GetAllAsync();
+        Task<ProductResponse?> GetByIdAsync(Guid id);
+        Task<ProductResponse> CreateAsync(CreateProductRequest request);
+        Task<ProductResponse?> UpdateAsync(Guid id, UpdateProductRequest request);
         Task<bool> DeleteAsync(Guid id);
     }
 }
