@@ -12,6 +12,7 @@ namespace MINT.EShop.Core.Entities.Order
         public required Guid ClientId { get; set; }
         public required DateTime OrderDate { get; set; }
         public required decimal TotalAmount { get; set; }
+        public Client Client { get; set; } = null!;
         public List<OrderItem> OrderItems { get; set; } = [];
     }
 }
