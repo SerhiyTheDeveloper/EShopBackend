@@ -25,7 +25,7 @@ namespace MINT.EShop.Business.DTOs.Products
         /// <summary>
         /// Ціна товару.
         /// </summary>
-        /// <example>26999</example>
+        /// <example>26999.99</example>
         public required decimal Price { get; init; }
     }
 }

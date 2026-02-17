@@ -34,6 +34,7 @@ namespace MINT.EShop.API.Wrappers
         /// <summary>
         /// Точний час створення відповіді.
         /// </summary>
+        /// <example>2024-06-01T14:30:00Z</example>
         public DateTime Timestamp { get; init; } = DateTime.UtcNow;
         /// <summary>
         /// Формує успішну відповідь.

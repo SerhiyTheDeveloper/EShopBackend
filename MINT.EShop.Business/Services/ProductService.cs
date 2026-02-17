@@ -82,7 +82,7 @@ namespace MINT.EShop.Business.Services
             };
         }
 
-        public async Task<ProductResponse?> UpdateAsync(Guid id ,UpdateProductRequest request)
+        public async Task<ProductResponse?> UpdateAsync(Guid id, UpdateProductRequest request)
         {
             // Отримуємо існуючий продукт за ID та перевіряємо на null
             var existingProduct = await _productRepository.GetByIdAsync(id);
