@@ -12,8 +12,8 @@ namespace MINT.EShop.Core.Interfaces
         Task<User?> GetByIdAsync(Guid userId);
         Task<IEnumerable<User>> GetAllAsync();
         Task AddAsync(User user);
-        Task UpdateAsync(User user);
-        Task DeleteAsync(Guid userId);
+        void Update(User user);
+        void Delete(User user);
 
     }
 }

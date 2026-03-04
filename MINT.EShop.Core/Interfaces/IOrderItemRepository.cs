@@ -12,7 +12,7 @@ namespace MINT.EShop.Core.Interfaces
         Task<OrderItem?> GetByIdAsync(Guid orderItemId);
         Task<IEnumerable<OrderItem>> GetAllAsync();
         Task AddAsync(OrderItem orderItem);
-        Task UpdateAsync(OrderItem orderItem);
+        void Update(OrderItem orderItem);
         Task DeleteAsync(Guid orderItemId);
     }
 }

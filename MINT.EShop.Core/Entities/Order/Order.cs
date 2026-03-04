@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MINT.EShop.Core.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace MINT.EShop.Core.Entities.Order
         public required Guid ClientId { get; set; }
         public required DateTime OrderDate { get; set; }
         public required decimal TotalAmount { get; set; }
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
         public Client Client { get; set; } = null!;
         public List<OrderItem> OrderItems { get; set; } = [];
     }
