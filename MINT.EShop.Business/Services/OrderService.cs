@@ -299,5 +299,4 @@ namespace MINT.EShop.Business.Services
             return true;
         }
     }
-    
 }
