@@ -113,9 +113,6 @@ namespace MINT.EShop.Business.Services
             existingProduct.Description = request.Description;
             existingProduct.Price = request.Price;
 
-            // Повідомляємо EF про зміни (Необов'язкова дія)
-            unitOfWork.Products.Update(existingProduct);
-
             // Завершуємо транзакцію, щоб зберегти зміни в базі даних
             await unitOfWork.CompleteAsync();
 
