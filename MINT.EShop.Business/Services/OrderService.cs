@@ -245,7 +245,6 @@ namespace MINT.EShop.Business.Services
                 ProductId = orderItemRequest.ProductId,
                 Quantity = orderItemRequest.Quantity,
                 UnitPrice = product.Price,
-
             };
 
             // Додаємо позицію замовлення в базу даних
