@@ -1,19 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MINT.EShop.API.Wrappers;
 using MINT.EShop.Business;
 using MINT.EShop.Business.Interfaces;
 using MINT.EShop.Business.Services;
 using MINT.EShop.Core.Interfaces;
+using MINT.EShop.Infrastracture;
 using MINT.EShop.Infrastracture.Repositories;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
-builder.Services.AddSingleton<IUserService, UserService>();
-builder.Services.AddSingleton<IProductRepository, InMemoryProductRepository>();
-builder.Services.AddSingleton<IProductService, ProductService>();
+builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("InMemoryDb"));
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options => {
@@ -54,6 +57,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-
-

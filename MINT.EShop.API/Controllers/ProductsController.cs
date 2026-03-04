@@ -11,14 +11,8 @@ namespace MINT.EShop.API.Controllers
     [Route("api/v1/[controller]")]
     [ApiController]
     [Produces("application/json")]
-    public class ProductsController : ControllerBase
+    public class ProductsController(IProductService productService) : ControllerBase
     {
-        private readonly IProductService _productService;
-
-        public ProductsController(IProductService productService)
-        {
-            _productService = productService;
-        }
         /// <summary>
         /// Отримати інформацію про всі товари, доступні в магазині.
         /// </summary>
@@ -28,7 +22,7 @@ namespace MINT.EShop.API.Controllers
         public async Task<IActionResult> GetAll()
         {
             // Отримуємо результат бізнес-логіки
-            var products = await _productService.GetAllAsync();
+            var products = await productService.GetAllAsync();
 
             // Формуємо відповідь у форматі ApiResponse
             var response = APIResponse<IEnumerable<ProductResponse>>.SuccessResponse(products);
@@ -51,11 +45,32 @@ namespace MINT.EShop.API.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             // Отримуємо результат бізнес-логіки та перевіряємо його на null
-            var product = await _productService.GetByIdAsync(id);
+            var product = await productService.GetByIdAsync(id);
             if (product == null) return NotFound(APIResponse<object>.FailureResponse("Product not found"));
 
             // Формуємо відповідь у форматі ApiResponse
             var response = APIResponse<ProductResponse>.SuccessResponse(product);
+
+            // Надсилаємо відповідь
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Отримати інформацію про безліч товарів за їхніми ідентифікаторами.
+        /// </summary>
+        /// <param name="ids">Унікальні ідентифікатори товарів (GUID).</param>
+        /// <returns>Повертає послідовність товарів у форматі APIResponse.</returns>
+        /// <response code="200">Операція успішно виконана.</response>
+        [HttpGet("by-ids")]
+        [ProducesResponseType(typeof(APIResponse<IEnumerable<ProductResponse>>), StatusCodes.Status200OK)]
+
+        public async Task<IActionResult> GetByIds([FromQuery] IEnumerable<Guid> ids)
+        {
+            // Отримуємо результат бізнес-логіки
+            var products = await productService.GetByIdsAsync(ids);
+
+            // Формуємо відповідь у форматі ApiResponse
+            var response = APIResponse<IEnumerable<ProductResponse>>.SuccessResponse(products);
 
             // Надсилаємо відповідь
             return Ok(response);
@@ -74,7 +89,7 @@ namespace MINT.EShop.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
         {
             // Отримуємо результат бізнес-логіки
-            var product = await _productService.CreateAsync(request);
+            var product = await productService.CreateAsync(request);
 
             // Формулюємо відповідь у форматі ApiResponse
             var response = APIResponse<ProductResponse>.SuccessResponse(product);
@@ -98,7 +113,7 @@ namespace MINT.EShop.API.Controllers
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest request)
         {
             // Отримуємо результат бізнес-логіки та перевіряємо його на null
-            var updated = await _productService.UpdateAsync(id, request);
+            var updated = await productService.UpdateAsync(id, request);
             if (updated == null) return NotFound(APIResponse<object>.FailureResponse("Product not found"));
 
             // Формуємо відповідь у форматі ApiResponse
@@ -121,7 +136,7 @@ namespace MINT.EShop.API.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             // Отримуємо результат бізнес-логіки
-            var isDeleted = await _productService.DeleteAsync(id);
+            var isDeleted = await productService.DeleteAsync(id);
 
             // Якщо товар не знайдено, повертаємо 404 Not Found
             if (!isDeleted) return NotFound(APIResponse<object>.FailureResponse($"Product with ID {id} not found"));
