@@ -1,4 +1,5 @@
 ﻿using MINT.EShop.Business.DTOs.OrderItems;
+using MINT.EShop.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +28,11 @@ namespace MINT.EShop.Business.DTOs.Orders
         /// </summary>
         /// <example>26999.99</example>
         public required decimal TotalAmount { get; init; }
+        /// <summary>
+        /// Стан замовлення.
+        /// </summary>
+        /// <example>Pending</example>
+        public required OrderStatus Status { get; init; }
         /// <summary>
         /// Список товарів, включених до замовлення. (Тільки для читання)
         /// </summary>

@@ -12,6 +12,7 @@ namespace MINT.EShop.Business.Interfaces
     {
         Task<IEnumerable<ProductResponse>> GetAllAsync();
         Task<ProductResponse?> GetByIdAsync(Guid id);
+        Task<IEnumerable<ProductResponse>> GetByIdsAsync(IEnumerable<Guid> ids);
         Task<ProductResponse> CreateAsync(CreateProductRequest request);
         Task<ProductResponse?> UpdateAsync(Guid id, UpdateProductRequest request);
         Task<bool> DeleteAsync(Guid id);

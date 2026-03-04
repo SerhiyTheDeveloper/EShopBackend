@@ -10,10 +10,8 @@ using System.Threading.Tasks;
 
 namespace MINT.EShop.Business.Services
 {
-    public class ProductService(IProductRepository productRepository) : IProductService
+    public class ProductService(IUnitOfWork unitOfWork) : IProductService
     {
-        private readonly IProductRepository _productRepository = productRepository;
-
         public async Task<ProductResponse> CreateAsync(CreateProductRequest request)
         {
             // Створюємо продукт
@@ -26,7 +24,10 @@ namespace MINT.EShop.Business.Services
             };
 
             // Зберігаємо продукт у репозиторії
-            await _productRepository.AddAsync(product);
+            await unitOfWork.Products.AddAsync(product);
+
+            // Завершуємо транзакцію, щоб зберегти зміни в базі даних
+            await unitOfWork.CompleteAsync();
 
             // Повертаємо відповідь у форматі ProductResponse
             return new ProductResponse
@@ -41,18 +42,21 @@ namespace MINT.EShop.Business.Services
         public async Task<bool> DeleteAsync(Guid id)
         {
             // Отримуємо існуючий продукт за ID та перевіряємо на null
-            var existingProduct = await _productRepository.GetByIdAsync(id);
+            var existingProduct = await unitOfWork.Products.GetByIdAsync(id);
             if (existingProduct == null) return false;
 
             // Видаляємо продукт з репозиторію та повертаємо true
-            await _productRepository.DeleteAsync(id);
+            unitOfWork.Products.Delete(existingProduct);
+
+            // Завершуємо транзакцію, щоб зберегти зміни в базі даних
+            await unitOfWork.CompleteAsync();
             return true;
         }
 
         public async Task<IEnumerable<ProductResponse>> GetAllAsync()
         {
             // Отримуємо список всіх продуктів з репозиторію
-            var products = await _productRepository.GetAllAsync();
+            var products = await unitOfWork.Products.GetAllAsync();
 
             // Повертаємо послідовність продуктів у форматі ProductResponse
             return products.Select(p => new ProductResponse
@@ -67,7 +71,7 @@ namespace MINT.EShop.Business.Services
         public async Task<ProductResponse?> GetByIdAsync(Guid id)
         {
             // Отримуємо продукт за ID
-            var product = await _productRepository.GetByIdAsync(id);
+            var product = await unitOfWork.Products.GetByIdAsync(id);
 
             // Якщо продукт не знайдено, повертаємо null
             if (product == null) return null;
@@ -82,10 +86,25 @@ namespace MINT.EShop.Business.Services
             };
         }
 
+        public async Task<IEnumerable<ProductResponse>> GetByIdsAsync(IEnumerable<Guid> ids)
+        {
+            // Отримуємо список продуктів за їх ID
+            var products = await unitOfWork.Products.GetByIdsAsync(ids);
+
+            // Повертаємо послідовність продуктів у форматі ProductResponse
+            return products.Select(p => new ProductResponse
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price
+            });
+        }
+
         public async Task<ProductResponse?> UpdateAsync(Guid id, UpdateProductRequest request)
         {
             // Отримуємо існуючий продукт за ID та перевіряємо на null
-            var existingProduct = await _productRepository.GetByIdAsync(id);
+            var existingProduct = await unitOfWork.Products.GetByIdAsync(id);
             if (existingProduct == null)
                 return null;
 
@@ -94,8 +113,11 @@ namespace MINT.EShop.Business.Services
             existingProduct.Description = request.Description;
             existingProduct.Price = request.Price;
 
-            // Зберігаємо оновлений продукт у репозиторії
-            await _productRepository.UpdateAsync(existingProduct);
+            // Повідомляємо EF про зміни (Необов'язкова дія)
+            unitOfWork.Products.Update(existingProduct);
+
+            // Завершуємо транзакцію, щоб зберегти зміни в базі даних
+            await unitOfWork.CompleteAsync();
 
             // Повертаємо оновлений продукт у форматі ProductResponse
             return new ProductResponse()

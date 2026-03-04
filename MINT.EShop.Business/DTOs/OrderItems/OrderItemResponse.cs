@@ -19,11 +19,6 @@ namespace MINT.EShop.Business.DTOs.OrderItems
         /// <summary>
         /// Ідентифікатор замовлення, до якого належить цей товар (GUID).
         /// </summary>
-        public required Guid OrderId { get; init; }
-        /// <summary>
-        /// Кількість одиниць товару.
-        /// </summary>
-        /// example>2</example>
         public required int Quantity { get; init; }
         /// <summary>
         /// Ціна за одиницю товару на момент замовлення.

@@ -9,42 +9,43 @@ using System.Threading.Tasks;
 
 namespace MINT.EShop.Business.Services
 {
-    public class UserService(IUserRepository userRepository) : IUserService
+    public class UserService(IUnitOfWork unitOfWork) : IUserService
     {
-        private readonly IUserRepository _userRepository = userRepository;
-
         public async Task<IEnumerable<User>> GetAllAsync()
         {
-            return await _userRepository.GetAllAsync();
+            return await unitOfWork.Users.GetAllAsync();
         }
 
         public async Task<User?> GetByIdAsync(Guid id)
         {
-            return await _userRepository.GetByIdAsync(id);
+            return await unitOfWork.Users.GetByIdAsync(id);
         }
 
         public async Task<User> CreateAsync(User user)
         {
             user.Id = Guid.NewGuid();
-            await _userRepository.AddAsync(user);
+            await unitOfWork.Users.AddAsync(user);
+            await unitOfWork.CompleteAsync();
             return user;
         }
 
         public async Task<User?> UpdateAsync(User user)
         {
-            var existingUser = await _userRepository.GetByIdAsync(user.Id);
+            var existingUser = await unitOfWork.Users.GetByIdAsync(user.Id);
             if (existingUser == null)
                 return null;
-            await _userRepository.UpdateAsync(existingUser);
+            unitOfWork.Users.Update(existingUser);
+            await unitOfWork.CompleteAsync();  
             return existingUser;
         }
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var existingUser = await _userRepository.GetByIdAsync(id);
+            var existingUser = await unitOfWork.Users.GetByIdAsync(id);
             if (existingUser == null)
                 return false;
-            await _userRepository.DeleteAsync(id);
+            unitOfWork.Users.Delete(existingUser);
+            await unitOfWork.CompleteAsync();
             return true;
         }
     }
