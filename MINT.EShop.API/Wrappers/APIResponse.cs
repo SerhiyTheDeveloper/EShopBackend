@@ -20,7 +20,7 @@ namespace MINT.EShop.API.Wrappers
         /// <summary>
         /// Текстове повідомлення для фронтенду або користувача.
         /// </summary>
-        /// <example>Операція виконана успішно</example>
+        /// <example>The operation was completed successfully.</example>
         public string Message { get; init; } = string.Empty;
         /// <summary>
         /// Самі дані. Якщо Success = false, тут зазвичай null.

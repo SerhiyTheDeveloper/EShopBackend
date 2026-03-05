@@ -20,6 +20,8 @@ namespace MINT.EShop.Business.Services
         public async Task<OrderResponse> CreateAsync(CreateOrderRequest request)
         {
             // TODO: Додати логіку знижок
+            // TODO: У методі створення замовлення додати логіку щоб не було можливості
+            // створити дві позиції замовлення з однаковим ProductId. 
 
             // Отримуємо унікальні ID продуктів з позицій замовлення та завантажуємо їх з бази даних
             var productsIds = request.OrderItems.Select(oi => oi.ProductId).Distinct();
@@ -47,6 +49,11 @@ namespace MINT.EShop.Business.Services
                     throw new KeyNotFoundException($"Product with ID {item.ProductId} not found.");
                 }
 
+                if (product.Stock < item.Quantity)
+                {
+                    throw new InvalidOperationException($"Not enough stock for product {product.Name}. Available: {product.Stock}, requested: {item.Quantity}");
+                }
+
                 var orderItem = new OrderItem
                 {
                     Id = Guid.NewGuid(),
@@ -55,6 +62,8 @@ namespace MINT.EShop.Business.Services
                     Quantity = item.Quantity,
                     UnitPrice = product.Price,
                 };
+
+                product.Stock -= item.Quantity;
 
                 order.OrderItems.Add(orderItem);
 
@@ -151,7 +160,7 @@ namespace MINT.EShop.Business.Services
             return true;
         }
 
-        public async Task<OrderResponse?> IncreaseOrderItemCountAsync(Guid orderId, Guid orderItemId)
+        public async Task<OrderResponse?> IncreaseOrderItemQuantityAsync(Guid orderId, Guid orderItemId)
         {
             // Отримуємо замовлення та перевіряємо його на null
             var order = await unitOfWork.Orders.GetByIdAsync(orderId);
@@ -161,8 +170,16 @@ namespace MINT.EShop.Business.Services
             var orderItem = order.OrderItems.FirstOrDefault(oi => oi.Id == orderItemId)
                 ?? throw new KeyNotFoundException($"Order item with ID {orderItemId} was not found in the order {orderId}");
 
-            // Збільшуємо кількість позиції замовлення
+            // Отримуємо продукт та перевіряємо його на null
+            var product = await unitOfWork.Products.GetByIdAsync(orderItem.ProductId)
+                ?? throw new KeyNotFoundException($"Product with ID {orderItem.ProductId} not found.");
+
+            // Перевіряємо наявність достатньої кількості товару на складі
+            if (product.Stock < 1) throw new InvalidOperationException($"Not enough stock for product {product.Name}. Available: {product.Stock}, requested: 1");
+
+            // Збільшуємо кількість позиції замовлення та зменшуємо кількість товару на складі
             orderItem.Quantity++;
+            product.Stock--;
 
             // Збільшуємо загальну ціну замовлення
             order.TotalAmount += orderItem.UnitPrice;
@@ -189,7 +206,7 @@ namespace MINT.EShop.Business.Services
             };
         }
 
-        public async Task<OrderResponse?> DecreaseOrderItemCountAsync(Guid orderId, Guid orderItemId)
+        public async Task<OrderResponse?> DecreaseOrderItemQuantityAsync(Guid orderId, Guid orderItemId)
         {
             // Отримуємо замовлення та перевіряємо його на null
             var order = await unitOfWork.Orders.GetByIdAsync(orderId);
@@ -199,8 +216,21 @@ namespace MINT.EShop.Business.Services
             var orderItem = order.OrderItems.FirstOrDefault(oi => oi.Id == orderItemId)
                 ?? throw new KeyNotFoundException($"Order item with ID {orderItemId} was not found in the order {orderId}");
 
-            // Зменшуємо кількість позиції замовлення
+            // Отримуємо продукт та перевіряємо його на null
+            var product = await unitOfWork.Products.GetByIdAsync(orderItem.ProductId)
+                ?? throw new KeyNotFoundException($"Product with ID {orderItem.ProductId} not found.");
+
+            // Перевіряємо, чи можна зменшити кількість позиції замовлення
+            if (orderItem.Quantity < 1) 
+                throw new InvalidOperationException($"Cannot decrease quantity for order item with ID {orderItemId} because its quantity is already zero.");
+
+            // Зменшуємо кількість позиції замовлення та збільшуємо кількість товару на складі
             orderItem.Quantity--;
+            product.Stock++;
+
+            // Якщо кількість позиції замовлення стала нульовою, видаляємо її з замовлення
+            if (orderItem.Quantity == 0)
+                order.OrderItems.Remove(orderItem);
 
             // Зменшуємо загальну ціну замовлення
             order.TotalAmount -= orderItem.UnitPrice;
@@ -237,21 +267,42 @@ namespace MINT.EShop.Business.Services
             var product = await unitOfWork.Products.GetByIdAsync(orderItemRequest.ProductId)
                 ?? throw new KeyNotFoundException($"Product with ID {orderItemRequest.ProductId} not found.");
 
-            // Формуємо позицію замовлення
-            var orderItem = new OrderItem 
+            // Перевіряємо наявність достатньої кількості товару на складі
+            if (product.Stock < orderItemRequest.Quantity)
             {
-                Id = Guid.NewGuid(),
-                OrderId = orderId,
-                ProductId = orderItemRequest.ProductId,
-                Quantity = orderItemRequest.Quantity,
-                UnitPrice = product.Price,
-            };
+                throw new InvalidOperationException($"Not enough stock for product {product.Name}. Available: {product.Stock}, requested: {orderItemRequest.Quantity}");
+            }
 
-            // Додаємо позицію замовлення в базу даних
-            order.OrderItems.Add(orderItem);
+            // Перевіряємо, чи вже існує позиція замовлення з таким самим ProductId та виконуємо дію
+            var existingOrderItem = order.OrderItems.FirstOrDefault(oi => oi.ProductId == orderItemRequest.ProductId);
 
-            // Збільшуємо загальну суму замовлення
-            order.TotalAmount += orderItem.UnitPrice * orderItem.Quantity;
+            if (existingOrderItem != null) 
+            {
+                // Збільшуємо кількість та оновлюємо загальну суму замовлення
+                existingOrderItem.Quantity += orderItemRequest.Quantity;
+                order.TotalAmount += existingOrderItem.UnitPrice * orderItemRequest.Quantity;
+            }
+            else
+            {
+                // Формуємо позицію замовлення
+                var orderItem = new OrderItem
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = orderId,
+                    ProductId = orderItemRequest.ProductId,
+                    Quantity = orderItemRequest.Quantity,
+                    UnitPrice = product.Price,
+                };
+
+                // Додаємо позицію замовлення в базу даних
+                order.OrderItems.Add(orderItem);
+
+                // Збільшуємо загальну суму замовлення
+                order.TotalAmount += orderItem.UnitPrice * orderItem.Quantity;
+            }
+
+            // Зменшуємо кількість товару на складі
+            product.Stock -= orderItemRequest.Quantity;
 
             // Завершуємо транзакцію, щоб зберегти зміни в базі даних
             await unitOfWork.CompleteAsync();
@@ -278,12 +329,19 @@ namespace MINT.EShop.Business.Services
         public async Task<bool> DeleteOrderItemAsync(Guid orderId, Guid orderItemId)
         {
             // Отримуємо замовлення та перевіряємо його на null
-            var order = await unitOfWork.Orders.GetByIdAsync(orderItemId);
+            var order = await unitOfWork.Orders.GetByIdAsync(orderId);
             if (order == null) return false;
 
             // Дістаємо та перевіряємо наявність позиції замовлення
             var orderItem = order.OrderItems.FirstOrDefault(oi => oi.Id == orderItemId)
                 ?? throw new KeyNotFoundException($"Order Item with ID  {orderItemId}  was not found in the order {orderId}");
+
+            // Отримуємо продукт та перевіряємо його на null
+            var product = await unitOfWork.Products.GetByIdAsync(orderItem.ProductId)
+                ?? throw new KeyNotFoundException($"Product with ID {orderItem.ProductId} not found.");
+
+            // Збільшуємо кількість товару на складі
+            product.Stock += orderItem.Quantity;
 
             // Зменшуємо загальну суму замовлення
             order.TotalAmount -= orderItem.UnitPrice * orderItem.Quantity;

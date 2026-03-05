@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,5 +28,10 @@ namespace MINT.EShop.Business.DTOs.Products
         /// </summary>
         /// <example>26999.99</example>
         public required decimal Price { get; init; }
+        /// <summary>
+        /// Кількість товару на складі.
+        /// </summary>
+        /// <example>10</example>
+        public required int Stock { get; init; }
     }
 }

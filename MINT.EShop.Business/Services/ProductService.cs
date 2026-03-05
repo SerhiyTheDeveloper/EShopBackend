@@ -20,7 +20,8 @@ namespace MINT.EShop.Business.Services
                 Id = Guid.NewGuid(),
                 Name = request.Name,
                 Description = request.Description,
-                Price = request.Price
+                Price = request.Price,
+                Stock = request.Stock
             };
 
             // Зберігаємо продукт у репозиторії
@@ -35,7 +36,8 @@ namespace MINT.EShop.Business.Services
                 Id = product.Id,
                 Name = product.Name,
                 Description = product.Description,
-                Price = product.Price
+                Price = product.Price,
+                Stock = product.Stock
             };
         }
 
@@ -64,7 +66,8 @@ namespace MINT.EShop.Business.Services
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
-                Price = p.Price
+                Price = p.Price,
+                Stock = p.Stock
             });
         }
 
@@ -82,7 +85,8 @@ namespace MINT.EShop.Business.Services
                 Id = product.Id,
                 Name = product.Name,
                 Description = product.Description,
-                Price = product.Price
+                Price = product.Price,
+                Stock = product.Stock
             };
         }
 
@@ -97,7 +101,8 @@ namespace MINT.EShop.Business.Services
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
-                Price = p.Price
+                Price = p.Price,
+                Stock = p.Stock
             });
         }
 
@@ -122,7 +127,8 @@ namespace MINT.EShop.Business.Services
                 Id = existingProduct.Id,
                 Name = existingProduct.Name,
                 Description = existingProduct.Description,
-                Price = existingProduct.Price
+                Price = existingProduct.Price,
+                Stock = existingProduct.Stock
             };
         }
     }

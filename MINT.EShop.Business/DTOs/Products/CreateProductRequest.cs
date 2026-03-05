@@ -23,6 +23,13 @@ namespace MINT.EShop.Business.DTOs.Products
         /// Ціна товару.
         /// </summary>
         /// <example>15999</example>
+        [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0.")]
         public required decimal Price { get; init; }
+        /// <summary>
+        /// Кількість товару.
+        /// </summary>
+        /// <example>5</example>
+        [Range(1, int.MaxValue, ErrorMessage = "Stock must be greater than 0.")]
+        public required int Stock { get; init; }
     }
 }
