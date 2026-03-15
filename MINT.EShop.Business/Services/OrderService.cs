@@ -295,7 +295,7 @@ namespace MINT.EShop.Business.Services
                 };
 
                 // Додаємо позицію замовлення в базу даних
-                order.OrderItems.Add(orderItem);
+                unitOfWork.Orders.AddOrderItem(orderItem);
 
                 // Збільшуємо загальну суму замовлення
                 order.TotalAmount += orderItem.UnitPrice * orderItem.Quantity;

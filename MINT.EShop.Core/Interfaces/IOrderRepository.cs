@@ -14,5 +14,6 @@ namespace MINT.EShop.Core.Interfaces
         Task AddAsync(Order order);
         void Update(Order order);
         void Delete(Order order);
+        void AddOrderItem(OrderItem item);
     }
 }

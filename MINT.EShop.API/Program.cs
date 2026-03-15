@@ -8,6 +8,7 @@ using MINT.EShop.Core.Interfaces;
 using MINT.EShop.Infrastracture;
 using MINT.EShop.Infrastracture.Repositories;
 using System.Reflection;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,9 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddControllers()
+    .AddJsonOptions(options => {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    })
     .ConfigureApiBehaviorOptions(options => {
         options.InvalidModelStateResponseFactory = context =>
         {

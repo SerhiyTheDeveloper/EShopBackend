@@ -17,6 +17,7 @@ namespace MINT.EShop.API.Controllers
         /// Отримати інформацію про всі товари, доступні в магазині.
         /// </summary>
         /// <returns>Повертає послідовність всіх товарів у форматі APIResponse.</returns>
+        /// <response code="200">Товар знайдено.</response>
         [HttpGet]
         [ProducesResponseType(typeof(APIResponse<IEnumerable<ProductResponse>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
@@ -79,7 +80,7 @@ namespace MINT.EShop.API.Controllers
         /// <summary>
         /// Створити новий товар у магазині.
         /// </summary>
-        /// <param name="request">UpdateProductRequest (поля: назва, опис, ціна).</param>
+        /// <param name="request">CreateProductRequest (поля: назва, опис, ціна).</param>
         /// <returns>Повертає створений товар у форматі APIResponse.</returns>
         /// <response code="201">Товар успішно створено.</response>
         /// <response code="400">Некоректні дані для створення товару.</response>

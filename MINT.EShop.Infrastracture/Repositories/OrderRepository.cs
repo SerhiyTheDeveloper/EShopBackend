@@ -41,5 +41,10 @@ namespace MINT.EShop.Infrastracture.Repositories
         {
             _dbContext.Orders.Update(order);
         }
+
+        public void AddOrderItem(OrderItem item)
+        {
+            _dbContext.Set<OrderItem>().Add(item);
+        }
     }
 }
