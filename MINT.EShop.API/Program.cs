@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MINT.EShop.API.Middlewares;
 using MINT.EShop.API.Wrappers;
 using MINT.EShop.Business;
 using MINT.EShop.Business.Interfaces;
@@ -22,6 +23,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddControllers()
     .AddJsonOptions(options => {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     })
     .ConfigureApiBehaviorOptions(options => {
         options.InvalidModelStateResponseFactory = context =>
@@ -49,6 +51,8 @@ builder.Services.AddSwaggerGen(c => {
 
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandler>();
 
 if (app.Environment.IsDevelopment())
 {
