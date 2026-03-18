@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MINT.EShop.API.Controllers
 {
     using global::MINT.EShop.Business.Interfaces;
-    using global::MINT.EShop.Core.Entities;
+    using global::MINT.EShop.Core.Entities.UserData;
     using Microsoft.AspNetCore.Mvc;
 
     namespace MINT.EShop.API.Controllers

@@ -8,6 +8,7 @@ namespace MINT.EShop.API.Middlewares
 {
     public class GlobalExceptionHandler(RequestDelegate next, ILogger<GlobalExceptionHandler> logger, IHostEnvironment env)
     {
+        // TODO: Обробити можливу помилку DbUpdateException пов'язану з випадковим записом однакових RefreshToken у UserSession.(?)
         public async Task InvokeAsync(HttpContext context)
         {
             try
