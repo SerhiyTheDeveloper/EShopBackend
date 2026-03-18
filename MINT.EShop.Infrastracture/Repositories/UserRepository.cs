@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MINT.EShop.Core.Entities;
+using MINT.EShop.Core.Entities.UserData;
 using MINT.EShop.Core.Interfaces;
 using System;
 using System.Collections.Generic;
