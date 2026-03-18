@@ -1,4 +1,4 @@
-﻿using MINT.EShop.Core.Entities;
+﻿using MINT.EShop.Core.Entities.UserData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
