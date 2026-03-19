@@ -16,7 +16,7 @@ namespace MINT.EShop.API.Controllers
         /// Отримати інформацію про всі замовлення.
         /// </summary>
         /// <returns>Повертає послідовність всіх замовлень у форматі APIResponse.</returns>
-        /// <response code="200">Замовлення знайдено.</response>
+        /// <response code="200">Успішно виконана операція.</response>
         [HttpGet]
         [ProducesResponseType(typeof(APIResponse<IEnumerable<OrderResponse>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
@@ -57,7 +57,7 @@ namespace MINT.EShop.API.Controllers
         /// <summary>
         /// Створити нове замовлення на основі наданих даних.
         /// </summary>
-        /// <param name="request">CreateOrderRequest (поля: ID клієнта, позиції замовлення).</param>
+        /// <param name="request">CreateOrderRequest (поля: ClientId, OrderItems).</param>
         /// <returns>Повертає створене замовлення у форматі APIResponse.</returns>
         /// <response code="201">Замовлення успішно створено.</response>
         /// <response code="400">Некоректні дані для створення замовлення.</response>

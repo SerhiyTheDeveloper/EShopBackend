@@ -17,7 +17,7 @@ namespace MINT.EShop.API.Controllers
         /// Отримати інформацію про всі товари, доступні в магазині.
         /// </summary>
         /// <returns>Повертає послідовність всіх товарів у форматі APIResponse.</returns>
-        /// <response code="200">Товар знайдено.</response>
+        /// <response code="200">Успішно виконана операція.</response>
         [HttpGet]
         [ProducesResponseType(typeof(APIResponse<IEnumerable<ProductResponse>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
@@ -25,10 +25,8 @@ namespace MINT.EShop.API.Controllers
             // Отримуємо результат бізнес-логіки
             var products = await productService.GetAllAsync();
 
-            // Формуємо відповідь у форматі ApiResponse
+            // Формуємо відповідь у форматі ApiResponse та надсилаємо її
             var response = APIResponse<IEnumerable<ProductResponse>>.SuccessResponse(products);
-
-            // Надсилаємо відповідь
             return Ok(response);
         }
 
@@ -36,7 +34,7 @@ namespace MINT.EShop.API.Controllers
         /// Отримати інформацію про товар за його ідентифікатором.
         /// </summary>
         /// <param name="id">Унікальний ідентифікатор товару (GUID).</param>
-        /// <returns>Повертає об'єкт товару у форматі APIResponse.</returns>
+        /// <returns>Повертає інформацію про товар у форматі APIResponse.</returns>
         /// <response code="200">Товар успішно знайдено.</response>
         /// <response code="404">Товар з таким ID не існує в базі.</response>
         [HttpGet("{id}")]
@@ -70,17 +68,15 @@ namespace MINT.EShop.API.Controllers
             // Отримуємо результат бізнес-логіки
             var products = await productService.GetByIdsAsync(ids);
 
-            // Формуємо відповідь у форматі ApiResponse
+            // Формуємо відповідь у форматі ApiResponse та надсилаємо її
             var response = APIResponse<IEnumerable<ProductResponse>>.SuccessResponse(products);
-
-            // Надсилаємо відповідь
             return Ok(response);
         }
 
         /// <summary>
         /// Створити новий товар у магазині.
         /// </summary>
-        /// <param name="request">CreateProductRequest (поля: назва, опис, ціна).</param>
+        /// <param name="request">CreateProductRequest (поля: Name, Description, Price).</param>
         /// <returns>Повертає створений товар у форматі APIResponse.</returns>
         /// <response code="201">Товар успішно створено.</response>
         /// <response code="400">Некоректні дані для створення товару.</response>
@@ -92,7 +88,7 @@ namespace MINT.EShop.API.Controllers
             // Отримуємо результат бізнес-логіки
             var product = await productService.CreateAsync(request);
 
-            // Формулюємо відповідь у форматі ApiResponse
+            // Формуємо відповідь у форматі ApiResponse
             var response = APIResponse<ProductResponse>.SuccessResponse(product);
 
             // Надсилаємо відповідь
@@ -103,7 +99,7 @@ namespace MINT.EShop.API.Controllers
         /// Оновити інформацію про існуючий товар за його ідентифікатором.
         /// </summary>
         /// <param name="id">Унікальний ідентифікатор товару (GUID).</param>
-        /// <param name="request">UpdateProductRequest (поля: назва, опис, ціна).</param>
+        /// <param name="request">UpdateProductRequest (поля: Name, Description, Price).</param>
         /// <returns>Повертає оновлений товар у форматі APIResponse.</returns>
         /// <response code="200">Товар успішно оновлено.</response>
         /// <response code="404">Товар з таким ID не існує в базі.</response>
@@ -117,10 +113,8 @@ namespace MINT.EShop.API.Controllers
             var updated = await productService.UpdateAsync(id, request);
             if (updated == null) return NotFound(APIResponse<object>.FailureResponse("Product not found"));
 
-            // Формуємо відповідь у форматі ApiResponse
+            // Формуємо відповідь у форматі ApiResponse та надсилаємо її
             var response = APIResponse<ProductResponse>.SuccessResponse(updated);
-
-            // Надсилаємо відповідь
             return Ok(response);
         }
 
@@ -129,7 +123,7 @@ namespace MINT.EShop.API.Controllers
         /// </summary>
         /// <param name="id">Унікальний ідентифікатор товару (GUID).</param>
         /// <returns>Повертає ID видаленого товару.</returns>
-        /// <response code="204">Товар успішно видалено.</response>
+        /// <response code="200">Товар успішно видалено.</response>
         /// <response code="404">Товар з таким ID не існує в базі.</response>
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(APIResponse<Guid>), StatusCodes.Status200OK)]
@@ -139,10 +133,8 @@ namespace MINT.EShop.API.Controllers
             // Отримуємо результат бізнес-логіки
             var isDeleted = await productService.DeleteAsync(id);
 
-            // Якщо товар не знайдено, повертаємо 404 Not Found
+            // Перевіряємо результат та формуємо відповідь у форматі ApiResponse
             if (!isDeleted) return NotFound(APIResponse<object>.FailureResponse($"Product with ID {id} not found"));
-
-            // Повертаємо успішну відповідь про видалення товару
             return Ok(APIResponse<Guid>.SuccessResponse(id));
         }
     }
