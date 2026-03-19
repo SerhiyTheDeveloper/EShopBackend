@@ -1,34 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace MINT.EShop.Business.DTOs.Identity
 {
-    public record RegisterRequest
+    public record UserResponse
     {
+        /// <summary>
+        /// Унікальний ідентифікатор користувача (GUID).
+        /// </summary>
+        public required Guid Id { get; init; }
         /// <summary>
         /// Електронна пошта користувача.
         /// </summary>
         /// <example>user@example.com</example>
         public required string Email { get; init; }
         /// <summary>
-        /// Пароль користувача(мінімум 8 символів).
+        /// Ім'я
         /// </summary>
-        /// <example>StrPassword123</example>
-        [MinLength(8)]
-        public required string Password { get; init; }
-        /// <summary>
-        /// Ім'я.
-        /// </summary>
-        /// <example>Іван</example>
+        /// <example>Марія</example>
         public required string FirstName { get; init; }
         /// <summary>
-        /// Прізвище.
+        /// Прізвище (може бути відсутнім)
         /// </summary>
-        /// <example>Бондар</example>
+        /// <example>Кузьма</example>
         public string? LastName { get; init; }
     }
 }
