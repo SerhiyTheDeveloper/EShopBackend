@@ -1,4 +1,5 @@
-﻿using MINT.EShop.Core.Entities.UserData;
+﻿using MINT.EShop.Business.DTOs.Identity;
+using MINT.EShop.Core.Entities.UserData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,10 @@ namespace MINT.EShop.Business.Interfaces
 {
     public interface IUserService
     {
-        Task<IEnumerable<User>> GetAllAsync();
-        Task<User?> GetByIdAsync(Guid id);
-        Task<User> CreateAsync(User user);
-        Task<User?> UpdateAsync(User user);
+        Task<IEnumerable<UserResponse>> GetAllAsync();
+        Task<UserResponse?> GetByIdAsync(Guid id);
+        Task<UserResponse> CreateAsync(RegisterRequest request);
+        Task<UserResponse?> UpdateDataAsync(Guid id, UpdateUserDataRequest request);
         Task<bool> DeleteAsync(Guid id);
     }
 }
