@@ -47,7 +47,7 @@ namespace MINT.EShop.Business.Services
             var existingProduct = await unitOfWork.Products.GetByIdAsync(id);
             if (existingProduct == null) return false;
 
-            // Видаляємо продукт з репозиторію та повертаємо true
+            // Видаляємо продукт з репозиторію
             unitOfWork.Products.Delete(existingProduct);
 
             // Завершуємо транзакцію, щоб зберегти зміни в базі даних
