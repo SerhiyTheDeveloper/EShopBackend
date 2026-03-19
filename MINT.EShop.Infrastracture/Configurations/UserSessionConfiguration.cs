@@ -23,7 +23,7 @@ namespace MINT.EShop.Infrastracture.Configurations
 
             builder
                 .HasOne(us => us.User)
-                .WithMany(u => u.UserSessions)
+                .WithMany(u => u.Sessions)
                 .HasForeignKey(us => us.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
