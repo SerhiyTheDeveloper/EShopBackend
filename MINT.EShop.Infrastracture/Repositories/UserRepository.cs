@@ -25,12 +25,18 @@ namespace MINT.EShop.Infrastracture.Repositories
 
         public async Task<IEnumerable<User>> GetAllAsync()
         {
-            return await _dbContext.Users.ToListAsync();
+            return await _dbContext.Users
+                .Include(u => u.Credential)
+                .Include(u => u.Sessions)
+                .ToListAsync();
         }
 
         public async Task<User?> GetByIdAsync(Guid userId)
         {
-            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            return await _dbContext.Users
+                .Include(u => u.Credential)
+                .Include(u => u.Sessions)
+                .FirstOrDefaultAsync(u => u.Id == userId);
         }
 
         public void Update(User user)
