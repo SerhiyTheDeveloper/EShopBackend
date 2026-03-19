@@ -51,7 +51,6 @@ namespace MINT.EShop.API.Middlewares
             var jsonOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
 
             var jsonResponse = JsonSerializer.Serialize(response, jsonOptions);
