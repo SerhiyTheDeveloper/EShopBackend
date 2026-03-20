@@ -40,12 +40,12 @@ namespace MINT.EShop.API.Controllers
             /// <response code="404">Користувача з таким ID не існує в базі.</response>
             [HttpGet("{id}")]
             [ProducesResponseType(typeof(APIResponse<UserResponse>), StatusCodes.Status200OK)]
-            [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
+            [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
             public async Task<IActionResult> GetById(Guid id)
             {
                 // Отримуємо результат бізнес-логіки та перевіряємо його на null
                 var user = await userService.GetByIdAsync(id);
-                if (user == null) return NotFound(APIResponse<object>.FailureResponse("User not found"));
+                if (user == null) return NotFound(APIResponse.FailureResponse("User not found"));
 
                 // Формуємо відповідь у форматі ApiResponse та надсилаємо її
                 var response = APIResponse<UserResponse>.SuccessResponse(user);
@@ -61,7 +61,7 @@ namespace MINT.EShop.API.Controllers
             /// <response code="400">Некоректні дані для створення користувача.</response>
             [HttpPost]
             [ProducesResponseType(typeof(APIResponse<UserResponse>), StatusCodes.Status201Created)]
-            [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+            [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
             public async Task<IActionResult> Create([FromBody]RegisterRequest request)
             {
                 // Отримуємо результат бізнес-логіки
@@ -85,13 +85,13 @@ namespace MINT.EShop.API.Controllers
             /// <response code="400">Некоректні дані для оновлення користувача.</response>
             [HttpPut("{id}")]
             [ProducesResponseType(typeof(APIResponse<UserResponse>), StatusCodes.Status200OK)]
-            [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
-            [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+            [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
+            [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
             public async Task<IActionResult> Update(Guid id, UpdateUserDataRequest request)
             {
                 // Отримуємо результат бізнес-логіки та перевіряємо його на null
                 var updated = await userService.UpdateDataAsync(id, request);
-                if (updated == null) return NotFound(APIResponse<object>.FailureResponse("User not found"));
+                if (updated == null) return NotFound(APIResponse.FailureResponse("User not found"));
 
                 // Формуємо відповідь у форматі ApiResponse та надсилаємо її
                 var response = APIResponse<UserResponse>.SuccessResponse(updated);
@@ -107,19 +107,16 @@ namespace MINT.EShop.API.Controllers
             /// <response code="404">Користувача з таким ID не існує в базі.</response>
             [HttpDelete("{id}")]
             [ProducesResponseType(typeof(APIResponse<Guid>), StatusCodes.Status200OK)]
-            [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
+            [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
             public async Task<IActionResult> Delete(Guid id)
             {
                 // Отримуємо результат бізнес-логіки
                 bool isDeleted = await userService.DeleteAsync(id);
 
                 // Перевіряємо результат та формуємо відповідь у форматі ApiResponse
-                if (!isDeleted) return NotFound(APIResponse<object>.FailureResponse("User not found"));
+                if (!isDeleted) return NotFound(APIResponse.FailureResponse("User not found"));
                 return Ok(APIResponse<Guid>.SuccessResponse(id));
             }
         }
     }
-
-
-
 }

@@ -40,12 +40,12 @@ namespace MINT.EShop.API.Controllers
         /// <response code="404">Немає замовлення за вказаним ID.</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
         {
             // Отримуємо результат бізнес-логіки
             var order = await orderService.GetByIdAsync(id);
-            if (order == null) return NotFound(APIResponse<object>.FailureResponse("Order not found"));
+            if (order == null) return NotFound(APIResponse.FailureResponse("Order not found"));
 
             // Формуємо відповідь у форматі ApiResponse
             var response = APIResponse<OrderResponse>.SuccessResponse(order);
@@ -63,7 +63,7 @@ namespace MINT.EShop.API.Controllers
         /// <response code="400">Некоректні дані для створення замовлення.</response>
         [HttpPost]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
         {
             // Викликаємо бізнес-логіку для створення замовлення
@@ -86,13 +86,13 @@ namespace MINT.EShop.API.Controllers
         /// <response code="404">Немає замовлення за вказаним ID.</response>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusRequest request)
         {
             // Викликаємо бізнес-логіку для оновлення статусу замовлення з перевіркою існування замовлення
             bool isUpdated = await orderService.UpdateStatusAsync(id, request.OrderStatus);
-            if (isUpdated == false) return NotFound(APIResponse<object>.FailureResponse("Order not found"));
+            if (isUpdated == false) return NotFound(APIResponse.FailureResponse("Order not found"));
 
             // Отримуємо оновлену інформацію про замовлення
             var order = await orderService.GetByIdAsync(id);
@@ -115,13 +115,13 @@ namespace MINT.EShop.API.Controllers
         /// <response code="404">Немає замовлення за вказаним ID.</response>
         [HttpPost("{orderId}/items/{orderItemId}/increase")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> IncreaseOrderItemCount(Guid orderId, Guid orderItemId)
         {
             // Викликаємо бізнес-логіку для збільшення кількості товару в замовленні з перевіркою існування замовлення
             var result = await orderService.IncreaseOrderItemQuantityAsync(orderId, orderItemId);
-            if (result == null) return NotFound(APIResponse<object>.FailureResponse("Order not found"));
+            if (result == null) return NotFound(APIResponse.FailureResponse("Order not found"));
 
             // Формуємо відповідь у форматі ApiResponse
             var response = APIResponse<OrderResponse>.SuccessResponse(result, "Order item count increased successfully.");
@@ -141,13 +141,13 @@ namespace MINT.EShop.API.Controllers
         /// <response code="404">Немає замовлення за вказаним ID.</response>
         [HttpPost("{orderId}/items/{orderItemId}/decrease")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DecreaseOrderItemCount(Guid orderId, Guid orderItemId)
         {
             // Викликаємо бізнес-логіку для зменшення кількості товару в замовленні з перевіркою існування замовлення
             var result = await orderService.DecreaseOrderItemQuantityAsync(orderId, orderItemId);
-            if (result == null) return NotFound(APIResponse<object>.FailureResponse("Order not found"));
+            if (result == null) return NotFound(APIResponse.FailureResponse("Order not found"));
 
             // Формуємо відповідь у форматі ApiResponse
             var response = APIResponse<OrderResponse>.SuccessResponse(result, "Order item count decreased successfully.");
@@ -167,13 +167,13 @@ namespace MINT.EShop.API.Controllers
         /// <response code="400">Некоректні дані для створення позиції товару.</response>
         [HttpPost("{orderId}/items")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddOrderItem(Guid orderId, [FromBody] CreateOrderItemRequest orderItemRequest)
         {
             // Викликаємо бізнес-логіку для додавання товару до замовлення з перевіркою існування замовлення
             var result = await orderService.AddOrderItemAsync(orderId, orderItemRequest);
-            if (result == null) return NotFound(APIResponse<object>.FailureResponse("Order not found"));
+            if (result == null) return NotFound(APIResponse.FailureResponse("Order not found"));
 
             // Формуємо відповідь у форматі ApiResponse
             var response = APIResponse<OrderResponse>.SuccessResponse(result, "Order item added successfully.");
@@ -193,13 +193,13 @@ namespace MINT.EShop.API.Controllers
         /// <response code="404">Немає замовлення за вказаним ID.</response>
         [HttpDelete("{orderId}/items/{orderItemId}")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeleteOrderItem(Guid orderId, Guid orderItemId)
         {
             // Викликаємо бізнес-логіку для видалення товару з замовлення з перевіркою існування замовлення
             var isDeleted = await orderService.DeleteOrderItemAsync(orderId, orderItemId);
-            if (isDeleted == false) return NotFound(APIResponse<object>.FailureResponse("Order not found"));
+            if (isDeleted == false) return NotFound(APIResponse.FailureResponse("Order not found"));
 
             // Отримуємо оновлену інформацію про замовлення
             var order = await orderService.GetByIdAsync(orderId);

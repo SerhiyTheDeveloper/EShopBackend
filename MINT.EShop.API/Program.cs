@@ -34,7 +34,7 @@ builder.Services.AddControllers()
                 .Select(e => e.ErrorMessage)
                 .ToList();
 
-            var response = APIResponse<object>.FailureResponse("Validation failed", errors);
+            var response = APIResponse.FailureResponse("Validation failed", errors);
 
             return new BadRequestObjectResult(response);
         };

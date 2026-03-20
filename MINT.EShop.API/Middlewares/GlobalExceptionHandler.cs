@@ -46,7 +46,7 @@ namespace MINT.EShop.API.Middlewares
                 ? "An unexpected error occurred. Please try again later." 
                 : ex.Message;
 
-            var response = APIResponse<string>.FailureResponse(message, errorList);
+            var response = APIResponse.FailureResponse(message, errorList);
 
             var jsonOptions = new JsonSerializerOptions
             {

@@ -39,13 +39,13 @@ namespace MINT.EShop.API.Controllers
         /// <response code="404">Товар з таким ID не існує в базі.</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(APIResponse<ProductResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
 
         public async Task<IActionResult> GetById(Guid id)
         {
             // Отримуємо результат бізнес-логіки та перевіряємо його на null
             var product = await productService.GetByIdAsync(id);
-            if (product == null) return NotFound(APIResponse<object>.FailureResponse("Product not found"));
+            if (product == null) return NotFound(APIResponse.FailureResponse("Product not found"));
 
             // Формуємо відповідь у форматі ApiResponse
             var response = APIResponse<ProductResponse>.SuccessResponse(product);
@@ -82,7 +82,7 @@ namespace MINT.EShop.API.Controllers
         /// <response code="400">Некоректні дані для створення товару.</response>
         [HttpPost]
         [ProducesResponseType(typeof(APIResponse<ProductResponse>), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
         {
             // Отримуємо результат бізнес-логіки
@@ -105,13 +105,13 @@ namespace MINT.EShop.API.Controllers
         /// <response code="404">Товар з таким ID не існує в базі.</response>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(APIResponse<ProductResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest request)
         {
             // Отримуємо результат бізнес-логіки та перевіряємо його на null
             var updated = await productService.UpdateAsync(id, request);
-            if (updated == null) return NotFound(APIResponse<object>.FailureResponse("Product not found"));
+            if (updated == null) return NotFound(APIResponse.FailureResponse("Product not found"));
 
             // Формуємо відповідь у форматі ApiResponse та надсилаємо її
             var response = APIResponse<ProductResponse>.SuccessResponse(updated);
@@ -127,14 +127,14 @@ namespace MINT.EShop.API.Controllers
         /// <response code="404">Товар з таким ID не існує в базі.</response>
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(APIResponse<Guid>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(APIResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(Guid id)
         {
             // Отримуємо результат бізнес-логіки
             var isDeleted = await productService.DeleteAsync(id);
 
             // Перевіряємо результат та формуємо відповідь у форматі ApiResponse
-            if (!isDeleted) return NotFound(APIResponse<object>.FailureResponse($"Product with ID {id} not found"));
+            if (!isDeleted) return NotFound(APIResponse.FailureResponse($"Product with ID {id} not found"));
             return Ok(APIResponse<Guid>.SuccessResponse(id));
         }
     }
