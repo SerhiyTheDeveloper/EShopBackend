@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MINT.EShop.Business.Services
 {
-    public class UserService(IUnitOfWork unitOfWork) : IUserService
+    public class UserService(IUnitOfWork unitOfWork, IPasswordHasher passwordHasher) : IUserService
     {
         public async Task<IEnumerable<UserResponse>> GetAllAsync()
         {
@@ -57,7 +57,7 @@ namespace MINT.EShop.Business.Services
             var credential = new UserCredential
             {
                 UserId = user.Id,
-                PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.Password)
+                PasswordHash = passwordHasher.Hash(request.Password)
             };
 
             // Прив'язуємо UserCredential до користувача
