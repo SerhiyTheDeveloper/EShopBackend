@@ -38,6 +38,13 @@ namespace MINT.EShop.Infrastracture.Repositories
                 .Include(u => u.Sessions)
                 .FirstOrDefaultAsync(u => u.Id == userId);
         }
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await dbContext.Users
+                .Include(u => u.Credential)
+                .Include(u => u.Sessions)
+                .FirstOrDefaultAsync(u => u.Email == email);
+        }
 
         public void Update(User user)
         {
