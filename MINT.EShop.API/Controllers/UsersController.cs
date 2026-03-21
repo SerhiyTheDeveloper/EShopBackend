@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+п»їusing Microsoft.AspNetCore.Mvc;
 using MINT.EShop.API.Wrappers;
 using MINT.EShop.Business.DTOs.Identity;
 using MINT.EShop.Business.Interfaces;
@@ -15,105 +15,105 @@ namespace MINT.EShop.API.Controllers
         public class UsersController(IUserService userService) : ControllerBase
         {
             /// <summary>
-            /// Отримати інформацію про всіх користувачів.
+            /// РћС‚СЂРёРјР°С‚Рё С–РЅС„РѕСЂРјР°С†С–СЋ РїСЂРѕ РІСЃС–С… РєРѕСЂРёСЃС‚СѓРІР°С‡С–РІ.
             /// </summary>
-            /// <returns>Повертає послідовність всіх користувачів у форматі APIResponse.</returns>
-            /// <response code="200">Успішно виконана операція.</response>
+            /// <returns>РџРѕРІРµСЂС‚Р°С” СЃРїРёСЃРѕРє РѕР±'С”РєС‚С–РІ UserResponse Сѓ С„РѕСЂРјР°С‚С– APIResponse.</returns>
+            /// <response code="200">РЈСЃРїС–С€РЅРѕ РІРёРєРѕРЅР°РЅР° РѕРїРµСЂР°С†С–СЏ.</response>
             [HttpGet]
             [ProducesResponseType(typeof(APIResponse<IEnumerable<UserResponse>>), StatusCodes.Status200OK)]
             public async Task<IActionResult> GetAll()
             {
-                // Отримуємо результат бізнес-логіки
+                // РћС‚СЂРёРјСѓС”РјРѕ СЂРµР·СѓР»СЊС‚Р°С‚ Р±С–Р·РЅРµСЃ-Р»РѕРіС–РєРё
                 var users = await userService.GetAllAsync();
 
-                // Формуємо відповідь у форматі ApiResponse та надсилаємо її
+                // Р¤РѕСЂРјСѓС”РјРѕ РІС–РґРїРѕРІС–РґСЊ Сѓ С„РѕСЂРјР°С‚С– ApiResponse С‚Р° РЅР°РґСЃРёР»Р°С”РјРѕ С—С—
                 var response = APIResponse<IEnumerable<UserResponse>>.SuccessResponse(users);
                 return Ok(response);
             }
 
             /// <summary>
-            /// Отримати інформацію про користувача за його унікальним ідентифікатором (ID).
+            /// РћС‚СЂРёРјР°С‚Рё С–РЅС„РѕСЂРјР°С†С–СЋ РїСЂРѕ РєРѕСЂРёСЃС‚СѓРІР°С‡Р° Р·Р° Р№РѕРіРѕ СѓРЅС–РєР°Р»СЊРЅРёРј С–РґРµРЅС‚РёС„С–РєР°С‚РѕСЂРѕРј (ID).
             /// </summary>
-            /// <param name="id">Унікальний ідентифікатор користувача (GUID).</param>
-            /// <returns>Повертає інформацію про користувача у форматі APIResponse.</returns>
-            /// <response code="200">Користувача успішно знайдено.</response>
-            /// <response code="404">Користувача з таким ID не існує в базі.</response>
+            /// <param name="id">РЈРЅС–РєР°Р»СЊРЅРёР№ С–РґРµРЅС‚РёС„С–РєР°С‚РѕСЂ РєРѕСЂРёСЃС‚СѓРІР°С‡Р° (GUID).</param>
+            /// <returns>РџРѕРІРµСЂС‚Р°С” РѕР±'С”РєС‚ UserResponse Сѓ С„РѕСЂРјР°С‚С– APIResponse.</returns>
+            /// <response code="200">РљРѕСЂРёСЃС‚СѓРІР°С‡Р° С–СЃРїС–С€РЅРѕ Р·РЅР°Р№РґРµРЅРѕ.</response>
+            /// <response code="404">РљРѕСЂРёСЃС‚СѓРІР°С‡Р° Р· С‚Р°РєРёРј ID РЅРµ С–СЃРЅСѓС” РІ Р±Р°Р·С–.</response>
             [HttpGet("{id}")]
             [ProducesResponseType(typeof(APIResponse<UserResponse>), StatusCodes.Status200OK)]
             [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
             public async Task<IActionResult> GetById(Guid id)
             {
-                // Отримуємо результат бізнес-логіки та перевіряємо його на null
+                // РћС‚СЂРёРјСѓС”РјРѕ СЂРµР·СѓР»СЊС‚Р°С‚ Р±С–Р·РЅРµСЃ-Р»РѕРіС–РєРё С‚Р° РїРµСЂРµРІС–СЂСЏС”РјРѕ РЅР° null
                 var user = await userService.GetByIdAsync(id);
                 if (user == null) return NotFound(APIResponse.FailureResponse("User not found"));
 
-                // Формуємо відповідь у форматі ApiResponse та надсилаємо її
+                // Р¤РѕСЂРјСѓС”РјРѕ РІС–РґРїРѕРІС–РґСЊ Сѓ С„РѕСЂРјР°С‚С– ApiResponse С‚Р° РЅР°РґСЃРёР»Р°С”РјРѕ С—С—
                 var response = APIResponse<UserResponse>.SuccessResponse(user);
                 return Ok(response);
             }
 
             /// <summary>
-            /// Створити (зареєструвати) нового користувача з наданими даними.
+            /// РЎС‚РІРѕСЂРёС‚Рё (Р·Р°СЂРµС”СЃС‚СЂСѓРІР°С‚Рё) РЅРѕРІРѕРіРѕ РєРѕСЂРёСЃС‚СѓРІР°С‡Р°.
             /// </summary>
-            /// <param name="request">RegisterRequest (поля: Email, Password, FirstName, LastName (необов'язково)).</param>
-            /// <returns>Повертає створеного користувача у форматі APIResponse.</returns>
-            /// <response code="201">Користувача успішно створено.</response>
-            /// <response code="400">Некоректні дані для створення користувача.</response>
+            /// <param name="request">RegisterRequest (РїРѕР»СЏ: Email, Password, FirstName, LastName (РЅРµРѕР±РѕРІ'СЏР·РєРѕРІРѕ)).</param>
+            /// <returns>РџРѕРІРµСЂС‚Р°С” РѕР±'С”РєС‚ UserResponse Сѓ С„РѕСЂРјР°С‚С– APIResponse.</returns>
+            /// <response code="201">РљРѕСЂРёСЃС‚СѓРІР°С‡Р° СѓСЃРїС–С€РЅРѕ СЃС‚РІРѕСЂРµРЅРѕ.</response>
+            /// <response code="400">РќРµРєРѕСЂРµРєС‚РЅС– РґР°РЅС– РґР»СЏ СЃС‚РІРѕСЂРµРЅРЅСЏ РєРѕСЂРёСЃС‚СѓРІР°С‡Р°.</response>
             [HttpPost]
             [ProducesResponseType(typeof(APIResponse<UserResponse>), StatusCodes.Status201Created)]
             [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
             public async Task<IActionResult> Create([FromBody]RegisterRequest request)
             {
-                // Отримуємо результат бізнес-логіки
+                // РћС‚СЂРёРјСѓС”РјРѕ СЂРµР·СѓР»СЊС‚Р°С‚ Р±С–Р·РЅРµСЃ-Р»РѕРіС–РєРё
                 var user = await userService.CreateAsync(request);
 
-                // Формуємо відповідь у форматі ApiResponse
+                // Р¤РѕСЂРјСѓС”РјРѕ РІС–РґРїРѕРІС–РґСЊ Сѓ С„РѕСЂРјР°С‚С– ApiResponse
                 var response = APIResponse<UserResponse>.SuccessResponse(user);
 
-                // Надсилаємо відповідь
+                // РќР°РґСЃРёР»Р°С”РјРѕ РІС–РґРїРѕРІС–РґСЊ
                 return CreatedAtAction(nameof(GetById), new { id = user.Id }, response);
             }
 
             /// <summary>
-            /// Оновити інформацію про користувача за його унікальним ідентифікатором (ID) з наданими даними.
+            /// РћРЅРѕРІРёС‚Рё С–РЅС„РѕСЂРјР°С†С–СЋ РїСЂРѕ РєРѕСЂРёСЃС‚СѓРІР°С‡Р° Р·Р° Р№РѕРіРѕ СѓРЅС–РєР°Р»СЊРЅРёРј С–РґРµРЅС‚РёС„С–РєР°С‚РѕСЂРѕРј (ID).
             /// </summary>
-            /// <param name="id">Унікальний ідентифікатор користувача (GUID).</param>
-            /// <param name="request">UpdateUserDataRequest (поля: FirstName, LastName (необов'язково)).</param>
-            /// <returns>Повертає оновлену інформацію про користувача у форматі APIResponse.</returns>
-            /// <response code="200">Користувача успішно оновлено.</response>
-            /// <response code="404">Користувача з таким ID не існує в базі.</response>
-            /// <response code="400">Некоректні дані для оновлення користувача.</response>
+            /// <param name="id">РЈРЅС–РєР°Р»СЊРЅРёР№ С–РґРµРЅС‚РёС„С–РєР°С‚РѕСЂ РєРѕСЂРёСЃС‚СѓРІР°С‡Р° (GUID).</param>
+            /// <param name="request">UpdateUserDataRequest (РїРѕР»СЏ: FirstName, LastName (РЅРµРѕР±РѕРІ'СЏР·РєРѕРІРѕ)).</param>
+            /// <returns>РџРѕРІРµСЂС‚Р°С” РѕР±'С”РєС‚ UserResponse Сѓ С„РѕСЂРјР°С‚С– APIResponse.</returns>
+            /// <response code="200">Р”Р°РЅС– РєРѕСЂРёСЃС‚СѓРІР°С‡Р° СѓСЃРїС–С€РЅРѕ РѕРЅРѕРІР»РµРЅРѕ.</response>
+            /// <response code="404">РљРѕСЂРёСЃС‚Р°РІР°С‡Р° Р· С‚Р°РєРёРј ID РЅРµ С–СЃРЅСѓС” РІ Р±Р°Р·С–.</response>
+            /// <response code="400">РќРµРєРѕСЂРµРєС‚РЅРѕ РїРµСЂРµРґР°РЅС– РґР°РЅС–.</response>
             [HttpPut("{id}")]
             [ProducesResponseType(typeof(APIResponse<UserResponse>), StatusCodes.Status200OK)]
             [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
             [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
             public async Task<IActionResult> Update(Guid id, UpdateUserDataRequest request)
             {
-                // Отримуємо результат бізнес-логіки та перевіряємо його на null
+                // РћС‚СЂРёРјСѓС”РјРѕ СЂРµР·СѓР»СЊС‚Р°С‚ Р±С–Р·РЅРµСЃ-Р»РѕРіС–РєРё С‚Р° РїРµСЂРµРІС–СЂСЏС”РјРѕ Р№РѕРіРѕ РЅР° null
                 var updated = await userService.UpdateDataAsync(id, request);
                 if (updated == null) return NotFound(APIResponse.FailureResponse("User not found"));
 
-                // Формуємо відповідь у форматі ApiResponse та надсилаємо її
+                // Р¤РѕСЂРјСѓС”РјРѕ РІС–РґРїРѕРІС–РґСЊ Сѓ С„РѕСЂРјР°С‚С– ApiResponse С‚Р° РЅР°РґСЃРёР»Р°С”РјРѕ С—С—
                 var response = APIResponse<UserResponse>.SuccessResponse(updated);
                 return Ok(response);
             }
 
             /// <summary>
-            /// Видалити користувача за його унікальним ідентифікатором (ID).
+            /// Р’РёРґР°Р»РёС‚Рё РєРѕСЂРёСЃС‚СѓРІР°С‡Р° Р·Р° Р№РѕРіРѕ СѓРЅС–РєР°Р»СЊРЅРёРј С–РґРµРЅС‚РёС„С–РєР°С‚РѕСЂРѕРј (ID).
             /// </summary>
-            /// <param name="id">Унікальний ідентифікатор користувача (GUID).</param>
-            /// <returns>Повертає ID видаленого користувача.</returns>
-            /// <response code="200">Користувача успішно видалено.</response>
-            /// <response code="404">Користувача з таким ID не існує в базі.</response>
+            /// <param name="id">РЈРЅС–РєР°Р»СЊРЅРёР№ С–РґРµРЅС‚РёС„С–РєР°С‚РѕСЂ РєРѕСЂРёСЃС‚СѓРІР°С‡Р° (GUID).</param>
+            /// <returns>РџРѕРІРµСЂС‚Р°С” ID РІРёРґР°Р»РµРЅРѕРіРѕ РєРѕСЂРёСЃС‚СѓРІР°С‡Р° Сѓ С„РѕСЂРјР°С‚С– APIResponse.</returns>
+            /// <response code="200">РљРѕСЂРёСЃС‚СѓРІР°С‡Р° СѓСЃРїС–С€РЅРѕ РІРёРґР°Р»РµРЅРѕ.</response>
+            /// <response code="404">РљРѕСЂРёСЃС‚СѓРІР°С‡Р° Р· С‚Р°РєРёРј ID РЅРµ С–СЃРЅСѓС” РІ Р±Р°Р·С–.</response>
             [HttpDelete("{id}")]
             [ProducesResponseType(typeof(APIResponse<Guid>), StatusCodes.Status200OK)]
             [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
             public async Task<IActionResult> Delete(Guid id)
             {
-                // Отримуємо результат бізнес-логіки
+                // РћС‚СЂРёРјСѓС”РјРѕ СЂРµР·СѓР»СЊС‚Р°С‚ Р±С–Р·РЅРµСЃ-Р»РѕРіС–РєРё
                 bool isDeleted = await userService.DeleteAsync(id);
 
-                // Перевіряємо результат та формуємо відповідь у форматі ApiResponse
+                // РџРµСЂРµРІС–СЂСЏС”РјРѕ СЂРµР·СѓР»СЊС‚Р°С‚ С‚Р° РЅР°РґСЃРёР»Р°С”РјРѕ РІС–РґРїРѕРІС–РґСЊ Сѓ С„РѕСЂРјР°С‚С– ApiResponse
                 if (!isDeleted) return NotFound(APIResponse.FailureResponse("User not found"));
                 return Ok(APIResponse<Guid>.SuccessResponse(id));
             }
