@@ -46,6 +46,11 @@ namespace MINT.EShop.Infrastracture.Repositories
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
 
+        public void AddSession(UserSession session)
+        {
+            dbContext.Set<UserSession>().Add(session);
+        }
+
         public void Update(User user)
         {
             _dbContext.Users.Update(user);
