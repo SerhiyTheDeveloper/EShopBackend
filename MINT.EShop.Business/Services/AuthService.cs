@@ -1,13 +1,54 @@
-﻿using System;
+﻿using MINT.EShop.Business.DTOs.Identity;
+using MINT.EShop.Business.Interfaces;
+using MINT.EShop.Core.Entities.UserData;
+using MINT.EShop.Core.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace MINT.EShop.Business.Services
 {
-    public class AuthService
+    public class AuthService(IUnitOfWork unitOfWork, IPasswordHasher passwordHasher, IJwtProvider jwtProvider) : IAuthService
     {
+        public async Task<LoginResponse?> Login(LoginRequest request)
+        {
+            // Отримуємо користувача і перевіряємо його на null
+            var user = await unitOfWork.Users.GetByEmailAsync(request.Email);
+            if (user == null) return null;
 
+            // Звіряємо переданий пароль користувача з паролем у базі даних
+            bool isMatched = passwordHasher.Verify(request.Password, user.Credential.PasswordHash);
+            if (!isMatched) return null;
+
+            // Генеруємо AccessToken, RefreshToken і ExpiresDate
+            var accessToken = jwtProvider.GenerateToken(user);
+            var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            DateTime expiresDate = DateTime.UtcNow.AddDays(7);
+
+            // Формуємо сесію користувача
+            var userSession = new UserSession
+            {
+                UserId = user.Id,
+                RefreshToken = refreshToken,
+                ExpiresDate = expiresDate,
+            };
+
+            // Додаємо сесію до бази даних
+            unitOfWork.Users.AddSession(userSession);
+
+            // Завершуємо транзакцію, щоб зберегти зміни в базі даних
+            await unitOfWork.CompleteAsync();
+
+            // Формуємо та повертаємо відповідь у форматі LoginResponse
+            return new LoginResponse
+            {
+                AccessToken = accessToken,
+                RefreshToken = userSession.RefreshToken,
+                ExpiresDate = userSession.ExpiresDate
+            };
+        }
     }
 }
