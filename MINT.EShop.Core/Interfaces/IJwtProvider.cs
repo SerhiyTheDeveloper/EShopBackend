@@ -9,6 +9,6 @@ namespace MINT.EShop.Core.Interfaces
 {
     public interface IJwtProvider
     {
-        public string GenerateToken(User user);
+        string GenerateToken(User user);
     }
 }
