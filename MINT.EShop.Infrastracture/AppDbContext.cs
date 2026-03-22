@@ -6,11 +6,8 @@ using MINT.EShop.Infrastracture.Configurations;
 
 namespace MINT.EShop.Infrastracture
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-        {
-        }
         public DbSet<User> Users { get; set; }
         public DbSet<UserCredential> UserCredentials { get; set; }
         public DbSet<UserSession> UserSessions { get; set; }
@@ -23,6 +20,9 @@ namespace MINT.EShop.Infrastracture
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new UserCredentialConfiguration());
             modelBuilder.ApplyConfiguration(new UserSessionConfiguration());
+            modelBuilder.ApplyConfiguration(new ProductConfiguration());
+            modelBuilder.ApplyConfiguration(new OrderConfiguration());
+            modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }
