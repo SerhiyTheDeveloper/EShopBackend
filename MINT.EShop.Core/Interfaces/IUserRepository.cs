@@ -13,6 +13,7 @@ namespace MINT.EShop.Core.Interfaces
         Task<User?> GetByEmailAsync(string email);
         Task<IEnumerable<User>> GetAllAsync();
         Task AddAsync(User user);
+        void AddSession(UserSession session);
         void Update(User user);
         void Delete(User user);
 
