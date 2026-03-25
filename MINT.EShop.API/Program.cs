@@ -1,18 +1,19 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using MINT.EShop.API.Middlewares;
 using MINT.EShop.API.Wrappers;
-using MINT.EShop.Business;
 using MINT.EShop.Business.Interfaces;
-using MINT.EShop.Business.Mappings;
 using MINT.EShop.Business.Services;
 using MINT.EShop.Core.Interfaces;
 using MINT.EShop.Infrastracture;
-using MINT.EShop.Infrastracture.Repositories;
 using System.Reflection;
+using System.Text;
 using System.Text.Json.Serialization;
+using MINT.EShop.API.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,7 +55,33 @@ builder.Services.AddSwaggerGen(c => {
 
     var businessXml = "MINT.EShop.Business.xml";
     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, businessXml));
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "Jwt",
+        In = ParameterLocation.Header,
+        Description = "Enter pure JwtToken below."
+    });
+
+    c.OperationFilter<SecurityRequirementsOperationFilter>();
 });
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        options.TokenValidationParameters = new()
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!))
+        };
+    });
 
 
 var app = builder.Build();
@@ -82,7 +109,9 @@ app.UseStatusCodePages(async context =>
     await context.HttpContext.Response.WriteAsJsonAsync(response);
 });
 
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
