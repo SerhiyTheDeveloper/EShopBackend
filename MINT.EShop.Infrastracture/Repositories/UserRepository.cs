@@ -11,21 +11,19 @@ namespace MINT.EShop.Infrastracture.Repositories
 {
     public class UserRepository(AppDbContext dbContext) : IUserRepository
     {
-        private readonly AppDbContext _dbContext = dbContext;
-
         public async Task AddAsync(User user)
         {
-            await _dbContext.Users.AddAsync(user);
+            await dbContext.Users.AddAsync(user);
         }
 
         public void Delete(User user)
         {
-            _dbContext.Users.Remove(user);
+            dbContext.Users.Remove(user);
         }
 
         public async Task<IEnumerable<User>> GetAllAsync()
         {
-            return await _dbContext.Users
+            return await dbContext.Users
                 .Include(u => u.Credential)
                 .Include(u => u.Sessions)
                 .ToListAsync();
@@ -33,7 +31,7 @@ namespace MINT.EShop.Infrastracture.Repositories
 
         public async Task<User?> GetByIdAsync(Guid userId)
         {
-            return await _dbContext.Users
+            return await dbContext.Users
                 .Include(u => u.Credential)
                 .Include(u => u.Sessions)
                 .FirstOrDefaultAsync(u => u.Id == userId);
@@ -53,7 +51,7 @@ namespace MINT.EShop.Infrastracture.Repositories
 
         public void Update(User user)
         {
-            _dbContext.Users.Update(user);
+            dbContext.Users.Update(user);
         }
     }
 }

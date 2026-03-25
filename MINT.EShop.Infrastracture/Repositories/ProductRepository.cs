@@ -11,36 +11,34 @@ namespace MINT.EShop.Infrastracture.Repositories
 {
     public class ProductRepository(AppDbContext dbContext) : IProductRepository
     {
-        private readonly AppDbContext _dbContext = dbContext;
-
         public async Task AddAsync(Product product)
         {
-            await _dbContext.Products.AddAsync(product);
+            await dbContext.Products.AddAsync(product);
         }
 
         public void Delete(Product product)
         {
-            _dbContext.Products.Remove(product);
+            dbContext.Products.Remove(product);
         }
 
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            return await _dbContext.Products.ToListAsync();
+            return await dbContext.Products.ToListAsync();
         }
 
         public async Task<Product?> GetByIdAsync(Guid productId)
         {
-            return await _dbContext.Products.FirstOrDefaultAsync(p => p.Id == productId);
+            return await dbContext.Products.FirstOrDefaultAsync(p => p.Id == productId);
         }
 
         public async Task<IEnumerable<Product>> GetByIdsAsync(IEnumerable<Guid> productIds)
         {
-            return await _dbContext.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
+            return await dbContext.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
         }
 
         public void Update(Product product)
         {
-            _dbContext.Products.Update(product);
+            dbContext.Products.Update(product);
         }
     }
 }
