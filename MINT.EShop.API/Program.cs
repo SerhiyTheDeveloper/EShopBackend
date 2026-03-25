@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MINT.EShop.API.Middlewares;
@@ -42,6 +43,7 @@ builder.Services.AddControllers()
 
             return new BadRequestObjectResult(response);
         };
+        options.SuppressMapClientErrors = true;
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => {
@@ -66,6 +68,20 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStatusCodePages(async context =>
+{
+    context.HttpContext.Response.ContentType = "application/json";
+
+    var statusCode = context.HttpContext.Response.StatusCode;
+
+    string message = ReasonPhrases.GetReasonPhrase(statusCode);
+
+    var response = APIResponse.FailureResponse(message);
+
+    await context.HttpContext.Response.WriteAsJsonAsync(response);
+});
+
 app.UseAuthorization();
 app.MapControllers();
 
