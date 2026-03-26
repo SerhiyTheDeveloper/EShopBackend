@@ -83,6 +83,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminPolicy", policy =>
+    {
+        policy.RequireClaim("Admin", "true");
+    })
+    .AddPolicy("ManagerPolicy", policy =>
+    {
+        policy.RequireClaim("Manager", "true");
+    })
+    .AddPolicy("ClientPolicy", policy =>
+    {
+        policy.RequireClaim("Client", "true");
+    });
 
 var app = builder.Build();
 
