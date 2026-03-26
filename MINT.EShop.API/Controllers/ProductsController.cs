@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MINT.EShop.API.Wrappers;
 using MINT.EShop.Business.DTOs.Products;
@@ -8,8 +9,8 @@ using System.Net.WebSockets;
 
 namespace MINT.EShop.API.Controllers
 {
-    [Route("api/v1/[controller]")]
     [ApiController]
+    [Route("api/v1/[controller]")]
     [Produces("application/json")]
     public class ProductsController(IProductService productService) : ControllerBase
     {
@@ -81,6 +82,7 @@ namespace MINT.EShop.API.Controllers
         /// <response code="201">Товар успішно створено.</response>
         /// <response code="400">Некоректні дані для створення товару.</response>
         [HttpPost]
+        [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<ProductResponse>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
@@ -104,6 +106,7 @@ namespace MINT.EShop.API.Controllers
         /// <response code="200">Товар успішно оновлено.</response>
         /// <response code="404">Товар з таким ID не існує в базі.</response>
         [HttpPut("{id}")]
+        [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<ProductResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
@@ -126,6 +129,7 @@ namespace MINT.EShop.API.Controllers
         /// <response code="200">Товар успішно видалено.</response>
         /// <response code="404">Товар з таким ID не існує в базі.</response>
         [HttpDelete("{id}")]
+        [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<Guid>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(Guid id)

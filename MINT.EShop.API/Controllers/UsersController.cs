@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MINT.EShop.API.Wrappers;
 using MINT.EShop.Business.DTOs.Identity;
 using MINT.EShop.Business.Interfaces;
@@ -14,12 +15,15 @@ namespace MINT.EShop.API.Controllers
         [Produces("application/json")]
         public class UsersController(IUserService userService) : ControllerBase
         {
+            // TODO: розібатися з методом GetById та переробити update
+
             /// <summary>
             /// Отримати інформацію про всіх користувачів.
             /// </summary>
             /// <returns>Повертає список об'єктів UserResponse у форматі APIResponse.</returns>
             /// <response code="200">Успішно виконана операція.</response>
             [HttpGet]
+            [Authorize("AdminPolicy")]
             [ProducesResponseType(typeof(APIResponse<IEnumerable<UserResponse>>), StatusCodes.Status200OK)]
             public async Task<IActionResult> GetAll()
             {
@@ -84,6 +88,7 @@ namespace MINT.EShop.API.Controllers
             /// <response code="404">Користавача з таким ID не існує в базі.</response>
             /// <response code="400">Некоректно передані дані.</response>
             [HttpPut("{id}")]
+            [Authorize]
             [ProducesResponseType(typeof(APIResponse<UserResponse>), StatusCodes.Status200OK)]
             [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
             [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
@@ -106,6 +111,7 @@ namespace MINT.EShop.API.Controllers
             /// <response code="200">Користувача успішно видалено.</response>
             /// <response code="404">Користувача з таким ID не існує в базі.</response>
             [HttpDelete("{id}")]
+            [Authorize("AdminPolicy")]
             [ProducesResponseType(typeof(APIResponse<Guid>), StatusCodes.Status200OK)]
             [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
             public async Task<IActionResult> Delete(Guid id)

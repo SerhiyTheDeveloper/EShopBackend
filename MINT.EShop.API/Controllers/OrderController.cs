@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MINT.EShop.API.Wrappers;
 using MINT.EShop.Business.DTOs.OrderItems;
 using MINT.EShop.Business.DTOs.Orders;
@@ -7,17 +8,22 @@ using MINT.EShop.Core.Enums;
 
 namespace MINT.EShop.API.Controllers
 {
-    [Route("api/v1/[controller]")]
     [ApiController]
+    [Route("api/v1/[controller]")]
+    [Authorize]
     [Produces("application/json")]
     public class OrderController(IOrderService orderService) : ControllerBase
     {
+        // TODO: написати окремий метод для користувача на скасування з перевіркою на те що замовлення його або це адмін
+        // TODO: написати логіку перевірки чи це замовлення користувача
+
         /// <summary>
         /// Отримати інформацію про всі замовлення.
         /// </summary>
         /// <returns>Повертає послідовність всіх замовлень у форматі APIResponse.</returns>
         /// <response code="200">Успішно виконана операція.</response>
         [HttpGet]
+        [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<IEnumerable<OrderResponse>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
@@ -85,6 +91,7 @@ namespace MINT.EShop.API.Controllers
         /// <response code="400">Некоректні дані для оновлення статусу замовлення.</response>
         /// <response code="404">Немає замовлення за вказаним ID.</response>
         [HttpPut("{id}")]
+        [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
@@ -114,6 +121,7 @@ namespace MINT.EShop.API.Controllers
         /// <response code="400">Некоректні дані для збільшення кількості товару.</response>
         /// <response code="404">Немає замовлення за вказаним ID.</response>
         [HttpPost("{orderId}/items/{orderItemId}/increase")]
+        [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
@@ -140,6 +148,7 @@ namespace MINT.EShop.API.Controllers
         /// <response code="400">Некоректні дані для зменшення кількості товару.</response>
         /// <response code="404">Немає замовлення за вказаним ID.</response>
         [HttpPost("{orderId}/items/{orderItemId}/decrease")]
+        [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
@@ -166,6 +175,7 @@ namespace MINT.EShop.API.Controllers
         /// <response code="404">Немає замовлення за вказаним ID.</response>
         /// <response code="400">Некоректні дані для створення позиції товару.</response>
         [HttpPost("{orderId}/items")]
+        [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
@@ -192,6 +202,7 @@ namespace MINT.EShop.API.Controllers
         /// <response code="400">Некоректні дані для видалення позиції товару.</response>
         /// <response code="404">Немає замовлення за вказаним ID.</response>
         [HttpDelete("{orderId}/items/{orderItemId}")]
+        [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<OrderResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
