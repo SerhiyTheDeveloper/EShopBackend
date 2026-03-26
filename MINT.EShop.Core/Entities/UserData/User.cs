@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using MINT.EShop.Core.Enums;
 
 namespace MINT.EShop.Core.Entities.UserData
 {
@@ -16,5 +17,7 @@ namespace MINT.EShop.Core.Entities.UserData
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
         public UserCredential Credential { get; set; } = null!;
         public List<UserSession> Sessions { get; set; } = [];
+        public ClientAccount ClientAccount { get; set; } = null!;
+        public Role Role { get; set; } = Role.Client;
     }
 }
