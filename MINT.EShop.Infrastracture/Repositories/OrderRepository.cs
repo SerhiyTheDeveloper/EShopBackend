@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MINT.EShop.Core.Entities.Order;
+using MINT.EShop.Core.Enums;
 using MINT.EShop.Core.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -21,10 +22,24 @@ namespace MINT.EShop.Infrastracture.Repositories
             dbContext.Orders.Remove(order);
         }
 
-        public async Task<IEnumerable<Order>> GetAllAsync()
+        public async Task<IEnumerable<Order>> GetAllAsync(Guid? clientAccountId = null, OrderStatus? status = null)
         {
-            return await dbContext.Orders
+            var query = dbContext.Orders
                 .Include(o => o.OrderItems)
+                .AsQueryable();
+
+            if (clientAccountId.HasValue)
+            {
+                query = query.Where(o => o.ClientAccountId == clientAccountId.Value);
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(o => o.Status == status);
+            }
+
+            return await query
+                .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
 

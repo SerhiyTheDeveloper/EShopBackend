@@ -21,9 +21,21 @@ namespace MINT.EShop.Infrastracture.Repositories
             dbContext.Products.Remove(product);
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync()
+        public async Task<IEnumerable<Product>> GetAllAsync(decimal? maxPrice = null, decimal? minPrice = null)
         {
-            return await dbContext.Products.ToListAsync();
+            var query = dbContext.Products.AsQueryable();
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(p => p.Price <= maxPrice.Value);
+            }
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(p => p.Price >= minPrice.Value);
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task<Product?> GetByIdAsync(Guid productId)
