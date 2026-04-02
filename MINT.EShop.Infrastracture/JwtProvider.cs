@@ -18,7 +18,11 @@ namespace MINT.EShop.Infrastracture
 
         public string GenerateToken(User user)
         {
-            Claim[] claims = [new("id", user.Id.ToString())];
+            Claim[] claims = [
+                new("id", user.Id.ToString()),
+                new(ClaimTypes.Role, user.Role.ToString()),
+                new("ClientAccountId", user.ClientAccount.Id.ToString())
+            ];
 
             var signingCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey)),
