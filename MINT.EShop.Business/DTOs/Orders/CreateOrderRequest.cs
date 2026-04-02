@@ -10,10 +10,6 @@ namespace MINT.EShop.Business.DTOs.Orders
     public record CreateOrderRequest
     {
         /// <summary>
-        /// Ідентифікатор клієнта, який створює замовлення (GUID).
-        /// </summary>
-        public required Guid ClientId { get; init; }
-        /// <summary>
         /// Список товарів у замовленні.
         /// </summary>
         public required IReadOnlyList<CreateOrderItemRequest> OrderItems { get; init; }
