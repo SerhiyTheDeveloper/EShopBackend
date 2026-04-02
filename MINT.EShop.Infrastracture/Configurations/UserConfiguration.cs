@@ -23,6 +23,12 @@ namespace MINT.EShop.Infrastracture.Configurations
                 .IsRequired()
                 .HasMaxLength(50);
 
+            builder.Property(u => u.LastName)
+                .HasMaxLength(50);
+
+            builder.Property(u => u.Role)
+                .HasConversion<string>();
+
             builder.HasIndex(u => u.Email).IsUnique();
         }
     }

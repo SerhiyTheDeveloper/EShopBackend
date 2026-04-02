@@ -22,7 +22,10 @@ namespace MINT.EShop.Infrastracture.Configurations
             builder.Property(o => o.OrderDate)
                 .IsRequired();
 
-            // Зв'язкок до акаунта клієнта
+            builder.HasOne(o => o.ClientAccount)
+                .WithMany(o => o.Orders)
+                .HasForeignKey(o => o.ClientAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

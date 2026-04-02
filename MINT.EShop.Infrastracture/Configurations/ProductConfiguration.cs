@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MINT.EShop.Core.Entities;
+using MINT.EShop.Core.Entities.UserData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +29,10 @@ namespace MINT.EShop.Infrastracture.Configurations
 
             builder.Property(p => p.Stock)
                 .IsRequired();
+
+            builder.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(p => p.ManagerId);
 
             builder.ToTable(t => t.HasCheckConstraint("CK_Product_Stock_Min", "\"Stock\" >= 0"));
         }
