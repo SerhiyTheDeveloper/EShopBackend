@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MINT.EShop.Core.Entities;
 using MINT.EShop.Core.Entities.UserData;
 using MINT.EShop.Core.Interfaces;
 using System;
@@ -26,6 +27,7 @@ namespace MINT.EShop.Infrastracture.Repositories
             return await dbContext.Users
                 .Include(u => u.Credential)
                 .Include(u => u.Sessions)
+                .Include(u => u.ClientAccount)
                 .ToListAsync();
         }
 
@@ -34,13 +36,16 @@ namespace MINT.EShop.Infrastracture.Repositories
             return await dbContext.Users
                 .Include(u => u.Credential)
                 .Include(u => u.Sessions)
+                .Include (u => u.ClientAccount)
                 .FirstOrDefaultAsync(u => u.Id == userId);
         }
+
         public async Task<User?> GetByEmailAsync(string email)
         {
             return await dbContext.Users
                 .Include(u => u.Credential)
                 .Include(u => u.Sessions)
+                .Include(u => u.ClientAccount)
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
 
