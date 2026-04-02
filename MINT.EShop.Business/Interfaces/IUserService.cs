@@ -15,5 +15,7 @@ namespace MINT.EShop.Business.Interfaces
         Task<UserResponse> CreateAsync(RegisterRequest request);
         Task<UserResponse?> UpdateDataAsync(Guid id, UpdateUserDataRequest request);
         Task<bool> DeleteAsync(Guid id);
+        Task<bool> PromoteToManagerAsync(Guid id);
+        Task<bool> DemoteToClientAsync(Guid id);
     }
 }
