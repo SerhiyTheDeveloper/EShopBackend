@@ -1,6 +1,8 @@
 ﻿using MINT.EShop.Business.DTOs.Identity;
 using MINT.EShop.Business.Interfaces;
+using MINT.EShop.Core.Entities;
 using MINT.EShop.Core.Entities.UserData;
+using MINT.EShop.Core.Enums;
 using MINT.EShop.Core.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -60,8 +62,17 @@ namespace MINT.EShop.Business.Services
                 PasswordHash = passwordHasher.Hash(request.Password)
             };
 
+            // Створюємо об'єкт ClientAccount
+            var clientAccount = new ClientAccount
+            {
+                UserId = user.Id,
+            };
+
             // Прив'язуємо UserCredential до користувача
             user.Credential = credential;
+
+            // Прив'язуємо ClientAccount до користувача
+            user.ClientAccount = clientAccount;
 
             // Додаємо користувача до бази даних та зберігаємо зміни
             await unitOfWork.Users.AddAsync(user);
@@ -110,6 +121,47 @@ namespace MINT.EShop.Business.Services
 
             // Видаляємо користувача з бази даних та зберігаємо зміни
             unitOfWork.Users.Delete(existingUser);
+            await unitOfWork.CompleteAsync();
+            return true;
+        }
+
+        public async Task<bool> PromoteToManagerAsync(Guid id)
+        {
+            // Дістаємо існуючого користувача за його ідентифікатором та перевіряємо його існування
+            var existingUser = await unitOfWork.Users.GetByIdAsync(id);
+            if (existingUser == null)
+                return false;
+
+            // Перевіряємо, чи користувач вже має роль "Manager" або "Admin"
+            if (existingUser.Role == Role.Manager)
+                throw new InvalidOperationException("User is already a manager.");
+            if (existingUser.Role == Role.Admin)
+                throw new InvalidOperationException("Cannot promote an admin to manager.");
+
+            // Оновлюємо роль користувача на "Manager"
+            existingUser.Role = Role.Manager;
+
+            // Завершимо транзакцію та зберігаємо зміни в базі даних
+            await unitOfWork.CompleteAsync();
+            return true;
+        }
+
+        public async Task<bool> DemoteToClientAsync(Guid id)
+        {
+            // Дістаємо існуючого користувача за його ідентифікатором та перевіряємо його існування
+            var existingUser = await unitOfWork.Users.GetByIdAsync(id);
+            if (existingUser == null)
+                return false;
+
+            // Перевіряємо, чи користувач має роль "Client" або "Admin"
+            if (existingUser.Role == Role.Client)
+                throw new InvalidOperationException("User is already a client.");
+            if (existingUser.Role == Role.Admin)
+                throw new InvalidOperationException("Cannot demote an admin to client.");
+
+            // Оновлюємо роль користувача на "Client"
+            existingUser.Role = Role.Client;
+            // Завершимо транзакцію та зберігаємо зміни в базі даних
             await unitOfWork.CompleteAsync();
             return true;
         }
