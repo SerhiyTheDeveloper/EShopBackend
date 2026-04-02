@@ -17,11 +17,15 @@ namespace MINT.EShop.Business.Services
 {
     public class OrderService(IUnitOfWork unitOfWork) : IOrderService
     {
-        public async Task<OrderResponse> CreateAsync(CreateOrderRequest request)
+        public async Task<OrderResponse> CreateAsync(Guid userId ,CreateOrderRequest request)
         {
             // TODO: Додати логіку знижок
             // TODO: У методі створення замовлення додати логіку щоб не було можливості
-            // створити дві позиції замовлення з однаковим ProductId. 
+            // створити дві позиції замовлення з однаковим ProductId.
+
+            // Дістаємо користувача з бази даних
+            var user = await unitOfWork.Users.GetByIdAsync(userId)
+                ?? throw new KeyNotFoundException("User not found.");
 
             // Отримуємо унікальні ID продуктів з позицій замовлення та завантажуємо їх з бази даних
             var productsIds = request.OrderItems.Select(oi => oi.ProductId).Distinct();
@@ -34,7 +38,7 @@ namespace MINT.EShop.Business.Services
             var order = new Order
             {
                 Id = Guid.NewGuid(),
-                ClientId = request.ClientId,
+                ClientAccountId = user.ClientAccount.Id,
                 OrderDate = DateTime.UtcNow,
                 TotalAmount = 0,
                 Status = OrderStatus.Pending
@@ -80,7 +84,7 @@ namespace MINT.EShop.Business.Services
             return new OrderResponse
             {
                 Id = order.Id,
-                ClientId = order.ClientId,
+                ClientId = order.ClientAccountId,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
@@ -95,16 +99,16 @@ namespace MINT.EShop.Business.Services
             };
         }
 
-        public async Task<IEnumerable<OrderResponse>> GetAllAsync()
+        public async Task<IEnumerable<OrderResponse>> GetAllAsync(Guid? clientAccountId, GetOrdersFilter filter)
         {
             // Отримуємо всі замовлення з бази даних
-            var orders = await unitOfWork.Orders.GetAllAsync();
+            var orders = await unitOfWork.Orders.GetAllAsync(clientAccountId, filter.Status);
 
             // Формуємо та повертаємо послідовність відповідей з даними замовлень
             return orders.Select(order => new OrderResponse
             {
                 Id = order.Id,
-                ClientId = order.ClientId,
+                ClientId = order.ClientAccountId,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
@@ -119,19 +123,23 @@ namespace MINT.EShop.Business.Services
             });
         }
 
-        public async Task<OrderResponse?> GetByIdAsync(Guid id)
+        public async Task<OrderResponse?> GetByIdAsync(Guid clientAccountId, Guid orderId, Role userRole)
         {
-            // Отримуємо замовлення за ID з бази даних
-            var order = await unitOfWork.Orders.GetByIdAsync(id);
-
-            // Якщо замовлення не знайдено, повертаємо null
+            // Отримуємо замовлення за ID з бази даних і перевіряємо його на null
+            var order = await unitOfWork.Orders.GetByIdAsync(orderId);
             if (order == null) return null;
+
+            // Перевіряємо, чи має користувач право доступу до цього замовлення
+            if (clientAccountId != order.ClientAccountId && userRole != Role.Manager)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to access this order.");
+            }
 
             // Формуємо та повертаємо відповідь з даними замовлення
             return new OrderResponse
             {
                 Id = order.Id,
-                ClientId = order.ClientId,
+                ClientId = order.ClientAccountId,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
@@ -146,14 +154,39 @@ namespace MINT.EShop.Business.Services
             };
         }
 
-        public async Task<bool> UpdateStatusAsync(Guid id, OrderStatus newStatus)
+        public async Task<bool> UpdateStatusAsync(Guid orderId, OrderStatus newStatus)
         {
             // Отримуємо замовлення за ID та перевіряємо його на null
-            var order = await unitOfWork.Orders.GetByIdAsync(id);
+            var order = await unitOfWork.Orders.GetByIdAsync(orderId);
             if (order == null) return false;
 
             // Змінюємо статус замовлення
             order.Status = newStatus;
+
+            // Завершуємо транзакцію, щоб зберегти зміни в базі даних
+            await unitOfWork.CompleteAsync();
+            return true;
+        }
+
+        public async Task<bool> CancelMyAsync(Guid clientAccountId, Guid orderId)
+        {
+            // Отримуємо замовлення за ID та перевіряємо його на null
+            var order = await unitOfWork.Orders.GetByIdAsync(orderId);
+            if (order == null) return false;
+
+            // Перевіряємо, чи має користувач може скасувати це замовлення
+            if (clientAccountId != order.ClientAccountId)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to cancel this order.");
+            }
+
+            if (order.Status == OrderStatus.Paid)
+            {
+                throw new InvalidOperationException("You can`t cancel this order.");
+            }
+
+            // Скасовуємо замовлення
+            order.Status = OrderStatus.Cancelled;
 
             // Завершуємо транзакцію, щоб зберегти зміни в базі даних
             await unitOfWork.CompleteAsync();
@@ -191,7 +224,7 @@ namespace MINT.EShop.Business.Services
             return new OrderResponse
             {
                 Id = order.Id,
-                ClientId = order.ClientId,
+                ClientId = order.ClientAccountId,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
@@ -242,7 +275,7 @@ namespace MINT.EShop.Business.Services
             return new OrderResponse
             {
                 Id = order.Id,
-                ClientId = order.ClientId,
+                ClientId = order.ClientAccountId,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
@@ -311,7 +344,7 @@ namespace MINT.EShop.Business.Services
             return new OrderResponse
             {
                 Id = order.Id,
-                ClientId = order.ClientId,
+                ClientId = order.ClientAccountId,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,

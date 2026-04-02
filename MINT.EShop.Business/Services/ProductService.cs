@@ -12,12 +12,13 @@ namespace MINT.EShop.Business.Services
 {
     public class ProductService(IUnitOfWork unitOfWork) : IProductService
     {
-        public async Task<ProductResponse> CreateAsync(CreateProductRequest request)
+        public async Task<ProductResponse> CreateAsync(Guid managerId, CreateProductRequest request)
         {
             // Створюємо продукт
             var product = new Product
             {
                 Id = Guid.NewGuid(),
+                ManagerId = managerId,
                 Name = request.Name,
                 Description = request.Description,
                 Price = request.Price,
@@ -55,10 +56,10 @@ namespace MINT.EShop.Business.Services
             return true;
         }
 
-        public async Task<IEnumerable<ProductResponse>> GetAllAsync()
+        public async Task<IEnumerable<ProductResponse>> GetAllAsync(GetProductsFilter filter)
         {
             // Отримуємо список всіх продуктів з репозиторію
-            var products = await unitOfWork.Products.GetAllAsync();
+            var products = await unitOfWork.Products.GetAllAsync(filter.MaxPrice, filter.MinPrice);
 
             // Повертаємо послідовність продуктів у форматі ProductResponse
             return products.Select(p => new ProductResponse
