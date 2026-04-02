@@ -14,7 +14,7 @@ namespace MINT.EShop.Core.Entities.Order
         public required DateTime OrderDate { get; set; }
         public required decimal TotalAmount { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
-        public ClientAccount Client { get; set; } = null!;
+        public ClientAccount ClientAccount { get; set; } = null!;
         public List<OrderItem> OrderItems { get; set; } = [];
     }
 }
