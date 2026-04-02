@@ -12,7 +12,7 @@ namespace MINT.EShop.API.Controllers
     [ApiController]
     [Route("api/v1/[controller]")]
     [Produces("application/json")]
-    public class ProductsController(IProductService productService) : ControllerBase
+    public class ProductsController(IProductService productService, ILogger<ProductsController> logger) : BaseController
     {
         /// <summary>
         /// Отримати інформацію про всі товари, доступні в магазині.
@@ -21,10 +21,10 @@ namespace MINT.EShop.API.Controllers
         /// <response code="200">Успішно виконана операція.</response>
         [HttpGet]
         [ProducesResponseType(typeof(APIResponse<IEnumerable<ProductResponse>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] GetProductsFilter filter)
         {
             // Отримуємо результат бізнес-логіки
-            var products = await productService.GetAllAsync();
+            var products = await productService.GetAllAsync(filter);
 
             // Формуємо відповідь у форматі ApiResponse та надсилаємо її
             var response = APIResponse<IEnumerable<ProductResponse>>.SuccessResponse(products);
@@ -75,41 +75,50 @@ namespace MINT.EShop.API.Controllers
         }
 
         /// <summary>
-        /// Створити новий товар у магазині.
+        /// Створити новий товар у магазині. (Manager)
         /// </summary>
         /// <param name="request">CreateProductRequest (поля: Name, Description, Price).</param>
         /// <returns>Повертає створений товар у форматі APIResponse.</returns>
         /// <response code="201">Товар успішно створено.</response>
         /// <response code="400">Некоректні дані для створення товару.</response>
+        /// <response code="401">Користувач не авторизований.</response>
+        /// <response code="403">Недостатньо прав.</response>
         [HttpPost]
         [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<ProductResponse>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
         {
             // Отримуємо результат бізнес-логіки
-            var product = await productService.CreateAsync(request);
+            var product = await productService.CreateAsync(CurrentUserId, request);
 
             // Формуємо відповідь у форматі ApiResponse
             var response = APIResponse<ProductResponse>.SuccessResponse(product);
 
             // Надсилаємо відповідь
+            logger.LogInformation("Product created with ID {ProductId} by manager {UserId}", product.Id, CurrentUserId);
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, response);
         }
 
         /// <summary>
-        /// Оновити інформацію про існуючий товар за його ідентифікатором.
+        /// Оновити інформацію про існуючий товар за його ідентифікатором. (Manager)
         /// </summary>
         /// <param name="id">Унікальний ідентифікатор товару (GUID).</param>
         /// <param name="request">UpdateProductRequest (поля: Name, Description, Price).</param>
         /// <returns>Повертає оновлений товар у форматі APIResponse.</returns>
         /// <response code="200">Товар успішно оновлено.</response>
         /// <response code="404">Товар з таким ID не існує в базі.</response>
+        /// <response code="401">Користувач не авторизований.</response>
+        /// <response code="403">Недостатньо прав.</response>
         [HttpPut("{id}")]
         [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<ProductResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest request)
         {
             // Отримуємо результат бізнес-логіки та перевіряємо його на null
@@ -118,20 +127,25 @@ namespace MINT.EShop.API.Controllers
 
             // Формуємо відповідь у форматі ApiResponse та надсилаємо її
             var response = APIResponse<ProductResponse>.SuccessResponse(updated);
+            logger.LogInformation("Product with ID {ProductId} updated by manager {UserId}", id, CurrentUserId);
             return Ok(response);
         }
 
         /// <summary>
-        /// Видалити товар з магазину за його ідентифікатором.
+        /// Видалити товар з магазину за його ідентифікатором. (Manager)
         /// </summary>
         /// <param name="id">Унікальний ідентифікатор товару (GUID).</param>
         /// <returns>Повертає ID видаленого товару.</returns>
         /// <response code="200">Товар успішно видалено.</response>
         /// <response code="404">Товар з таким ID не існує в базі.</response>
+        /// <response code="401">Користувач не авторизований.</response>
+        /// <response code="403">Недостатньо прав.</response>
         [HttpDelete("{id}")]
         [Authorize("ManagerPolicy")]
         [ProducesResponseType(typeof(APIResponse<Guid>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Delete(Guid id)
         {
             // Отримуємо результат бізнес-логіки
@@ -139,6 +153,7 @@ namespace MINT.EShop.API.Controllers
 
             // Перевіряємо результат та формуємо відповідь у форматі ApiResponse
             if (!isDeleted) return NotFound(APIResponse.FailureResponse($"Product with ID {id} not found"));
+            logger.LogInformation("Product with ID {ProductId} deleted by manager {UserId}", id, CurrentUserId);
             return Ok(APIResponse<Guid>.SuccessResponse(id));
         }
     }
