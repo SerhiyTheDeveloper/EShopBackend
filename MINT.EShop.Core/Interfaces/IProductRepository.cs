@@ -11,7 +11,7 @@ namespace MINT.EShop.Core.Interfaces
     {
         Task<Product?> GetByIdAsync(Guid productId);
         Task<IEnumerable<Product>> GetByIdsAsync(IEnumerable<Guid> productIds);
-        Task<IEnumerable<Product>> GetAllAsync();
+        Task<IEnumerable<Product>> GetAllAsync(decimal? maxPrice = null, decimal? minPrice = null);
         Task AddAsync(Product product);
         void Update(Product product);
         void Delete(Product product);
