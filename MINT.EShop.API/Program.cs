@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection("AdminSetup"));
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("EmailSettings"));
 
 var dbType = (DatabaseType)builder.Configuration.GetValue<int>("DatabaseType");
 
@@ -26,6 +27,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 builder.Services.AddControllersExtension();
 builder.Services.AddEndpointsApiExplorer();
