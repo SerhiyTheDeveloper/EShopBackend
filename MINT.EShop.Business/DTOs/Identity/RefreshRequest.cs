@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace MINT.EShop.Business.DTOs.Identity
 {
-    /// <summary>
-    /// Відповідь після успішної автентифікації користувача
-    /// </summary>
-    public record LoginResponse
+    public record RefreshRequest
     {
         /// <summary>
         /// Токен для автентифікації запитів
@@ -20,9 +16,5 @@ namespace MINT.EShop.Business.DTOs.Identity
         /// Токен для отримання нового AccessToken після закінчення терміну його дії
         /// </summary>
         public required string RefreshToken { get; init; }
-        /// <summary>
-        /// Дата та час закінчення дії RefreshToken (UTC)
-        /// </summary>
-        public required DateTime ExpiresDate { get; init; }
     }
 }

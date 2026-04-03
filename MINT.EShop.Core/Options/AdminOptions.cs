@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MINT.EShop.Infrastracture
+namespace MINT.EShop.Core.Options
 {
     public class AdminOptions
     {

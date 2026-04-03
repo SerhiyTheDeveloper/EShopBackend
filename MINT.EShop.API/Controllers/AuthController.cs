@@ -14,7 +14,7 @@ namespace MINT.EShop.API.Controllers
         /// Ввід в систему.
         /// </summary>
         /// <param name="request">LoginRequest (поля: Email, Password)</param>
-        /// <returns>Повертає об'єкт LoginResponse</returns>
+        /// <returns>Об'єкт LoginResponse у форматі APIResponse</returns>
         /// <response code="200">Користувача знайдено.</response>
         /// <response code="400">Некоректно введені дані.</response>
         /// <response code="401">Користувача не знайдено.</response>
@@ -25,13 +25,34 @@ namespace MINT.EShop.API.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             // Отримуємо результат бізнес-логіки
-            var result =  await authService.Login(request);
+            var result = await authService.LoginAsync(request);
 
             // Перевіряємо на null
             if (result == null)
             {
                 return Unauthorized(APIResponse.FailureResponse("Invalid email or password"));
             }
+
+            // Формуємо відповідь у форматі ApiResponse та надсилаємо її
+            var response = APIResponse<LoginResponse>.SuccessResponse(result);
+            return Ok(response);
+        }
+        /// <summary>
+        /// Оновити токен доступу.
+        /// </summary>
+        /// <param name="request">RefreshRequest (поля: AccessToken, RefreshToken)</param>
+        /// <returns>Об'єкт LoginResponse у форматі APIResponse</returns>
+        /// <response code="200">Токен успішно оновлено.</response>
+        /// <response code="400">Некоректно введені дані.</response>
+        /// <response code="401">Введено невалідні токени.</response>
+        [HttpPost("refresh")]
+        [ProducesResponseType(typeof(APIResponse<LoginResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshRequest request)
+        {
+            // Отримуємо результат бізнес-логіки
+            var result = await authService.RefreshTokenAsync(request);
 
             // Формуємо відповідь у форматі ApiResponse та надсилаємо її
             var response = APIResponse<LoginResponse>.SuccessResponse(result);

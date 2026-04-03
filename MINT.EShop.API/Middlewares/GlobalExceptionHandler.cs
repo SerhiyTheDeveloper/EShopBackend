@@ -1,4 +1,5 @@
-﻿using MINT.EShop.API.Wrappers;
+﻿using Microsoft.IdentityModel.Tokens;
+using MINT.EShop.API.Wrappers;
 using System.ComponentModel;
 using System.Net;
 using System.Text.Json;
@@ -31,6 +32,7 @@ namespace MINT.EShop.API.Middlewares
                 KeyNotFoundException => HttpStatusCode.NotFound,
                 UnauthorizedAccessException => HttpStatusCode.Unauthorized,
                 ArgumentException or InvalidOperationException => HttpStatusCode.BadRequest,
+                SecurityTokenException => HttpStatusCode.Unauthorized,
                 _ => HttpStatusCode.InternalServerError
             };
 

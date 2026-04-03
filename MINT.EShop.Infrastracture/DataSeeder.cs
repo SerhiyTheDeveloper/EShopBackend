@@ -1,15 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MINT.EShop.Core.Entities;
 using MINT.EShop.Core.Entities.UserData;
 using MINT.EShop.Core.Enums;
 using MINT.EShop.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MINT.EShop.Core.Options;
+
 
 namespace MINT.EShop.Infrastracture
 {
