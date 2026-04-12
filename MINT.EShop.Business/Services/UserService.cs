@@ -18,7 +18,7 @@ namespace MINT.EShop.Business.Services
         {
             // Дістаємо всіх користувачів з бази даних
             var users = await unitOfWork.Users.GetAllAsync();
-
+            
             // Повертаємо їх у вигляді колекції UserResponse
             return users.Select(user => new UserResponse
             {

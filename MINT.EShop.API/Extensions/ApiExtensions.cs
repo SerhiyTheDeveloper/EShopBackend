@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace MINT.EShop.API.Extensions
 {
@@ -27,7 +28,7 @@ namespace MINT.EShop.API.Extensions
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .MinimumLevel.Override("System", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
-                .WriteTo.Console()
+                .WriteTo.Console(theme: AnsiConsoleTheme.Code)
                 .Enrich.FromLogContext();
 
             if (dbType == DatabaseType.PostgreSQL)
