@@ -2,11 +2,6 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MINT.EShop.Core.Entities;
 using MINT.EShop.Core.Entities.UserData;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MINT.EShop.Infrastracture.Configurations
 {

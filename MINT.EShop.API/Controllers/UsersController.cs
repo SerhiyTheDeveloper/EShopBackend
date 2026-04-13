@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using MINT.EShop.API.Wrappers;
 using MINT.EShop.Business.DTOs.Identity;
 using MINT.EShop.Business.Interfaces;
-using MINT.EShop.Core.Entities.UserData;
 
 namespace MINT.EShop.API.Controllers
 {

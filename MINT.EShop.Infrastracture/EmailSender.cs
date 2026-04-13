@@ -3,12 +3,6 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using MINT.EShop.Core.Interfaces;
 using MINT.EShop.Core.Options;
-using Org.BouncyCastle.Tls;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MINT.EShop.Infrastracture
 {

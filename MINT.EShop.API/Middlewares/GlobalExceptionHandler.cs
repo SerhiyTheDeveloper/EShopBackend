@@ -1,9 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using MINT.EShop.API.Wrappers;
-using System.ComponentModel;
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace MINT.EShop.API.Middlewares
 {

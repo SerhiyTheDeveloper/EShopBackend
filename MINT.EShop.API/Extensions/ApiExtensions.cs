@@ -31,7 +31,7 @@ namespace MINT.EShop.API.Extensions
                 .WriteTo.Console(theme: AnsiConsoleTheme.Code)
                 .Enrich.FromLogContext();
 
-            if (dbType == DatabaseType.PostgreSQL)
+            if (dbType == DatabaseType.PostgreSql)
             {
                 logConfig.WriteTo.PostgreSQL(
                     connectionString: configuration.GetConnectionString("PostgreSQL"),
@@ -47,7 +47,7 @@ namespace MINT.EShop.API.Extensions
         {
             services.AddDbContext<AppDbContext>(options =>
             {
-                if (dbType == DatabaseType.PostgreSQL)
+                if (dbType == DatabaseType.PostgreSql)
                 {
                     var connectionString = configuration.GetConnectionString("PostgreSQL");
                     options.UseNpgsql(connectionString);

@@ -1,11 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MINT.EShop.Core.Entities;
 using MINT.EShop.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MINT.EShop.Infrastracture.Repositories
 {

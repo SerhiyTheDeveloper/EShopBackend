@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using MINT.EShop.Core.Enums;
+﻿using MINT.EShop.Core.Enums;
 
 namespace MINT.EShop.Core.Entities.UserData
 {

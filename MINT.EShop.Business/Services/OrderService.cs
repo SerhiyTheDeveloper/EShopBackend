@@ -1,17 +1,9 @@
 ﻿using MINT.EShop.Business.DTOs.OrderItems;
 using MINT.EShop.Business.DTOs.Orders;
 using MINT.EShop.Business.Interfaces;
-using MINT.EShop.Core.Entities;
 using MINT.EShop.Core.Entities.Order;
 using MINT.EShop.Core.Enums;
 using MINT.EShop.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MINT.EShop.Business.Services
 {

@@ -2,11 +2,6 @@
 using MINT.EShop.Core.Entities.Order;
 using MINT.EShop.Core.Enums;
 using MINT.EShop.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MINT.EShop.Infrastracture.Repositories
 {

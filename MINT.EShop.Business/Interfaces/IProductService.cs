@@ -1,10 +1,4 @@
 ﻿using MINT.EShop.Business.DTOs.Products;
-using MINT.EShop.Core.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MINT.EShop.Business.Interfaces
 {

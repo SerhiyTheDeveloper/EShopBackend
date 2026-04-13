@@ -1,10 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using MINT.EShop.Business.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MINT.EShop.Business.Interfaces;
 
 namespace MINT.EShop.Infrastracture
 {

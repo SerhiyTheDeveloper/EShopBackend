@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MINT.EShop.API.Wrappers;
 using MINT.EShop.Business.DTOs.Products;
 using MINT.EShop.Business.Interfaces;
-using MINT.EShop.Core.Entities;
-using System.Net.WebSockets;
 
 namespace MINT.EShop.API.Controllers
 {

@@ -3,13 +3,7 @@ using MINT.EShop.Business.DTOs.Identity;
 using MINT.EShop.Business.Interfaces;
 using MINT.EShop.Core.Entities.UserData;
 using MINT.EShop.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MINT.EShop.Business.Services
 {

@@ -4,8 +4,6 @@ using MINT.EShop.API.Wrappers;
 using MINT.EShop.Business.DTOs.OrderItems;
 using MINT.EShop.Business.DTOs.Orders;
 using MINT.EShop.Business.Interfaces;
-using MINT.EShop.Core.Enums;
-using System.Security.Claims;
 
 namespace MINT.EShop.API.Controllers
 {

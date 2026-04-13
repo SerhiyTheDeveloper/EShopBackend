@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MINT.EShop.Core.Entities.UserData;
+﻿using MINT.EShop.Core.Entities.UserData;
 
 namespace MINT.EShop.Core.Entities
 {
