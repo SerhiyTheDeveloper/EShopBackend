@@ -37,6 +37,7 @@ namespace MINT.EShop.API.Controllers
             var response = APIResponse<LoginResponse>.SuccessResponse(result);
             return Ok(response);
         }
+        
         /// <summary>
         /// Оновити токен доступу.
         /// </summary>

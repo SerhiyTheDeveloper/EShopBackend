@@ -14,15 +14,15 @@ namespace MINT.EShop.Business.Services
             // Отримуємо користувача і перевіряємо його на null
             var user = await unitOfWork.Users.GetByEmailAsync(request.Email);
             if (user == null) return null;
-
+            
             // Звіряємо переданий пароль користувача з паролем у базі даних
-            bool isMatched = passwordHasher.Verify(request.Password, user.Credential.PasswordHash);
+            var isMatched = passwordHasher.Verify(request.Password, user.Credential.PasswordHash);
             if (!isMatched) return null;
 
             // Генеруємо AccessToken, RefreshToken і ExpiresDate
             var accessToken = jwtProvider.GenerateToken(user);
             var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-            DateTime expiresDate = DateTime.UtcNow.AddDays(7);
+            var expiresDate = DateTime.UtcNow.AddDays(7);
 
             // Формуємо сесію користувача
             var userSession = new UserSession

@@ -38,26 +38,51 @@ namespace MINT.EShop.API.Controllers
             }
 
             /// <summary>
-            /// Створити (зареєструвати) нового користувача.
+            /// Зареєструвати нового користувача.
             /// </summary>
             /// <param name="request">RegisterRequest (поля: Email, Password, FirstName, LastName (необов'язково)).</param>
             /// <returns>Об'єкт UserResponse у форматі APIResponse.</returns>
-            /// <response code="201">Користувача успішно створено.</response>
-            /// <response code="400">Некоректні дані для створення користувача.</response>
-            [HttpPost]
+            /// <response code="200">Користувача зареєстровано.</response>
+            /// <response code="400">Некоректні дані для реєстрації користувача.</response>
+            [HttpPost("register")]
             [ProducesResponseType(typeof(APIResponse<UserResponse>), StatusCodes.Status201Created)]
             [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
-            public async Task<IActionResult> Create([FromBody]RegisterRequest request)
+            public async Task<IActionResult> Register([FromBody] RegisterRequest request)
             {
                 // Отримуємо результат бізнес-логіки
-                var user = await userService.CreateAsync(request);
+                var result = await userService.RegisterAsync(request);
 
                 // Формуємо відповідь у форматі ApiResponse
-                var response = APIResponse<UserResponse>.SuccessResponse(user);
+                var response = APIResponse<RegisterResponse>.SuccessResponse(result,
+                    "User registered successfully. A verification code has been sent to specified email");
 
                 // Надсилаємо відповідь
-                logger.LogInformation("New user with id {id} created", user.Id);
-                return CreatedAtAction(nameof(GetById), new { id = user.Id }, response);
+                return Ok(response);
+            }
+            
+            /// <summary>
+            /// Верифікувати користувача.
+            /// </summary>
+            /// <param name="request">VerifyRequest (поля: Email, VerificationCode).</param>
+            /// <returns>Об'єкт UserResponse у форматі APIResponse.</returns>
+            /// <response code="201">Користувача верифіковано та створено.</response>
+            /// <response code="400">Некоректні дані для верифікації користувача.</response>
+            [HttpPost("verify")]
+            [ProducesResponseType(typeof(APIResponse<UserResponse>), StatusCodes.Status200OK)]
+            [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
+            public async Task<IActionResult> Verify([FromBody] VerifyRequest request)
+            {
+                // Отримуємо результат бізнес-логіки
+                var result = await userService.VerifyAsync(request);
+                
+                // Перевіряємо чи зійшлися верифікаційні коди
+                if (result == null) return BadRequest(APIResponse.FailureResponse("Uncorrect verification code"));
+                
+                // Формуємо відповідь у форматі ApiResponse
+                var response = APIResponse<UserResponse>.SuccessResponse(result, "User verified and created successfully.");
+                
+                // Надсилаємо відповідь
+                return CreatedAtAction(nameof(GetById), new { id = result.Id }, response);
             }
 
             /// <summary>

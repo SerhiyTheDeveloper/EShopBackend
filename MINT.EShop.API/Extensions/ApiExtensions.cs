@@ -60,6 +60,16 @@ namespace MINT.EShop.API.Extensions
             });
             return services;
         }
+        public static IServiceCollection AddRedisExtension(this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = configuration.GetConnectionString("Redis");
+                options.InstanceName = "EShopik_";
+            });
+            return services;
+        }
         public static IServiceCollection AddControllersExtension(this IServiceCollection services)
         {
             services.AddControllers()

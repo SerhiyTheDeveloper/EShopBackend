@@ -20,7 +20,7 @@ namespace MINT.EShop.Infrastracture
                 {
                     Email = _options.Email,
                     FirstName = _options.FirstName,
-                    Role = Role.Admin
+                    Role = Role.Admin,
                 };
 
                 var credential = new UserCredential

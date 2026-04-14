@@ -29,6 +29,7 @@ builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
+builder.Services.AddRedisExtension(builder.Configuration);
 builder.Services.AddControllersExtension();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGenExtension();

@@ -43,6 +43,11 @@ namespace MINT.EShop.Infrastracture.Repositories
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
 
+        public async Task<bool> ExistsByEmailAsync(string email)
+        {
+            return await dbContext.Users.AnyAsync(u => u.Email == email);
+        }
+
         public void AddSession(UserSession session)
         {
             dbContext.Set<UserSession>().Add(session);

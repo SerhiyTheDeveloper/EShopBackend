@@ -6,6 +6,7 @@ namespace MINT.EShop.Core.Interfaces
     {
         Task<User?> GetByIdAsync(Guid userId);
         Task<User?> GetByEmailAsync(string email);
+        Task<bool> ExistsByEmailAsync(string email);
         Task<IEnumerable<User>> GetAllAsync();
         Task AddAsync(User user);
         void AddSession(UserSession session);
