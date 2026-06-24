@@ -20,7 +20,7 @@ namespace MINT.EShop.Infrastracture
                 {
                     Email = _options.Email,
                     FirstName = _options.FirstName,
-                    Role = Role.Admin,
+                    Role = Role.Admin
                 };
 
                 var credential = new UserCredential
@@ -32,6 +32,7 @@ namespace MINT.EShop.Infrastracture
                 var clientAccount = new ClientAccount
                 {
                     UserId = adminUser.Id,
+                    PhoneNumber = _options.PhoneNumber
                 };
 
                 adminUser.Credential = credential;
