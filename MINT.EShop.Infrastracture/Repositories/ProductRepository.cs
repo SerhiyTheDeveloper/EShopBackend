@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MINT.EShop.Core.Entities;
+using MINT.EShop.Core.Entities.Product;
 using MINT.EShop.Core.Interfaces;
 
 namespace MINT.EShop.Infrastracture.Repositories
@@ -16,7 +16,7 @@ namespace MINT.EShop.Infrastracture.Repositories
             dbContext.Products.Remove(product);
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync(decimal? maxPrice = null, decimal? minPrice = null)
+        public async Task<IEnumerable<Product>> GetAllAsync(decimal? maxPrice = null, decimal? minPrice = null, Guid? category = null, Guid? producer = null)
         {
             var query = dbContext.Products.AsQueryable();
 
@@ -28,6 +28,16 @@ namespace MINT.EShop.Infrastracture.Repositories
             if (minPrice.HasValue)
             {
                 query = query.Where(p => p.Price >= minPrice.Value);
+            }
+
+            if (category.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == category.Value);
+            }
+
+            if (producer.HasValue)
+            {
+                query = query.Where(p => p.ProducerId == producer.Value);
             }
 
             return await query.ToListAsync();

@@ -1,4 +1,5 @@
-﻿using MINT.EShop.Core.Enums;
+﻿using MINT.EShop.Core.Entities.UserData;
+using MINT.EShop.Core.Enums;
 
 namespace MINT.EShop.Core.Entities.Order
 {

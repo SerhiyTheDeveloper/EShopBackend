@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MINT.EShop.Core.Entities;
 using MINT.EShop.Core.Entities.Order;
+using MINT.EShop.Core.Entities.Product;
 using MINT.EShop.Core.Entities.UserData;
 using MINT.EShop.Infrastracture.Configurations;
 
@@ -25,6 +25,8 @@ namespace MINT.EShop.Infrastracture
             modelBuilder.ApplyConfiguration(new OrderConfiguration());
             modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
             modelBuilder.ApplyConfiguration(new ClientAccountConfiguration());
+            modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+            modelBuilder.ApplyConfiguration(new ProducerConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

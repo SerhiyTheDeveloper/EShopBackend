@@ -9,6 +9,6 @@
         public required decimal UnitPrice { get; set; }
         public decimal Discount { get; set; } = default;
         public Order Order { get; set; } = null!;
-        public Product Product { get; set; } = null!;
+        public Product.Product Product { get; set; } = null!;
     }
 }

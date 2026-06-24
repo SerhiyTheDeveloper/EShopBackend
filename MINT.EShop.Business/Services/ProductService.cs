@@ -1,6 +1,6 @@
 ﻿using MINT.EShop.Business.DTOs.Products;
 using MINT.EShop.Business.Interfaces;
-using MINT.EShop.Core.Entities;
+using MINT.EShop.Core.Entities.Product;
 using MINT.EShop.Core.Interfaces;
 
 namespace MINT.EShop.Business.Services
@@ -17,7 +17,9 @@ namespace MINT.EShop.Business.Services
                 Name = request.Name,
                 Description = request.Description,
                 Price = request.Price,
-                Stock = request.Stock
+                Stock = request.Stock,
+                CategoryId = request.CategoryId,
+                ProducerId = request.ProducerId
             };
 
             // Зберігаємо продукт у репозиторії
@@ -54,7 +56,7 @@ namespace MINT.EShop.Business.Services
         public async Task<IEnumerable<ProductResponse>> GetAllAsync(GetProductsFilter filter)
         {
             // Отримуємо список всіх продуктів з репозиторію
-            var products = await unitOfWork.Products.GetAllAsync(filter.MaxPrice, filter.MinPrice);
+            var products = await unitOfWork.Products.GetAllAsync(filter.MaxPrice, filter.MinPrice, filter.Category, filter.Producer);
 
             // Повертаємо послідовність продуктів у форматі ProductResponse
             return products.Select(p => new ProductResponse
