@@ -12,5 +12,10 @@
         /// </summary>
         /// <example>Стрикало</example>
         public string? LastName { get; init; }
+        /// <summary>
+        /// Номер телефону.
+        /// </summary>
+        /// <example>0937026525</example>
+        public required string PhoneNumber { get; init; }
     }
 }

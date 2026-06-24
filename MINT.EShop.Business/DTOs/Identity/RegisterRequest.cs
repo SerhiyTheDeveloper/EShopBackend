@@ -21,9 +21,9 @@ namespace MINT.EShop.Business.DTOs.Identity
         /// <example>Іван</example>
         public required string FirstName { get; init; }
         /// <summary>
-        /// Прізвище.
+        /// Номер телефону.
         /// </summary>
-        /// <example>Бондар</example>
-        public string? LastName { get; init; }
+        /// <example>0937849525</example>
+        public required string PhoneNumber { get; init; }
     }
 }

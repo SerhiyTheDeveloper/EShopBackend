@@ -21,5 +21,10 @@
         /// </summary>
         /// <example>Кузьма</example>
         public string? LastName { get; init; }
+        /// <summary>
+        /// Номер телефону користувача.
+        /// </summary>
+        /// <example>0937026525</example>
+        public required string PhoneNumber { get; init; }
     }
 }

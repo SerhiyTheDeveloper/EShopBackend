@@ -13,8 +13,8 @@ public record RegisterResponse
     /// <example>Марія</example>
     public required string FirstName { get; init; }
     /// <summary>
-    /// Прізвище (може бути відсутнім)
+    /// Номер телефону
     /// </summary>
-    /// <example>Кузьма</example>
-    public string? LastName { get; init; }
+    /// <example>0937054525</example>
+    public required string PhoneNumber { get; init; }
 }

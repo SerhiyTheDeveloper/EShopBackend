@@ -24,7 +24,8 @@ namespace MINT.EShop.Business.Services
                 Id = user.Id,
                 Email = user.Email,
                 FirstName = user.FirstName,
-                LastName = user.LastName
+                LastName = user.LastName,
+                PhoneNumber = user.ClientAccount.PhoneNumber
             });
         }
 
@@ -40,7 +41,8 @@ namespace MINT.EShop.Business.Services
                 Id = user.Id,
                 Email = user.Email,
                 FirstName = user.FirstName,
-                LastName = user.LastName
+                LastName = user.LastName,
+                PhoneNumber = user.ClientAccount.PhoneNumber
             };
         }
 
@@ -59,8 +61,8 @@ namespace MINT.EShop.Business.Services
             {
                 Email = request.Email,
                 FirstName = request.FirstName,
-                LastName = request.LastName,
                 PasswordHash = passwordHash,
+                PhoneNumber = request.PhoneNumber,
                 VerificationCode = verificationCode
             };
             
@@ -81,7 +83,7 @@ namespace MINT.EShop.Business.Services
             {
                 Email =  request.Email,
                 FirstName = request.FirstName,
-                LastName = request.LastName,
+                PhoneNumber = request.PhoneNumber
             };
         }
 
@@ -109,8 +111,7 @@ namespace MINT.EShop.Business.Services
             var user = new User
             {
                 Email = userData.Email,
-                FirstName = userData.FirstName,
-                LastName = userData.LastName,
+                FirstName = userData.FirstName
             };
 
             // Створюємо об'єкт UserCredential для збереження хешу пароля
@@ -124,6 +125,7 @@ namespace MINT.EShop.Business.Services
             var clientAccount = new ClientAccount
             {
                 UserId = user.Id,
+                PhoneNumber = userData.PhoneNumber
             };
             
             // Прив'язуємо UserCredential до користувача
@@ -145,7 +147,8 @@ namespace MINT.EShop.Business.Services
                 Id = user.Id,
                 Email = user.Email,
                 FirstName = user.FirstName,
-                LastName = user.LastName
+                LastName = user.LastName,
+                PhoneNumber = user.ClientAccount.PhoneNumber
             };
         }
 
@@ -159,6 +162,7 @@ namespace MINT.EShop.Business.Services
             // Оновлюємо дані користувача на основі даних з UpdateUserDataRequest
             existingUser.FirstName = request.FirstName;
             existingUser.LastName = request.LastName;
+            existingUser.ClientAccount.PhoneNumber = request.PhoneNumber;
 
             // Завершимо транзакцію та зберігаємо зміни в базі даних
             await unitOfWork.CompleteAsync();
@@ -169,7 +173,8 @@ namespace MINT.EShop.Business.Services
                 Id = existingUser.Id,
                 Email = existingUser.Email,
                 FirstName = existingUser.FirstName,
-                LastName = existingUser.LastName
+                LastName = existingUser.LastName,
+                PhoneNumber = existingUser.ClientAccount.PhoneNumber
             };
         }
 

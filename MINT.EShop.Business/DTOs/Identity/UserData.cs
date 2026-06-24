@@ -17,10 +17,10 @@ public record UserData
     /// <example>Марія</example>
     public required string FirstName { get; init; }
     /// <summary>
-    /// Прізвище (може бути відсутнім)
+    /// Номер телефону
     /// </summary>
-    /// <example>Кузьма</example>
-    public required string? LastName { get; init; }
+    /// <example>0938057198</example>
+    public required string PhoneNumber { get; init; }
     /// <summary>
     /// Верифікаційний код (6 значень)
     /// </summary>

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using MINT.EShop.Core.Entities;
+using MINT.EShop.Core.Entities.UserData;
 
 namespace MINT.EShop.Infrastracture.Configurations
 {
@@ -12,6 +12,10 @@ namespace MINT.EShop.Infrastracture.Configurations
 
             builder.Property(c => c.UserId)
                 .IsRequired();
+
+            builder.Property(c => c.PhoneNumber)
+                .IsRequired()
+                .HasMaxLength(15);
 
             builder.HasOne(c => c.User)
                 .WithOne(u => u.ClientAccount)
