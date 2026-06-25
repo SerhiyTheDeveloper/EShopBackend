@@ -21,9 +21,9 @@ namespace MINT.EShop.Infrastracture.Repositories
             return await dbContext.Producers.ToListAsync();
         }
 
-        public Task<Producer?> GetByIdAsync(Guid producerId)
+        public async Task<Producer?> GetByIdAsync(Guid producerId)
         {
-            return dbContext.Producers.FirstOrDefaultAsync(p => p.Id == producerId);
+            return await dbContext.Producers.FirstOrDefaultAsync(p => p.Id == producerId);
         }
 
         public void Update(Producer producer)

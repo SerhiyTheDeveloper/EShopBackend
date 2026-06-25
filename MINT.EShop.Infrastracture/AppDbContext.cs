@@ -17,6 +17,7 @@ namespace MINT.EShop.Infrastracture
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Producer> Producers { get; set; }
+        public DbSet<WishlistItem> WishlistItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,6 +30,7 @@ namespace MINT.EShop.Infrastracture
             modelBuilder.ApplyConfiguration(new ClientAccountConfiguration());
             modelBuilder.ApplyConfiguration(new CategoryConfiguration());
             modelBuilder.ApplyConfiguration(new ProducerConfiguration());
+            modelBuilder.ApplyConfiguration(new WishlistItemConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }

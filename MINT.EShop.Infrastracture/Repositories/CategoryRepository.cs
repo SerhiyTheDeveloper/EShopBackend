@@ -21,9 +21,9 @@ namespace MINT.EShop.Infrastracture.Repositories
             return await dbContext.Categories.ToListAsync();
         }
 
-        public Task<Category?> GetByIdAsync(Guid categoryId)
+        public async Task<Category?> GetByIdAsync(Guid categoryId)
         {
-            return dbContext.Categories.FirstOrDefaultAsync(c => c.Id == categoryId);
+            return await dbContext.Categories.FirstOrDefaultAsync(c => c.Id == categoryId);
         }
 
         public void Update(Category category)

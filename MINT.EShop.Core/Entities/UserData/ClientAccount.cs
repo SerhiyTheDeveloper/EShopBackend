@@ -1,6 +1,4 @@
-﻿using MINT.EShop.Core.Entities.UserData;
-
-namespace MINT.EShop.Core.Entities.UserData
+﻿namespace MINT.EShop.Core.Entities.UserData
 {
     public class ClientAccount
     {
@@ -8,6 +6,7 @@ namespace MINT.EShop.Core.Entities.UserData
         public required string PhoneNumber { get; set; }
         public required Guid UserId { get; set; }
         public User User { get; set; } = null!;
+        public List<WishlistItem> Wishlist { get; set; } = [];
         public List<Order.Order> Orders { get; set; } = [];
     }
 }
