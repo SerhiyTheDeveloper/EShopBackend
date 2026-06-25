@@ -11,7 +11,7 @@ namespace MINT.EShop.API.Controllers
     [Route("api/v1/[controller]")]
     [Authorize]
     [Produces("application/json")]
-    public class OrderController(IOrderService orderService, ILogger<OrderController> logger) : BaseController
+    public class OrdersController(IOrderService orderService, ILogger<OrdersController> logger) : BaseController
     {
         /// <summary>
         /// Отримати інформацію про всі замовлення. (Manager)
