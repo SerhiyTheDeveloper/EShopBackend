@@ -6,7 +6,7 @@ namespace MINT.EShop.Business.Interfaces
     {
         Task<IEnumerable<ProducerResponse>> GetAllAsync();
         Task<ProducerResponse?> GetByIdAsync(Guid id);
-        Task<ProducerResponse> CreateAsync(Guid producerId, CreateProducerRequest request);
+        Task<ProducerResponse> CreateAsync(CreateProducerRequest request);
         Task<ProducerResponse?> UpdateAsync(Guid id, UpdateProducerRequest request);
         Task<bool> DeleteAsync(Guid id);
     }
