@@ -35,7 +35,9 @@ namespace MINT.EShop.Business.Services
                 Name = product.Name,
                 Description = product.Description,
                 Price = product.Price,
-                Stock = product.Stock
+                Stock = product.Stock,
+                CategoryId = product.CategoryId,
+                ProducerId = product.ProducerId
             };
         }
 
@@ -65,7 +67,9 @@ namespace MINT.EShop.Business.Services
                 Name = p.Name,
                 Description = p.Description,
                 Price = p.Price,
-                Stock = p.Stock
+                Stock = p.Stock,
+                CategoryId = p.CategoryId,
+                ProducerId = p.ProducerId
             });
         }
 
@@ -84,7 +88,9 @@ namespace MINT.EShop.Business.Services
                 Name = product.Name,
                 Description = product.Description,
                 Price = product.Price,
-                Stock = product.Stock
+                Stock = product.Stock,
+                CategoryId = product.CategoryId,
+                ProducerId = product.ProducerId
             };
         }
 
@@ -100,7 +106,9 @@ namespace MINT.EShop.Business.Services
                 Name = p.Name,
                 Description = p.Description,
                 Price = p.Price,
-                Stock = p.Stock
+                Stock = p.Stock,
+                CategoryId = p.CategoryId,
+                ProducerId = p.ProducerId
             });
         }
 
@@ -126,7 +134,9 @@ namespace MINT.EShop.Business.Services
                 Name = existingProduct.Name,
                 Description = existingProduct.Description,
                 Price = existingProduct.Price,
-                Stock = existingProduct.Stock
+                Stock = existingProduct.Stock,
+                CategoryId = existingProduct.CategoryId,
+                ProducerId = existingProduct.ProducerId
             };
         }
     }
