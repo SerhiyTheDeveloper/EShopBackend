@@ -36,6 +36,11 @@ namespace MINT.EShop.Business.DTOs.Products
         /// </summary>
         /// <example>550e8400-e29b-41d4-a716-446655440001</example>
         public required Guid ProducerId { get; init; }
+        /// <summary>
+        /// URL зображення товару.
+        /// </summary>
+        /// <example>/images/products/7b9e4a12.webp</example>
+        public required string ImageUrl { get; init; }
 
     }
 }

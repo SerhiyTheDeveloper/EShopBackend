@@ -19,7 +19,8 @@ namespace MINT.EShop.Business.Services
                 Price = request.Price,
                 Stock = request.Stock,
                 CategoryId = request.CategoryId,
-                ProducerId = request.ProducerId
+                ProducerId = request.ProducerId,
+                ImageUrl = request.ImageUrl
             };
 
             // Зберігаємо продукт у репозиторії
@@ -37,7 +38,8 @@ namespace MINT.EShop.Business.Services
                 Price = product.Price,
                 Stock = product.Stock,
                 CategoryId = product.CategoryId,
-                ProducerId = product.ProducerId
+                ProducerId = product.ProducerId,
+                ImageUrl = product.ImageUrl
             };
         }
 
@@ -69,7 +71,8 @@ namespace MINT.EShop.Business.Services
                 Price = p.Price,
                 Stock = p.Stock,
                 CategoryId = p.CategoryId,
-                ProducerId = p.ProducerId
+                ProducerId = p.ProducerId,
+                ImageUrl = p.ImageUrl
             });
         }
 
@@ -90,7 +93,8 @@ namespace MINT.EShop.Business.Services
                 Price = product.Price,
                 Stock = product.Stock,
                 CategoryId = product.CategoryId,
-                ProducerId = product.ProducerId
+                ProducerId = product.ProducerId,
+                ImageUrl = product.ImageUrl
             };
         }
 
@@ -108,7 +112,8 @@ namespace MINT.EShop.Business.Services
                 Price = p.Price,
                 Stock = p.Stock,
                 CategoryId = p.CategoryId,
-                ProducerId = p.ProducerId
+                ProducerId = p.ProducerId,
+                ImageUrl = p.ImageUrl
             });
         }
 
@@ -136,7 +141,8 @@ namespace MINT.EShop.Business.Services
                 Price = existingProduct.Price,
                 Stock = existingProduct.Stock,
                 CategoryId = existingProduct.CategoryId,
-                ProducerId = existingProduct.ProducerId
+                ProducerId = existingProduct.ProducerId,
+                ImageUrl = existingProduct.ImageUrl
             };
         }
     }

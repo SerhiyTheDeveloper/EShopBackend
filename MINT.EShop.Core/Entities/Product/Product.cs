@@ -12,5 +12,6 @@
         public Category Category { get; set; } = null!;
         public required Guid ProducerId { get; set; }
         public Producer Producer { get; set; } = null!;
+        public required string ImageUrl { get; set; }
     }
 }

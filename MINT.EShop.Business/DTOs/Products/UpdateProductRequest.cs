@@ -26,5 +26,10 @@ namespace MINT.EShop.Business.DTOs.Products
         /// <example>5</example>
         [Range(0, int.MaxValue, ErrorMessage = "Stock must be at least 0.")]
         public required int Stock { get; init; }
+        /// <summary>
+        /// URL зображення товару.
+        /// </summary>
+        /// <example>/images/products/7b9e4a12.webp</example>
+        public required string ImageUrl { get; init; }
     }
 }
