@@ -4,29 +4,29 @@ using MINT.EShop.Core.Interfaces;
 
 namespace MINT.EShop.Infrastracture.Repositories
 {
-    public class WishlistItemRepository(AppDbContext dbContext) : IWishlistItemRepository
+    public class WishListItemRepository(AppDbContext dbContext) : IWishListItemRepository
     {
-        public async Task AddAsync(WishlistItem wishlistItem)
+        public async Task AddAsync(WishListItem wishListItem)
         {
-            await dbContext.WishlistItems.AddAsync(wishlistItem);
+            await dbContext.WishListItems.AddAsync(wishListItem);
         }
 
-        public async Task<WishlistItem?> GetByIdAsync(Guid clientId, Guid productId)
+        public async Task<WishListItem?> GetByIdAsync(Guid clientId, Guid productId)
         {
-            return await dbContext.WishlistItems
+            return await dbContext.WishListItems
                 .FirstOrDefaultAsync(wli => wli.ClientId == clientId && wli.ProductId == productId);
         }
 
-        public async Task<List<WishlistItem>> GetAllAsync(Guid clientId)
+        public async Task<List<WishListItem>> GetAllAsync(Guid clientId)
         {
-            return await dbContext.WishlistItems
+            return await dbContext.WishListItems
                 .Where(wli => wli.ClientId == clientId)
                 .ToListAsync();
         }
 
-        public void Delete(WishlistItem wishlistItem)
+        public void Delete(WishListItem wishListItem)
         {
-            dbContext.WishlistItems.Remove(wishlistItem);
+            dbContext.WishListItems.Remove(wishListItem);
         }
     }
 }

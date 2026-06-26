@@ -2,11 +2,11 @@
 
 namespace MINT.EShop.Core.Interfaces
 {
-    public interface IWishlistItemRepository
+    public interface IWishListItemRepository
     {
-        Task<WishlistItem?> GetByIdAsync(Guid clientId, Guid productId);
-        Task<List<WishlistItem>> GetAllAsync(Guid clientId);
-        Task AddAsync(WishlistItem wishlistItem);
-        void Delete(WishlistItem wishlistItem);
+        Task<WishListItem?> GetByIdAsync(Guid clientId, Guid productId);
+        Task<List<WishListItem>> GetAllAsync(Guid clientId);
+        Task AddAsync(WishListItem wishListItem);
+        void Delete(WishListItem wishListItem);
     }
 }

@@ -4,9 +4,9 @@ using MINT.EShop.Core.Entities.UserData;
 
 namespace MINT.EShop.Infrastracture.Configurations
 {
-    public class WishlistItemConfiguration : IEntityTypeConfiguration<WishlistItem>
+    public class WishListItemConfiguration : IEntityTypeConfiguration<WishListItem>
     {
-        public void Configure(EntityTypeBuilder<WishlistItem> builder)
+        public void Configure(EntityTypeBuilder<WishListItem> builder)
         {
             builder.HasKey(w => new { w.ClientId, w.ProductId });
 

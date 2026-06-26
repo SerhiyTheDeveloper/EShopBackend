@@ -1,6 +1,6 @@
 ﻿namespace MINT.EShop.Core.Entities.UserData
 {
-    public class WishlistItem
+    public class WishListItem
     {
         public required Guid ClientId { get; set; }
         public required Guid ProductId { get; set; }

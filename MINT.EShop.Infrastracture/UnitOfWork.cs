@@ -12,14 +12,14 @@ namespace MINT.EShop.Infrastracture
         private IOrderRepository? _orderRepository;
         private ICategoryRepository? _categoryRepository;
         private IProducerRepository? _producerRepository;
-        private IWishlistItemRepository? _wishlistItemsRepository;
+        private IWishListItemRepository? _wishlistItemsRepository;
 
         public IUserRepository Users => _userRepository ??= new UserRepository(_dbContext);
         public IProductRepository Products => _productRepository ??= new ProductRepository(_dbContext);
         public IOrderRepository Orders => _orderRepository ??= new OrderRepository(_dbContext);
         public ICategoryRepository Categories => _categoryRepository ??= new CategoryRepository(_dbContext);
         public IProducerRepository Producers => _producerRepository ??= new ProducerRepository(_dbContext);
-        public IWishlistItemRepository WishlistItems => _wishlistItemsRepository ??= new WishlistItemRepository(_dbContext);
+        public IWishListItemRepository WishlistItems => _wishlistItemsRepository ??= new WishListItemRepository(_dbContext);
 
         public async Task<int> CompleteAsync()
         {
