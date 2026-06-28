@@ -16,9 +16,12 @@ namespace MINT.EShop.Infrastracture.Repositories
             dbContext.Products.Remove(product);
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync(decimal? maxPrice = null, decimal? minPrice = null, Guid? category = null, Guid? producer = null)
+        public async Task<IEnumerable<Product>> GetAllAsync(decimal? maxPrice = null, decimal? minPrice = null, string? category = null, string? producer = null)
         {
-            var query = dbContext.Products.AsQueryable();
+            var query = dbContext.Products
+                .Include(p => p.Category)
+                .Include(p => p.Producer)
+                .AsQueryable();
 
             if (maxPrice.HasValue)
             {
@@ -30,14 +33,14 @@ namespace MINT.EShop.Infrastracture.Repositories
                 query = query.Where(p => p.Price >= minPrice.Value);
             }
 
-            if (category.HasValue)
+            if (category != null)
             {
-                query = query.Where(p => p.CategoryId == category.Value);
+                query = query.Where(p => p.Category.Slug == category);
             }
 
-            if (producer.HasValue)
+            if (producer != null)
             {
-                query = query.Where(p => p.ProducerId == producer.Value);
+                query = query.Where(p => p.Producer.Slug == producer);
             }
 
             return await query.ToListAsync();
@@ -45,12 +48,19 @@ namespace MINT.EShop.Infrastracture.Repositories
 
         public async Task<Product?> GetByIdAsync(Guid productId)
         {
-            return await dbContext.Products.FirstOrDefaultAsync(p => p.Id == productId);
+            return await dbContext.Products
+                .Include(p => p.Category)
+                .Include(p => p.Producer)
+                .FirstOrDefaultAsync(p => p.Id == productId);
         }
 
         public async Task<IEnumerable<Product>> GetByIdsAsync(IEnumerable<Guid> productIds)
         {
-            return await dbContext.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
+            return await dbContext.Products
+                .Include(p => p.Category)
+                .Include(p => p.Producer)
+                .Where(p => productIds.Contains(p.Id))
+                .ToListAsync();
         }
 
         public void Update(Product product)

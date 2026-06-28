@@ -1,7 +1,4 @@
-﻿using MINT.EShop.Core.Entities;
-using MINT.EShop.Core.Enums;
-
-namespace MINT.EShop.Business.DTOs.Products
+﻿namespace MINT.EShop.Business.DTOs.Products
 {
     public record GetProductsFilter
     {
@@ -17,10 +14,10 @@ namespace MINT.EShop.Business.DTOs.Products
         /// <summary>
         /// Категорія товарів для фільтрації.
         /// </summary>
-        public Guid? Category { get; init; }
+        public string? Category { get; init; }
         /// <summary>
         /// Виробник товарів для фільтрації.
         /// </summary>
-        public Guid? Producer { get; init; }
+        public string? Producer { get; init; }
     }
 }

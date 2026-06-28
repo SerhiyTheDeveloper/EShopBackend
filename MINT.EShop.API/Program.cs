@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection("AdminSetup"));
+builder.Services.Configure<ManagerOptions>(builder.Configuration.GetSection("ManagerSetup"));
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("EmailSettings"));
 
 var dbType = (DatabaseType)builder.Configuration.GetValue<int>("DatabaseType");
@@ -40,6 +41,13 @@ builder.Services.AddAuthenticationExtension(builder.Configuration);
 
 builder.Services.AddAuthorizationBuilderExtension();
 
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowBlazor", policy =>
+        policy.WithOrigins("https://localhost:7136")
+              .AllowAnyMethod()
+              .AllowAnyHeader());
+});
+
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandler>();
@@ -55,6 +63,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStatusCodePagesExtension();
+
+app.UseCors("AllowBlazor");
 
 app.UseAuthentication();
 app.UseAuthorization();

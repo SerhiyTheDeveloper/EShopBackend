@@ -29,17 +29,21 @@ namespace MINT.EShop.Business.Services
             // Завершуємо транзакцію, щоб зберегти зміни в базі даних
             await unitOfWork.CompleteAsync();
 
+            // Отримуємо створений продукт з бази даних та перевіряємо на null
+            var createdProduct = await unitOfWork.Products.GetByIdAsync(product.Id)
+                ?? throw new Exception("Failed to retrieve the created product.");
+
             // Повертаємо відповідь у форматі ProductResponse
             return new ProductResponse
             {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                Stock = product.Stock,
-                CategoryId = product.CategoryId,
-                ProducerId = product.ProducerId,
-                ImageUrl = product.ImageUrl
+                Id = createdProduct.Id,
+                Name = createdProduct.Name,
+                Description = createdProduct.Description,
+                Price = createdProduct.Price,
+                Stock = createdProduct.Stock,
+                Category = createdProduct.Category.Name,
+                Producer = createdProduct.Producer.Name,
+                ImageUrl = createdProduct.ImageUrl
             };
         }
 
@@ -70,8 +74,8 @@ namespace MINT.EShop.Business.Services
                 Description = p.Description,
                 Price = p.Price,
                 Stock = p.Stock,
-                CategoryId = p.CategoryId,
-                ProducerId = p.ProducerId,
+                Category = p.Category.Name,
+                Producer = p.Producer.Name,
                 ImageUrl = p.ImageUrl
             });
         }
@@ -92,8 +96,8 @@ namespace MINT.EShop.Business.Services
                 Description = product.Description,
                 Price = product.Price,
                 Stock = product.Stock,
-                CategoryId = product.CategoryId,
-                ProducerId = product.ProducerId,
+                Category = product.Category.Name,
+                Producer = product.Producer.Name,
                 ImageUrl = product.ImageUrl
             };
         }
@@ -111,8 +115,8 @@ namespace MINT.EShop.Business.Services
                 Description = p.Description,
                 Price = p.Price,
                 Stock = p.Stock,
-                CategoryId = p.CategoryId,
-                ProducerId = p.ProducerId,
+                Category = p.Category.Name,
+                Producer = p.Producer.Name,
                 ImageUrl = p.ImageUrl
             });
         }
@@ -140,8 +144,8 @@ namespace MINT.EShop.Business.Services
                 Description = existingProduct.Description,
                 Price = existingProduct.Price,
                 Stock = existingProduct.Stock,
-                CategoryId = existingProduct.CategoryId,
-                ProducerId = existingProduct.ProducerId,
+                Category = existingProduct.Category.Name,
+                Producer = existingProduct.Producer.Name,
                 ImageUrl = existingProduct.ImageUrl
             };
         }
