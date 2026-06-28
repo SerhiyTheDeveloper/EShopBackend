@@ -1,0 +1,95 @@
+﻿@page "/"
+@inject HttpClient Http
+@rendermode InteractiveServer
+@using MINT.EShop.API.Wrappers
+@using MINT.EShop.Business.DTOs.Products
+
+<PageTitle>Shopik - інтернет-магазин електроніки</PageTitle>
+
+<main class="container">
+	<div class="page-head" style="padding-bottom:0;">
+		<h1 style="font-size:24px;">Рекомендовані товари</h1>
+	</div>
+
+	<section style="padding-top:18px;">
+		@if (apiResponse == null)
+		{
+			<div class="loading">Завантаження товарів...</div>
+		}
+		else if (apiResponse.Data == null || !apiResponse.Data.Any())
+		{
+			<div class="empty">Товарів не знайдено.</div>
+		}
+		else
+		{
+			<div class="product-grid">
+				@foreach (var product in apiResponse.Data)
+				{
+					<article class="product-card">
+						<button class="product-card__wish" aria-label="Додати до вподобань">
+							<svg class="icon icon--sm" viewBox="0 0 24 24">
+								<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+							</svg>
+						</button>
+						<span class="product-card__tag">-10%</span>
+						<div class="product-card__media">
+							<span class="product-card__blob"></span>
+							<svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.4"></rect><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"></line></svg>
+						</div>
+						<p class="product-card__category">@product.Category</p>
+						<h3 class="product-card__title">@product.Name</h3>
+						<div class="product-card__rating">
+							<svg class="icon icon--sm icon--fill" viewBox="0 0 24 24"><path d="M12 2.5l3 6.3 6.9.9-5 4.9 1.3 6.9L12 18l-6.2 3.5 1.3-6.9-5-4.9 6.9-.9z"></path></svg>
+							4.8 (212)
+						</div>
+						<div class="product-card__price-row">
+							<span class="price">@product.Price ₴</span>
+						</div>
+						<button class="btn-add">У кошик</button>
+					</article>
+				}
+			</div>
+		}
+	</section>
+</main>
+
+@code{
+	private APIResponseBlazor<IEnumerable<ProductResponseBlazor>>? apiResponse;
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			apiResponse = await Http.GetFromJsonAsync<APIResponseBlazor<IEnumerable<ProductResponseBlazor>>>("api/v1/Products");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Помилка завантаження даних: {ex.Message}");
+		}
+	}
+
+	public class APIResponseBlazor<T>
+	{
+		public APIResponseBlazor() { }
+
+		public T? Data { get; set; }
+		public string? Message { get; set; }
+		public bool Success { get; set; }
+		public List<string> Errors { get; set; } = null!;
+		public DateTime Timestamp { get; set; }
+	}
+
+	public class ProductResponseBlazor
+	{
+		public ProductResponseBlazor() { }
+
+		public string Name { get; set; } = null!;
+		public string? Description { get; set; }
+		public decimal Price { get; set; }
+		public int Stock { get; set; }
+		public string Category { get; set; } = null!;
+		public string Producer { get; set; } = null!;
+		public string ImageUrl { get; set; } = null!;
+	}
+}
+

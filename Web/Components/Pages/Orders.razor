@@ -1,0 +1,38 @@
+﻿@page "/orders"
+
+<main class="container">
+	<div class="page-head">
+		<div class="breadcrumb">
+			<a href="index-logged-in.html">Головна</a>
+			<svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"></polyline></svg>
+			<span>Список замовлень</span>
+		</div>
+		<h1>Список замовлень</h1>
+		<p class="page-head__sub">4 замовлення за весь час</p>
+	</div>
+
+	<div class="order-list">
+
+		<div class="order-card">
+			<div class="order-card__head">
+				<div>
+					<div class="order-card__num">Замовлення #SH-10482</div>
+					<div class="order-card__date">12 червня 2026</div>
+				</div>
+				<span class="order-status order-status--delivered">Доставлено</span>
+			</div>
+			<div class="order-card__items">
+				<div class="order-thumb"><svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.4"></rect><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"></line></svg></div>
+				<div class="order-thumb"><svg class="icon" viewBox="0 0 24 24"><path d="M3 13a9 9 0 0 1 18 0"></path><rect x="2.4" y="13" width="4" height="7" rx="1.6"></rect><rect x="17.6" y="13" width="4" height="7" rx="1.6"></rect></svg></div>
+			</div>
+			<div class="order-card__foot">
+				<div class="order-card__total">Разом: <span class="price">35 198 ₴</span></div>
+				<a href="#" class="btn btn--outline btn--sm">Деталі</a>
+			</div>
+		</div>
+	</div>
+</main>
+
+@code {
+
+}
