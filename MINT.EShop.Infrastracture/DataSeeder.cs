@@ -9,36 +9,54 @@ using MINT.EShop.Core.Options;
 
 namespace MINT.EShop.Infrastracture
 {
-    public class DataSeeder(AppDbContext dbContext, IOptions<AdminOptions> options) : IDataSeeder
+    public class DataSeeder(AppDbContext dbContext, IOptions<AdminOptions> adminOptions, IOptions<ManagerOptions> managerOptions) : IDataSeeder
     {
-        private readonly AdminOptions _options = options.Value;
+        private readonly AdminOptions _adminOptions = adminOptions.Value;
+        private readonly ManagerOptions _managerOptions = managerOptions.Value;
         public async Task SeedAsync()
         {
             if (!await dbContext.Users.AnyAsync())
             {
-                var adminUser = new User
+                var admin = new User
                 {
-                    Email = _options.Email,
-                    FirstName = _options.FirstName,
+                    Email = _adminOptions.Email,
+                    FirstName = _adminOptions.FirstName,
                     Role = Role.Admin
                 };
-
                 var credential = new UserCredential
                 {
-                    UserId = adminUser.Id,
-                    PasswordHash = _options.Password
+                    UserId = admin.Id,
+                    PasswordHash = _adminOptions.Password
                 };
-
                 var clientAccount = new ClientAccount
                 {
-                    UserId = adminUser.Id,
-                    PhoneNumber = _options.PhoneNumber
+                    UserId = admin.Id,
+                    PhoneNumber = _adminOptions.PhoneNumber
                 };
+                admin.Credential = credential;
+                admin.ClientAccount = clientAccount;
 
-                adminUser.Credential = credential;
-                adminUser.ClientAccount = clientAccount;
+                var manager = new User
+                {
+                    Email = _managerOptions.Email,
+                    FirstName = _managerOptions.FirstName,
+                    Role = Role.Manager
+                };
+                var managerCredential = new UserCredential
+                {
+                    UserId = manager.Id,
+                    PasswordHash = _managerOptions.Password
+                };
+                var managerClientAccount = new ClientAccount
+                {
+                    UserId = manager.Id,
+                    PhoneNumber = _managerOptions.PhoneNumber
+                };
+                manager.Credential = managerCredential;
+                manager.ClientAccount = managerClientAccount;
 
-                dbContext.Users.Add(adminUser);
+                dbContext.Users.Add(admin);
+                dbContext.Users.Add(manager);
                 await dbContext.SaveChangesAsync();
             }
         }
