@@ -1,37 +1,7 @@
 ﻿@inherits LayoutComponentBase
+@inject UiStateService UiState
 
-<header class="topbar">
-    <div class="topbar__inner">
-        <a href="/" class="logo">Shopik<span class="logo__dot">.</span></a>
-
-        <button type="button" class="btn-filter">
-            <svg class="icon" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"></line><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"></circle><line x1="4" y1="12" x2="20" y2="12"></line><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"></circle><line x1="4" y1="18" x2="20" y2="18"></line><circle cx="11" cy="18" r="2" fill="currentColor" stroke="none"></circle></svg>
-            <span>Фільтр</span>
-        </button>
-
-        <form class="search" role="search">
-            <input class="search__input" type="text" placeholder="Я шукаю...">
-            <button class="search__btn" type="submit" aria-label="Пошук">
-                <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </button>
-        </form>
-
-        <div class="topbar__actions">
-            <a href="cart.html" class="icon-btn icon-btn--cart" aria-label="Кошик">
-                <svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="19" cy="21" r="1.4" fill="currentColor" stroke="none"></circle><path d="M1.5 2h2.6l2.2 12.6a2.2 2.2 0 0 0 2.2 1.8h9.6a2.2 2.2 0 0 0 2.2-1.8L22 7H6"></path></svg>
-                <span class="icon-btn__badge">2</span>
-            </a>
-            <a href="modal-login.html" class="link-action"><span class="full">Увійти</span></a>
-            <a href="modal-register.html" class="link-action link-action--strong"><span class="full">Зареєструватися</span></a>
-            <a href="modal-login.html" class="icon-btn icon-btn--guest" aria-label="Ввійти або зареєструватися">
-                <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"></circle><path d="M4.5 20c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5"></path></svg>
-            </a>
-            <a href="panel-guest.html" class="icon-btn" aria-label="Меню">
-                <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </a>
-        </div>
-    </div>
-</header>
+<Header IsLogin="true"/>
 
 <main>
 	<article class="content px-4">
@@ -39,9 +9,14 @@
 	</article>
 </main>
 
+<Modals/>
 
 <div id="blazor-error-ui" data-nosnippet>
 	An unhandled error has occurred.
 	<a href="." class="reload">Reload</a>
 	<span class="dismiss">🗙</span>
 </div>
+
+@code {
+	private bool isLogin = false;
+}

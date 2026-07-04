@@ -1,0 +1,98 @@
+﻿@using MINT.EShop.Business.DTOs.Identity
+@inject UiStateService UiState
+@inject AuthApiClient AuthApi
+
+<div class="overlay">
+    <div class="modal" @onclick:stopPropagation>
+        <button type="button" class="modal__close" aria-label="Закрити" @onclick="Close">
+            <svg class="icon" viewBox="0 0 24 24">
+                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="18" y1="6" x2="6" y2="18" />
+            </svg>
+        </button>
+
+        <h2 class="modal__title">Вхід до акаунта</h2>
+        <p class="modal__subtitle">Раді бачити вас знову.</p>
+
+        <div class="field">
+            <label class="field__label" for="log-email">Електронна пошта</label>
+            <input class="input" id="log-email" type="email" placeholder="user@gmail.com" />
+        </div>
+
+        <div class="field">
+            <div class="field__label">
+                <label for="log-pass">Пароль</label>
+                <button type="button" class="field__link" style="background:none;border:none;padding:0;cursor:pointer;">
+                    Забули пароль?
+                </button>
+            </div>
+            <div class="input-wrap">
+                <input class="input input--with-icon" id="log-pass" type="password" placeholder="Введіть пароль" />
+                <button type="button" class="input-icon-btn" aria-label="Показати пароль">
+                    <svg class="icon icon--sm" viewBox="0 0 24 24">
+                        <path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn--primary btn--block" style="margin-top:6px;" disabled="@isProcessing">
+            @if (isProcessing)
+            {
+                <span>Вхід...</span>
+            }
+            else
+            {
+                <span>Увійти</span>
+            }
+        </button>
+
+        <p class="modal__foot">
+            Немає акаунта?
+            <button type="button" class="field__link" 
+                style="background:none;border:none;padding:0;color:var(--purple-600);font-weight:600;cursor:pointer;" 
+                @onclick="ShowRegister">
+                Зареєструватись
+            </button>
+        </p>
+    </div>
+</div>
+
+@code {
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private string errorMessage = string.Empty;
+    private bool isProcessing = false;
+
+    private void Close() => UiState.Show(Modal.None);
+    private void ShowRegister() => UiState.Show(Modal.Register);
+
+    private async Task HandleSubmit()
+    {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        LoginRequest request = new()
+        {
+            Email = email,
+            Password = password
+        };
+
+        var response = await AuthApi.LoginAsync(request);
+
+        if (response.Success)
+        {
+            var accessToken = response?.Data?.AccessToken;
+            var refreshToken = response?.Data?.RefreshToken;
+            var expiresDate = response?.Data?.ExpiresDate;
+            UiState.Show(Modal.None);
+        }
+        else
+        {
+            errorMessage = response.Message;
+        }
+        isProcessing = false;
+    }
+}
+

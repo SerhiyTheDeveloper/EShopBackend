@@ -1,0 +1,30 @@
+﻿@rendermode InteractiveServer
+@inject UiStateService UiState
+
+@switch (UiState.CurrentStep)
+{
+	case Modal.Register:
+		<RegisterModal OnSubmit="email => UiState.Show(Modal.VerifyEmail, email)" />
+		break;
+	case Modal.VerifyEmail:
+		<VerifyEmailModal/>
+		break;
+	case Modal.Login:
+		<LoginModal/>
+		break;
+}
+
+@code {
+
+	protected override void OnInitialized()
+	{
+		UiState.OnChange += HandleChange;
+	}
+
+	private void HandleChange() => InvokeAsync(StateHasChanged);
+
+	public void Dispose()
+	{
+		UiState.OnChange -= HandleChange;
+	}
+}

@@ -1,8 +1,7 @@
 ﻿@page "/"
 @inject HttpClient Http
+@inject UiStateService UiState
 @rendermode InteractiveServer
-@using MINT.EShop.API.Wrappers
-@using MINT.EShop.Business.DTOs.Products
 
 <PageTitle>Shopik - інтернет-магазин електроніки</PageTitle>
 
@@ -54,42 +53,17 @@
 </main>
 
 @code{
-	private APIResponseBlazor<IEnumerable<ProductResponseBlazor>>? apiResponse;
+	private APIResponse<IEnumerable<ProductResponse>>? apiResponse;
 
 	protected override async Task OnInitializedAsync()
 	{
 		try
 		{
-			apiResponse = await Http.GetFromJsonAsync<APIResponseBlazor<IEnumerable<ProductResponseBlazor>>>("api/v1/Products");
+			apiResponse = await Http.GetFromJsonAsync<APIResponse<IEnumerable<ProductResponse>>>("api/v1/Products");
 		}
 		catch (Exception ex)
 		{
 			Console.WriteLine($"Помилка завантаження даних: {ex.Message}");
 		}
 	}
-
-	public class APIResponseBlazor<T>
-	{
-		public APIResponseBlazor() { }
-
-		public T? Data { get; set; }
-		public string? Message { get; set; }
-		public bool Success { get; set; }
-		public List<string> Errors { get; set; } = null!;
-		public DateTime Timestamp { get; set; }
-	}
-
-	public class ProductResponseBlazor
-	{
-		public ProductResponseBlazor() { }
-
-		public string Name { get; set; } = null!;
-		public string? Description { get; set; }
-		public decimal Price { get; set; }
-		public int Stock { get; set; }
-		public string Category { get; set; } = null!;
-		public string Producer { get; set; } = null!;
-		public string ImageUrl { get; set; } = null!;
-	}
 }
-

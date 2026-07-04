@@ -1,0 +1,106 @@
+﻿@page "/account"
+
+<main class="container">
+    <div class="page-head">
+        <div class="breadcrumb">
+            <a href="index-logged-in.html">Головна</a>
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"></polyline></svg>
+            <span>Налаштування акаунта</span>
+        </div>
+        <h1>Налаштування акаунта</h1>
+        <p class="page-head__sub">Керуйте особистою інформацією та виглядом застосунку.</p>
+    </div>
+
+    <div class="settings-shell">
+        <aside class="settings-nav">
+            <a href="#" class="is-active">
+                <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"></circle><path d="M4.5 20c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5"></path></svg>
+                Профіль
+            </a>
+            <a href="#">
+                <svg class="icon" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+                Безпека
+            </a>
+            <a href="#">
+                <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"></circle><path d="M9.2 9.3a2.8 2.8 0 1 1 4 2.5c-0.9 0.5-1.4 1.1-1.4 2.2"></path><circle cx="12" cy="17.2" r="0.4" fill="currentColor" stroke="none"></circle></svg>
+                Допомога
+            </a>
+            <div style="margin-top:14px; border-top:1px solid var(--line-100); padding-top:12px;">
+                <a href="index.html" class="btn btn--danger-outline btn--block">
+                    <svg class="icon icon--sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    Вийти
+                </a>
+            </div>
+        </aside>
+
+        <div>
+            <div class="settings-card">
+                <h2>Особиста інформація</h2>
+                <p class="settings-card__desc">Ці дані бачить тільки ви та служба підтримки Shopik.</p>
+
+                <div class="settings-grid">
+                    <div class="field">
+                        <label class="field__label" for="set-name">Ім'я</label>
+                        <input class="input" id="set-name" type="text" value="Олена">
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="set-surname">Прізвище</label>
+                        <input class="input" id="set-surname" type="text" value="Коваль">
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="set-phone">Номер телефону</label>
+                        <div class="phone-wrap">
+                            <input class="phone-code" type="text" value="+380" aria-label="Код країни">
+                            <input class="input" id="set-phone" type="tel" value="67 123 45 67">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="set-email">Електронна пошта</label>
+                        <input class="input input--readonly" id="set-email" type="email" value="user@gmail.com" readonly>
+                        <p class="field__hint field__hint--lock">
+                            <svg class="icon icon--sm" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+                            Пошту не можна змінити
+                        </p>
+                    </div>
+                </div>
+
+                <div class="settings-card__actions">
+                    <button type="button" class="btn btn--outline">Скасувати</button>
+                    <button type="button" class="btn btn--primary">Зберегти зміни</button>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h2>Тема оформлення</h2>
+                <p class="settings-card__desc">Світла тема вже доступна. Темна — у розробці.</p>
+
+                <div class="theme-toggle">
+                    <div class="theme-option theme-option--active">
+                        <div class="theme-option__check">
+                            <svg class="icon icon--sm" viewBox="0 0 24 24"><polyline points="4 12 9 17 20 6"></polyline></svg>
+                        </div>
+                        <div class="theme-option__icon">
+                            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"></circle><line x1="12" y1="2" x2="12" y2="4.5"></line><line x1="12" y1="19.5" x2="12" y2="22"></line><line x1="4.2" y1="4.2" x2="6" y2="6"></line><line x1="18" y1="18" x2="19.8" y2="19.8"></line><line x1="2" y1="12" x2="4.5" y2="12"></line><line x1="19.5" y1="12" x2="22" y2="12"></line><line x1="4.2" y1="19.8" x2="6" y2="18"></line><line x1="18" y1="6" x2="19.8" y2="4.2"></line></svg>
+                        </div>
+                        <div class="theme-option__title">Світла</div>
+                        <div class="theme-option__sub">Активна тема</div>
+                        <div class="theme-preview"><span class="a"></span><span class="b"></span><span class="b"></span></div>
+                    </div>
+
+                    <div class="theme-option" style="opacity:.6;">
+                        <div class="theme-option__icon">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M20 14.5a8.5 8.5 0 1 1-9-12 7 7 0 0 0 9 12z"></path></svg>
+                        </div>
+                        <div class="theme-option__title">Темна</div>
+                        <div class="theme-option__sub">Скоро з'явиться</div>
+                        <div class="theme-preview theme-preview--dark"><span class="a"></span><span class="b"></span><span class="b"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@code {
+
+}

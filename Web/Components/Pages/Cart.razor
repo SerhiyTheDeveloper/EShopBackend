@@ -1,0 +1,76 @@
+﻿@* @page "/account/cart"
+
+<main class="container">
+	<div class="page-head">
+		<div class="breadcrumb">
+			<a href="index-logged-in.html">Головна</a>
+			<svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"></polyline></svg>
+			<span>Кошик</span>
+		</div>
+		<h1>Кошик</h1>
+		<p class="page-head__sub">2 товари у вашому кошику</p>
+	</div>
+
+	<div class="cart-layout">
+		@if (apiResponse == null)
+		{
+			<div class="loading">Завантаження товарів...</div>
+		}
+		else if (apiResponse.Data == null || !apiResponse.Data.Any())
+		{
+			<div class="empty">У кошику пусто.</div>
+		}
+		else
+		{
+			<div class="cart-list">
+				@foreach (var product in apiResponse.Data)
+				{
+					<div class="cart-item">
+						<div class="cart-item__media">
+							<svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.4"></rect><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"></line></svg>
+						</div>
+						<div class="cart-item__info">
+							<p class="cart-item__cat">@product.Category</p>
+							<h3 class="cart-item__title">@product.Name</h3>
+							<p class="cart-item__spec">@product.Description</p>
+						</div>
+						<div class="cart-item__qty">
+							<button class="qty-btn" aria-label="Зменшити кількість">
+								<svg class="icon icon--sm" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							</button>
+							<span class="qty-val">1</span>
+							<button class="qty-btn" aria-label="Збільшити кількість">
+								<svg class="icon icon--sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							</button>
+						</div>
+						<div class="cart-item__price">32 999 ₴</div>
+						<button class="cart-item__remove" aria-label="Видалити товар">
+							<svg class="icon icon--sm" viewBox="0 0 24 24"><polyline points="3.5 6.5 5.5 6.5 20.5 6.5"></polyline><path d="M18.5 6.5 17 19a2 2 0 0 1-2 1.8H9a2 2 0 0 1-2-1.8L5.5 6.5"></path><path d="M9.5 11v5M14.5 11v5"></path><path d="M9 6.5V4.3A1.3 1.3 0 0 1 10.3 3h3.4a1.3 1.3 0 0 1 1.3 1.3v2.2"></path></svg>
+						</button>
+					</div>
+				}
+			</div>
+
+			<div class="summary-card">
+				<h3>Разом</h3>
+				<div class="summary-row"><span>Товари (2)</span><span>35 198 ₴</span></div>
+				<div class="summary-row"><span>Доставка</span><span>Безкоштовно</span></div>
+
+				<div class="promo-row">
+					<input class="input" type="text" placeholder="Промокод">
+					<button class="btn btn--outline btn--sm">Застосувати</button>
+				</div>
+
+				<div class="summary-row summary-row--total"><span>До сплати</span><span class="price">35 198 ₴</span></div>
+
+				<a href="#" class="btn btn--primary btn--block" style="margin-top:18px;">Оформити замовлення</a>
+			</div>
+		}
+
+	</div>
+</main>
+
+@code {
+	    private ApiResponse<CartItemDto>? apiResponse;
+		...
+} *@

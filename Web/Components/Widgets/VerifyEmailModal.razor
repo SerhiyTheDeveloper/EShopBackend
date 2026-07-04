@@ -1,0 +1,47 @@
+﻿@inject UiStateService UiState
+<div class="overlay">
+    <div class="modal" style="max-width:400px; text-align:center;" @onclick:stopPropagation>
+        <button type="button" class="modal__close" aria-label="Закрити">
+            <svg class="icon" viewBox="0 0 24 24">
+                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="18" y1="6" x2="6" y2="18" />
+            </svg>
+        </button>
+
+        <div class="empty-state__icon" style="margin:0 auto 18px;">
+            <svg class="icon" viewBox="0 0 24 24">
+                <rect x="2.5" y="5" width="19" height="14" rx="2.4" />
+                <path d="M3 6.5 11 13a1.6 1.6 0 0 0 2 0l8-6.5" />
+            </svg>
+        </div>
+
+        <h2 class="modal__title">Підтвердьте пошту</h2>
+        <p class="modal__subtitle">
+            Ми надіслали 6-значний код на <b>@UiState.PendingEmail</b>
+        </p>
+
+        <div class="code-row">
+            <input class="code-box" maxlength="1" inputmode="numeric" />
+            <input class="code-box" maxlength="1" inputmode="numeric" />
+            <input class="code-box" maxlength="1" inputmode="numeric" />
+            <input class="code-box" maxlength="1" inputmode="numeric" />
+            <input class="code-box" maxlength="1" inputmode="numeric" />
+            <input class="code-box" maxlength="1" inputmode="numeric" />
+        </div>
+
+        <button type="button" class="btn btn--primary btn--block" style="margin-top:20px;">
+            Підтвердити та завершити
+        </button>
+
+        <p class="modal__resend">
+            Не отримали код?
+            <button type="button" style="background:none;border:none;padding:0;color:var(--purple-600);font-weight:600;cursor:pointer;">
+                Надіслати ще раз через 0:28
+            </button>
+        </p>
+    </div>
+</div>
+
+@code {
+
+}
