@@ -17,6 +17,11 @@ public record UserData
     /// <example>Марія</example>
     public required string FirstName { get; init; }
     /// <summary>
+    /// Прізвище
+    /// </summary>
+    /// <example>Кузьма</example>
+    public string? LastName { get; init; }
+    /// <summary>
     /// Номер телефону
     /// </summary>
     /// <example>0938057198</example>

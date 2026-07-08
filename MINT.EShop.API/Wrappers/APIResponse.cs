@@ -1,4 +1,6 @@
-﻿namespace MINT.EShop.API.Wrappers
+﻿using System.Text.Json.Serialization;
+
+namespace MINT.EShop.API.Wrappers
 {
     /// <summary>
     /// Обгортка для відповідей з API.
@@ -11,6 +13,8 @@
             Message = message;
             Errors = errors ?? [];
         }
+        [JsonConstructor]
+        protected APIResponse() { }
         /// <summary>
         /// Статус операції: true — все ок, false — сталася помилка.
         /// </summary>
@@ -20,12 +24,12 @@
         /// Текстове повідомлення.
         /// </summary>
         /// <example>The operation was completed successfully.</example>
-        public string Message { get; init; }
+        public string Message { get; init; } = null!;
         /// <summary>
         /// Список помилок при виконанні операції.
         /// </summary>
         /// <example>["Invalid product ID", "Product not found"]</example>
-        public List<string> Errors { get; init; }
+        public List<string> Errors { get; init; } = null!;
         /// <summary>
         /// Точний час створення відповіді.
         /// </summary>
@@ -57,6 +61,8 @@
         {
             Data = data;
         }
+        [JsonConstructor]
+        private APIResponse() : base() { }
         /// <summary>
         /// Самі дані. Якщо Success = false, тут зазвичай null.
         /// </summary>

@@ -1,4 +1,4 @@
-﻿namespace Web.Components.Services
+﻿namespace Web.Services
 {
     public enum Modal { None, Register, VerifyEmail, Login, ForgotPassword, ResetPassword, Filter, Settings }
 

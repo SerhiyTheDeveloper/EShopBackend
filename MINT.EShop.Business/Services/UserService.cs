@@ -61,6 +61,7 @@ namespace MINT.EShop.Business.Services
             {
                 Email = request.Email,
                 FirstName = request.FirstName,
+                LastName = request.LastName,
                 PasswordHash = passwordHash,
                 PhoneNumber = request.PhoneNumber,
                 VerificationCode = verificationCode
@@ -111,7 +112,8 @@ namespace MINT.EShop.Business.Services
             var user = new User
             {
                 Email = userData.Email,
-                FirstName = userData.FirstName
+                FirstName = userData.FirstName,
+                LastName = userData.LastName,
             };
 
             // Створюємо об'єкт UserCredential для збереження хешу пароля

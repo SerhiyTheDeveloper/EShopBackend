@@ -1,18 +1,22 @@
-﻿@rendermode InteractiveServer
+﻿@using Web.Services
+@rendermode InteractiveServer
 @inject UiStateService UiState
 
 @switch (UiState.CurrentStep)
 {
 	case Modal.Register:
-		<RegisterModal OnSubmit="email => UiState.Show(Modal.VerifyEmail, email)" />
+		<RegisterModal />
 		break;
 	case Modal.VerifyEmail:
-		<VerifyEmailModal/>
+		<VerifyEmailModal />
 		break;
 	case Modal.Login:
-		<LoginModal/>
+		<LoginModal />
 		break;
 }
+
+<SettingsDrawer Login="true" />
+<FilterDrawer />
 
 @code {
 

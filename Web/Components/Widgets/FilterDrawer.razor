@@ -1,0 +1,135 @@
+﻿@inject UiStateService UiState;
+
+<div class="sidepanel-overlay @(isOpen ? "active" : "")" @onclick="Close">
+    <aside class="drawer drawer--left @(isOpen ? "open" : "")" @onclick:stopPropagation="true">
+        <div class="drawer__filter-head">
+            <h3>Фільтр товарів</h3>
+            <button type="button" class="drawer__close" aria-label="Закрити" @onclick="Close">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="drawer__filter-body">
+
+            <div class="filter-block">
+                <div class="filter-block__label">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <line x1="12" y1="1" x2="12" y2="23" />
+                        <path d="M17 5.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                    Ціна, ₴
+                </div>
+                <div class="price-range">
+                    <input class="input" type="number" placeholder="від 0" />
+                    <span class="price-range__sep">—</span>
+                    <input class="input" type="number" placeholder="до 50000" />
+                </div>
+            </div>
+
+            <div class="filter-block">
+                <div class="filter-block__label">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="7" rx="1.4" />
+                        <rect x="14" y="3" width="7" height="7" rx="1.4" />
+                        <rect x="3" y="14" width="7" height="7" rx="1.4" />
+                        <rect x="14" y="14" width="7" height="7" rx="1.4" />
+                    </svg>
+                    Категорія
+                </div>
+                <div class="filter-cats">
+                    <label class="radio-row">
+                        <span class="radio-box"></span>
+                        <span class="checkbox-text">Телефони</span>
+                    </label>
+                    <label class="radio-row">
+                        <span class="radio-box"></span>
+                        <span class="checkbox-text">Ноутбуки</span>
+                    </label>
+                    <label class="radio-row">
+                        <span class="radio-box"></span>
+                        <span class="checkbox-text">Планшети</span>
+                    </label>
+                    <label class="radio-row">
+                        <span class="radio-box"></span>
+                        <span class="checkbox-text">Клавіатури</span>
+                    </label>
+                    <label class="radio-row">
+                        <span class="radio-box"></span>
+                        <span class="checkbox-text">Мишки</span>
+                    </label>
+                    <label class="radio-row">
+                        <span class="radio-box"></span>
+                        <span class="checkbox-text">Навушники</span>
+                    </label>
+                    <label class="radio-row radio-row--sub">
+                        <span class="radio-box"></span>
+                        <span class="checkbox-text">— Накладні</span>
+                    </label>
+                    <label class="radio-row radio-row--sub">
+                        <span class="radio-box"></span>
+                        <span class="checkbox-text">— Вкладки</span>
+                    </label>
+                    <label class="radio-row radio-row--sub">
+                        <span class="radio-box"></span>
+                        <span class="checkbox-text">— Провідні</span>
+                    </label>
+                </div>
+            </div>
+
+            @* Бренд заблокований — @if (selectedCategory == null) *@
+            <div class="filter-block filter-block--brand is-disabled">
+                <div class="filter-block__label">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M12 2l2.4 5 5.6.8-4 4 1 5.6L12 14.8 7 17.4l1-5.6-4-4 5.6-.8z" />
+                    </svg>
+                    Бренд
+                </div>
+                <div class="brand-locked">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <rect x="5" y="11" width="14" height="9" rx="2" />
+                        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                    </svg>
+                    Спочатку оберіть категорію
+                </div>
+            </div>
+
+            @* Бренд активний — @if (selectedCategory != null) *@
+            @*
+            <div class="filter-block filter-block--brand">
+                <div class="filter-block__label">...</div>
+                <div class="brand-chip-grid">
+                    <button type="button" class="brand-chip brand-chip--active">Apple</button>
+                    <button type="button" class="brand-chip">Samsung</button>
+                </div>
+            </div>
+            *@
+
+        </div>
+
+        <div class="drawer__filter-footer">
+            <button type="button" class="btn btn--outline">Скинути</button>
+            <button type="button" class="btn btn--primary">Показати</button>
+        </div>
+    </aside>
+</div>
+
+
+@code {
+    private bool isOpen => UiState.CurrentStep == Modal.Filter;
+
+	private void Close() => UiState.Show(Modal.None);
+    protected override void OnInitialized()
+    {
+        UiState.OnChange += HandleChange;
+    }
+
+    private void HandleChange() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        UiState.OnChange -= HandleChange;
+    }
+}

@@ -1,5 +1,5 @@
 using Web.Components;
-using Web.Components.Services;
+using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

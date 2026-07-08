@@ -1,0 +1,181 @@
+﻿@inject UiStateService UiState
+
+<div class="sidepanel-overlay @(isOpen ? "active" : "")" @onclick="Close">
+    <aside class="drawer @(isOpen ? "open" : "")" @onclick:stopPropagation="true">
+        <button type="button" class="drawer__close" aria-label="Закрити" @onclick="Close">
+            <svg class="icon" viewBox="0 0 24 24">
+                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="18" y1="6" x2="6" y2="18" />
+            </svg>
+        </button>
+
+        @if (Login)
+        {
+            <div class="drawer__profile">
+                <div class="drawer__avatar">ОК</div>
+                @* замінити ініціали на @userInitials *@
+                <div>
+                    <div class="drawer__name">Олена Коваль</div>
+                    @* замінити на @userName *@
+                    <div class="drawer__email">user@gmail.com</div>
+                    @* замінити на @userEmail *@
+                </div>
+            </div>
+
+            <nav class="drawer__nav">
+                <a href="/account/orders" class="drawer__item" @onclick="Close">
+                    <span class="drawer__item-icon">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <path d="M21 7.5 12 3 3 7.5 12 12l9-4.5z" />
+                            <path d="M3 7.5v9L12 21l9-4.5v-9" />
+                            <path d="M12 12v9" />
+                        </svg>
+                    </span>
+                    Список замовлень
+                    <span class="drawer__item-count">4</span>
+                    @* замінити 4 на @ordersCount *@
+                </a>
+                <a href="/account/wishlist" class="drawer__item" @onclick="Close">
+                    <span class="drawer__item-icon">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                    </span>
+                    Вподобання
+                    <span class="drawer__item-count">3</span>
+                    @* замінити 3 на @wishlistCount *@
+                </a>
+                <a href="/cart" class="drawer__item" @onclick="Close">
+                    <span class="drawer__item-icon">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none" />
+                            <circle cx="19" cy="21" r="1.4" fill="currentColor" stroke="none" />
+                            <path d="M1.5 2h2.6l2.2 12.6a2.2 2.2 0 0 0 2.2 1.8h9.6a2.2 2.2 0 0 0 2.2-1.8L22 7H6" />
+                        </svg>
+                    </span>
+                    Кошик
+                    <span class="drawer__item-count">2</span>
+                    @* замінити 2 на @cartCount *@
+                </a>
+                <a href="/account" class="drawer__item" @onclick="Close">
+                    <span class="drawer__item-icon">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3.2" />
+                            <path d="M12 3v2.4M12 18.6V21M4.2 4.2l1.7 1.7M18 18l1.7 1.7M3 12h2.4M18.6 12H21M4.2 19.8l1.7-1.7M18 6l1.7-1.7" />
+                        </svg>
+                    </span>
+                    Налаштування акаунта
+                </a>
+                <a href="#" class="drawer__item" @onclick="Close">
+                    <span class="drawer__item-icon">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="9.5" />
+                            <path d="M9.2 9.3a2.8 2.8 0 1 1 4 2.5c-.9.5-1.4 1.1-1.4 2.2" />
+                            <circle cx="12" cy="17.2" r=".4" fill="currentColor" stroke="none" />
+                        </svg>
+                    </span>
+                    Допомога
+                </a>
+            </nav>
+
+            <div class="drawer__footer">
+                <button type="button" class="btn btn--danger-outline btn--block">
+                    <svg class="icon icon--sm" viewBox="0 0 24 24">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Вийти
+                </button>
+            </div>
+        }
+
+        else
+        {
+            <div class="drawer__auth-card" style="margin-top:8px;">
+                <p>Ви ще не увійшли</p>
+                <p>Увійдіть, щоб бачити історію замовлень і зберігати вподобання.</p>
+                <div class="drawer__auth-actions">
+                    <button type="button" class="btn btn--outline btn--sm" @onclick="ShowLogin">Увійти</button>
+                    <button type="button" class="btn btn--primary btn--sm" @onclick="ShowRegister">Реєстрація</button>
+                </div>
+            </div>
+
+            <nav class="drawer__nav">
+                <a href="/cart" class="drawer__item">
+                    <span class="drawer__item-icon">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none" />
+                            <circle cx="19" cy="21" r="1.4" fill="currentColor" stroke="none" />
+                            <path d="M1.5 2h2.6l2.2 12.6a2.2 2.2 0 0 0 2.2 1.8h9.6a2.2 2.2 0 0 0 2.2-1.8L22 7H6" />
+                        </svg>
+                    </span>
+                    Кошик
+                </a>
+                <span class="drawer__item drawer__item--locked">
+                    <span class="drawer__item-icon">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                    </span>
+                    Вподобання
+                    <span class="drawer__lock">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <rect x="5" y="11" width="14" height="9" rx="2" />
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                        </svg>
+                    </span>
+                </span>
+                <span class="drawer__item drawer__item--locked">
+                    <span class="drawer__item-icon">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <path d="M21 7.5 12 3 3 7.5 12 12l9-4.5z" />
+                            <path d="M3 7.5v9L12 21l9-4.5v-9" />
+                            <path d="M12 12v9" />
+                        </svg>
+                    </span>
+                    Список замовлень
+                    <span class="drawer__lock">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <rect x="5" y="11" width="14" height="9" rx="2" />
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                        </svg>
+                    </span>
+                </span>
+                <a href="#" class="drawer__item">
+                    <span class="drawer__item-icon">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="9.5" />
+                            <path d="M9.2 9.3a2.8 2.8 0 1 1 4 2.5c-.9.5-1.4 1.1-1.4 2.2" />
+                            <circle cx="12" cy="17.2" r=".4" fill="currentColor" stroke="none" />
+                        </svg>
+                    </span>
+                    Допомога
+                </a>
+            </nav>
+        }
+
+    </aside>
+</div>
+
+@code {
+    [Parameter]
+    public bool Login { get; set; }
+	private bool isOpen => UiState.CurrentStep == Modal.Settings;
+
+    private void Close() => UiState.Show(Modal.None);
+	private void ShowLogin() => UiState.Show(Modal.Login);
+	private void ShowRegister() => UiState.Show(Modal.Register);
+
+    protected override void OnInitialized()
+    {
+        UiState.OnChange += HandleChange;
+    }
+
+    private void HandleChange() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        UiState.OnChange -= HandleChange;
+    }
+}

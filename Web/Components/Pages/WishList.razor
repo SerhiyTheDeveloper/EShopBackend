@@ -1,6 +1,6 @@
 ﻿@page "/account/wishlist"
 
-<main class="container">
+@* <main class="container">
     <div class="page-head">
         <div class="breadcrumb">
             <a href="index-logged-in.html">Головна</a>
@@ -25,13 +25,8 @@
                 </div>
                 <p class="product-card__category">Смартфони</p>
                 <h3 class="product-card__title">Apple iPhone 15 128GB</h3>
-                <div class="product-card__rating">
-                    <svg class="icon icon--sm icon--fill" viewBox="0 0 24 24"><path d="M12 2.5l3 6.3 6.9.9-5 4.9 1.3 6.9L12 18l-6.2 3.5 1.3-6.9-5-4.9 6.9-.9z"></path></svg>
-                    4.8 (212)
-                </div>
                 <div class="product-card__price-row">
                     <span class="price">32 999 ₴</span>
-                    <span class="price--old">36 999 ₴</span>
                 </div>
                 <button class="btn-add">У кошик</button>
             </article>
@@ -46,10 +41,6 @@
                 </div>
                 <p class="product-card__category">Мишки</p>
                 <h3 class="product-card__title">Logitech MX Master 3S</h3>
-                <div class="product-card__rating">
-                    <svg class="icon icon--sm icon--fill" viewBox="0 0 24 24"><path d="M12 2.5l3 6.3 6.9.9-5 4.9 1.3 6.9L12 18l-6.2 3.5 1.3-6.9-5-4.9 6.9-.9z"></path></svg>
-                    4.9 (410)
-                </div>
                 <div class="product-card__price-row">
                     <span class="price">3 299 ₴</span>
                 </div>
@@ -66,16 +57,94 @@
                 </div>
                 <p class="product-card__category">Навушники вкладки</p>
                 <h3 class="product-card__title">Apple AirPods 4</h3>
-                <div class="product-card__rating">
-                    <svg class="icon icon--sm icon--fill" viewBox="0 0 24 24"><path d="M12 2.5l3 6.3 6.9.9-5 4.9 1.3 6.9L12 18l-6.2 3.5 1.3-6.9-5-4.9 6.9-.9z"></path></svg>
-                    4.8 (520)
-                </div>
                 <div class="product-card__price-row">
                     <span class="price">5 499 ₴</span>
                 </div>
                 <button class="btn-add">У кошик</button>
             </article>
 
+        </div>
+    </section>
+</main> *@
+
+<PageTitle>Shopik — Вподобання</PageTitle>
+
+<main class="container"> 
+    <div class="page-head">
+        <div class="breadcrumb">
+            <a href="/">Головна</a>
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18" /></svg>
+            <span>Вподобання</span>
+        </div>
+        <h1>Вподобання</h1>
+        <p class="page-head__sub">3 товари, які ви зберегли</p>
+        @* замінити 3 на @products.Count *@
+    </div>
+
+    @* Порожній список — @if (!products.Any()) *@
+    @*
+    <div class="empty-state">
+        <div class="empty-state__icon">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+        </div>
+        <h3>Список вподобань порожній</h3>
+        <p>Зберігайте товари, які вам сподобались</p>
+        <a href="/" class="btn btn--primary">До каталогу</a>
+    </div>
+    *@
+
+    <section style="padding-top:6px;">
+        <div class="product-grid">
+            @* @foreach (var product in products) { <ProductCard IsWishlisted="true" ... /> } *@
+            <article class="product-card">
+                <button class="product-card__wish product-card__wish--active" aria-label="Прибрати з вподобань">
+                    <svg class="icon icon--sm icon--fill" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                </button>
+                <div class="product-card__media">
+                    <span class="product-card__blob"></span>
+                    <svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.4"></rect><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"></line></svg>
+                </div>
+                <p class="product-card__category">Смартфони</p>
+                <h3 class="product-card__title">Apple iPhone 15 128GB</h3>
+                <div class="product-card__price-row">
+                    <span class="price">32 999 ₴</span>
+                </div>
+                <button class="btn-add">У кошик</button>
+            </article>
+
+            <article class="product-card">
+                <button class="product-card__wish product-card__wish--active" aria-label="Прибрати з вподобань">
+                    <svg class="icon icon--sm icon--fill" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                </button>
+                <div class="product-card__media">
+                    <span class="product-card__blob"></span>
+                    <svg class="icon" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="5"></rect><line x1="12" y1="3" x2="12" y2="9"></line></svg>
+                </div>
+                <p class="product-card__category">Мишки</p>
+                <h3 class="product-card__title">Logitech MX Master 3S</h3>
+                <div class="product-card__price-row">
+                    <span class="price">3 299 ₴</span>
+                </div>
+                <button class="btn-add btn-add--active">У кошику</button>
+            </article>
+
+            <article class="product-card">
+                <button class="product-card__wish product-card__wish--active" aria-label="Прибрати з вподобань">
+                    <svg class="icon icon--sm icon--fill" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                </button>
+                <div class="product-card__media">
+                    <span class="product-card__blob"></span>
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M3 13a9 9 0 0 1 18 0"></path><rect x="2.4" y="13" width="4" height="7" rx="1.6"></rect><rect x="17.6" y="13" width="4" height="7" rx="1.6"></rect></svg>
+                </div>
+                <p class="product-card__category">Навушники вкладки</p>
+                <h3 class="product-card__title">Apple AirPods 4</h3>
+                <div class="product-card__price-row">
+                    <span class="price">5 499 ₴</span>
+                </div>
+                <button class="btn-add">У кошик</button>
+            </article>
         </div>
     </section>
 </main>

@@ -1,6 +1,10 @@
-﻿@inject UiStateService UiState
+﻿@using MINT.EShop.Business.DTOs.Identity
+@using Web.Services
+@using Web.Models
+@inject UiStateService UiState
+@inject AuthApiClient AuthApi
 
-<div class="overlay">
+<div class="overlay" @onclick="Close">
     <div class="modal" @onclick:stopPropagation>
         <button type="button" class="modal__close" aria-label="Закрити" @onclick="Close">
             <svg class="icon" viewBox="0 0 24 24">
@@ -13,53 +17,85 @@
         <p class="modal__subtitle-reg">Заповніть форму нижче — це займе одну хвилину.</p>
         <p class="modal__subtitle-reg__small">Заповніть форму нижче.</p>
 
-        <div class="field">
-            <label class="field__label" for="reg-email">Електронна пошта</label>
-            <input class="input" id="reg-email" type="email" placeholder="user@gmail.com" />
-        </div>
+        <EditForm Model="model" OnValidSubmit="HandleSubmit" novalidate>
+            <DataAnnotationsValidator />
 
-        <div class="field">
-            <label class="field__label" for="reg-pass">Пароль</label>
-            <div class="input-wrap">
-                <input class="input input--with-icon" id="reg-pass" type="password" placeholder="Введіть пароль" />
-                <button type="button" class="input-icon-btn" aria-label="Показати пароль">
-                    <svg class="icon icon--sm" viewBox="0 0 24 24">
-                        <path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z" />
-                        <circle cx="12" cy="12" r="3" />
-                    </svg>
-                </button>
+            <div class="field">
+                <label class="field__label" for="reg-email">Електронна пошта</label>
+                <InputText class="input" id="reg-email" type="email"
+                           placeholder="user@gmail.com"
+                           @bind-Value="model.Email" />
+                <ValidationMessage For="() => model.Email" class="field__error" />
             </div>
-            <p class="field__hint">Пароль щонайменше 8 символів.</p>
-        </div>
 
-        <div style="display:flex; gap:12px;">
-            <div class="field" style="flex:1;">
-                <label class="field__label" for="reg-name">Ім'я</label>
-                <input class="input" id="reg-name" type="text" placeholder="Ім'я" />
+            <div class="field">
+                <label class="field__label" for="reg-pass">Пароль</label>
+                <div class="input-wrap">
+                    <InputText class="input input--with-icon" id="reg-pass"
+                               type="@(showPassword ? "text" : "password")"
+                               placeholder="Введіть пароль"
+                               @bind-Value="model.Password" />
+                    <button type="button" class="input-icon-btn" aria-label="Показати пароль"
+                            @onclick="TogglePassword">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                </div>
+                <ValidationMessage For="() => model.Password" class="field__error" />
             </div>
-            <div class="field" style="flex:1;">
-                <label class="field__label" for="reg-surname">Прізвище</label>
-                <input class="input" id="reg-surname" type="text" placeholder="Прізвище" />
-            </div>
-        </div>
 
-        <div class="field">
-            <label class="field__label" for="reg-phone">Номер телефону</label>
-            <div class="phone-wrap">
-                <input class="phone-code" type="text" value="+380" readonly aria-label="Код країни" />
-                <input class="input" id="reg-phone" type="tel" placeholder="00 000 00 00" />
+            <div style="display:flex; gap:12px;">
+                <div class="field" style="flex:1;">
+                    <label class="field__label" for="reg-name">Ім'я</label>
+                    <InputText class="input" id="reg-name" type="text"
+                               placeholder="Ім'я"
+                               @bind-Value="model.FirstName" />
+                    <ValidationMessage For="() => model.FirstName" class="field__error" />
+                </div>
+                <div class="field" style="flex:1;">
+                    <label class="field__label" for="reg-surname"> <span>Прізвище<span class="field__label-optional">(необов'язково)</span></span></label>
+                    <InputText class="input" id="reg-surname" type="text"
+                               placeholder="Прізвище"
+                               @bind-Value="model.LastName" />
+                </div>
             </div>
-        </div>
 
-        <button type="button" class="btn btn--primary btn--block" style="margin-top:6px;">
-            Зареєструватися
-        </button>
+            <div class="field">
+                <label class="field__label" for="reg-phone">Номер телефону</label>
+                <div class="phone-wrap">
+                    <input class="phone-code" type="text" value="+380" readonly aria-label="Код країни" />
+                    <InputText class="input" id="reg-phone" type="tel"
+                               placeholder="00 000 00 00"
+                               @bind-Value="model.Phone" />
+                </div>
+                <ValidationMessage For="() => model.Phone" class="field__error" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <p class="field__error" style="margin-bottom:10px;">@errorMessage</p>
+            }
+
+            <button type="submit" class="btn btn--primary btn--block"
+                    style="margin-top:6px;" disabled="@isProcessing">
+                @if (isProcessing)
+                {
+                    <span>Зачекайте...</span>
+                }
+                else
+                {
+                    <span>Зареєструватися</span>
+                }
+            </button>
+        </EditForm>
 
         <p class="modal__foot">
             Вже маєте акаунт?
             <button type="button" class="field__link"
-                style="background:none;border:none;padding:0;color:var(--purple-600);font-weight:600;cursor:pointer;"
-                    @onclick="ShowLogin"> 
+                    style="background:none;border:none;padding:0;color:var(--purple-600);font-weight:600;cursor:pointer;"
+                    @onclick="ShowLogin">
                 Увійти
             </button>
         </p>
@@ -67,22 +103,51 @@
 </div>
 
 @code {
-    [Parameter] public EventCallback<string> OnSubmit { get; set; }
-
     private RegisterModel model = new();
+
+    private bool showPassword = false;
+    private bool isProcessing = false;
+    private string errorMessage = string.Empty;
 
     private void Close() => UiState.Show(Modal.None);
     private void ShowLogin() => UiState.Show(Modal.Login);
+    private void TogglePassword() => showPassword = !showPassword;
 
     private async Task HandleSubmit()
     {
-        // тут виклик твого API через HttpClient
-    }
+        if (isProcessing) return;
+        errorMessage = string.Empty;
+        isProcessing = true;
 
-    public class RegisterModel
-    {
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
+        RegisterRequest request = new()
+        {
+            Email = model.Email,
+            Password = model.Password,
+			FirstName = model.FirstName,
+			LastName = model.LastName,
+			PhoneNumber = model.Phone
+        };
+
+        try
+        {
+            var response = await AuthApi.RegisterAsync(request);
+
+            if (response.Success)
+            {
+                UiState.Show(Modal.VerifyEmail);
+            }
+            else
+            {
+                errorMessage = response.Message;
+            }
+        }
+        catch
+        {
+            errorMessage = "Помилка з'єднання. Спробуйте ще раз.";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
     }
 }

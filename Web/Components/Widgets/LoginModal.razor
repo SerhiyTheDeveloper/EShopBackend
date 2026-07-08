@@ -1,8 +1,10 @@
 ﻿@using MINT.EShop.Business.DTOs.Identity
+@using Web.Services
+@using Web.Services
 @inject UiStateService UiState
 @inject AuthApiClient AuthApi
 
-<div class="overlay">
+<div class="overlay" @onclick="Close">
     <div class="modal" @onclick:stopPropagation>
         <button type="button" class="modal__close" aria-label="Закрити" @onclick="Close">
             <svg class="icon" viewBox="0 0 24 24">
@@ -14,39 +16,56 @@
         <h2 class="modal__title">Вхід до акаунта</h2>
         <p class="modal__subtitle">Раді бачити вас знову.</p>
 
-        <div class="field">
-            <label class="field__label" for="log-email">Електронна пошта</label>
-            <input class="input" id="log-email" type="email" placeholder="user@gmail.com" />
-        </div>
+        <EditForm Model="model" OnValidSubmit="HandleSubmit" novalidate>
+			<DataAnnotationsValidator />
 
-        <div class="field">
-            <div class="field__label">
-                <label for="log-pass">Пароль</label>
-                <button type="button" class="field__link" style="background:none;border:none;padding:0;cursor:pointer;">
-                    Забули пароль?
-                </button>
+            <div class="field">
+                <label class="field__label" for="log-email">Електронна пошта</label>
+                <InputText class="input" id="log-email" type="email"
+                            placeholder="user@gmail.com" @bind-Value="model.Email" />
+                <ValidationMessage For="() => model.Email" class="field__error" />
             </div>
-            <div class="input-wrap">
-                <input class="input input--with-icon" id="log-pass" type="password" placeholder="Введіть пароль" />
-                <button type="button" class="input-icon-btn" aria-label="Показати пароль">
-                    <svg class="icon icon--sm" viewBox="0 0 24 24">
-                        <path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z" />
-                        <circle cx="12" cy="12" r="3" />
-                    </svg>
-                </button>
-            </div>
-        </div>
 
-        <button type="button" class="btn btn--primary btn--block" style="margin-top:6px;" disabled="@isProcessing">
-            @if (isProcessing)
+            <div class="field">
+                <div class="field__label">
+                    <label for="log-pass">Пароль</label>
+                    <button type="button" class="field__link" 
+                            style="background:none;border:none;padding:0;cursor:pointer;"
+                            @onclick="ShowForgotPassword">
+                        Забули пароль?
+                    </button>
+                </div>
+                <div class="input-wrap">
+                    <InputText class="input input--with-icon" id="log-pass"
+                               type="@(showPassword ? "text" : "password")"
+                               placeholder="Введіть пароль" @bind-Value="model.Password" />
+                    <button type="button" class="input-icon-btn" aria-label="Показати пароль"
+                            @onclick="TogglePassword">
+                        <svg class="icon icon--sm" viewBox="0 0 24 24">
+                            <path d="M1 12s4-7.5 11-7.5S23 12 23 12s-4 7.5-11 7.5S1 12 1 12z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                </div>
+                <ValidationMessage For="() => model.Password" class="field__error" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <span>Вхід...</span>
+                <p class="field__error" style="margin-bottom:10px;">@errorMessage</p>
             }
-            else
-            {
-                <span>Увійти</span>
-            }
-        </button>
+
+            <button type="submit" class="btn btn--primary btn--block" style="margin-top:6px;" disabled="@isProcessing">
+                @if (isProcessing)
+                {
+                    <span>Вхід...</span>
+                }
+                else
+                {
+                    <span>Увійти</span>
+                }
+            </button>
+        </EditForm>
 
         <p class="modal__foot">
             Немає акаунта?
@@ -60,39 +79,50 @@
 </div>
 
 @code {
-    private string email = string.Empty;
-    private string password = string.Empty;
+    private LoginModel model = new();
+
     private string errorMessage = string.Empty;
+    private bool showPassword = false;
     private bool isProcessing = false;
 
     private void Close() => UiState.Show(Modal.None);
     private void ShowRegister() => UiState.Show(Modal.Register);
+    private void ShowForgotPassword() => UiState.Show(Modal.ForgotPassword);
+    private void TogglePassword() => showPassword = !showPassword;
 
     private async Task HandleSubmit()
     {
         if (isProcessing) return;
+        errorMessage = string.Empty;
         isProcessing = true;
 
         LoginRequest request = new()
         {
-            Email = email,
-            Password = password
+            Email = model.Email,
+            Password = model.Password
         };
 
-        var response = await AuthApi.LoginAsync(request);
+        try
+        {
+            var response = await AuthApi.LoginAsync(request);
 
-        if (response.Success)
-        {
-            var accessToken = response?.Data?.AccessToken;
-            var refreshToken = response?.Data?.RefreshToken;
-            var expiresDate = response?.Data?.ExpiresDate;
-            UiState.Show(Modal.None);
+            if (response.Success)
+            {
+                UiState.Show(Modal.None);
+            }
+            else
+            {
+                errorMessage = response.Message;
+            }
         }
-        else
+        catch
         {
-            errorMessage = response.Message;
+            errorMessage = "Помилка з'єднання. Спробуйте ще раз.";
         }
-        isProcessing = false;
+        finally
+        {
+            isProcessing = false;
+        }
     }
 }
 

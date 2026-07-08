@@ -1,11 +1,12 @@
-﻿@rendermode InteractiveServer
+﻿@using Web.Services
+@rendermode InteractiveServer
 @inject UiStateService UiState
 
 <header class="topbar">
 	<div class="topbar__inner">
 		<a href="/" class="logo">Shopik<span class="logo__dot">.</span></a>
 
-		<button type="button" class="btn-filter">
+		<button type="button" class="btn-filter" @onclick="ShowFilter">
 			<svg class="icon" viewBox="0 0 24 24">
 				<line x1="4" y1="6" x2="20" y2="6" />
 				<circle cx="9" cy="6" r="2" fill="currentColor" stroke="none" />
@@ -56,10 +57,10 @@
 			}
 			else
 			{
-				<button type="button" class="link-action" @onclick="() => UiState.Show(Modal.Login)">
+				<button type="button" class="link-action" @onclick="ShowLogin">
 					<span class="full">Увійти</span>
 				</button>
-				<button type="button" class="link-action link-action--strong" @onclick="() => UiState.Show(Modal.Register)">
+				<button type="button" class="link-action link-action--strong" @onclick="ShowRegister">
 					<span class="full">Зареєструватися</span>
 				</button>
 				<button type="button" class="icon-btn icon-btn--guest" aria-label="Увійти або зареєструватися">
@@ -70,7 +71,7 @@
 				</button>
 			}
 
-			<button type="button" class="icon-btn" aria-label="Меню">
+			<button type="button" class="icon-btn" aria-label="Меню" @onclick="ShowSettings">
 				<svg class="icon" id="settings" viewBox="0 0 24 24">
 					<line x1="3" y1="6" x2="21" y2="6" />
 					<line x1="3" y1="12" x2="21" y2="12" />
@@ -84,4 +85,9 @@
 @code {
 	[Parameter]
 	public bool IsLogin { get; set; }
+
+	private void ShowFilter() => UiState.Show(Modal.Filter);
+	private void ShowLogin() => UiState.Show(Modal.Login);
+	private void ShowRegister() => UiState.Show(Modal.Register);
+	private void ShowSettings() => UiState.Show(Modal.Settings);
 }
