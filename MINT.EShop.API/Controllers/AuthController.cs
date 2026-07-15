@@ -8,7 +8,7 @@ namespace MINT.EShop.API.Controllers
     [Route("api/v1/[controller]")]
     [ApiController]
     [Produces("application/json")]
-    public class AuthController(IAuthService authService) : ControllerBase
+    public class AuthController(IAuthService authService, IConfiguration config) : ControllerBase
     {
         /// <summary>
         /// Ввід в систему.
@@ -32,6 +32,15 @@ namespace MINT.EShop.API.Controllers
             {
                 return Unauthorized(APIResponse.FailureResponse("Invalid email or password"));
             }
+
+            Response.Cookies.Append(config["JwtSettings:AccessToken"]!, result.AccessToken, new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddMinutes(double.Parse(config["JwtSettings:ExpiresInMinutes"]!))
+            });
+            Response.Cookies.Append(config["JwtSettings:RefreshToken"]!, result.RefreshToken, new CookieOptions
+            {
+                Expires = result.ExpiresDate
+            });
 
             // Формуємо відповідь у форматі ApiResponse та надсилаємо її
             var response = APIResponse<LoginResponse>.SuccessResponse(result);
