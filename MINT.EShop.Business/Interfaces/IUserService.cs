@@ -7,7 +7,8 @@ namespace MINT.EShop.Business.Interfaces
         Task<IEnumerable<UserResponse>> GetAllAsync();
         Task<UserResponse?> GetByIdAsync(Guid id);
         Task<RegisterResponse> RegisterAsync(RegisterRequest request);
-        Task<UserResponse?> VerifyAsync(VerifyRequest request);
+        Task<RegisterResponse> ResentCodeAsync(string email);
+        Task<VerifyResponse?> VerifyAsync(VerifyRequest request);
         Task<UserResponse?> UpdateDataAsync(Guid id, UpdateUserDataRequest request);
         Task<bool> DeleteAsync(Guid id);
         Task<bool> PromoteToManagerAsync(Guid id);

@@ -3,6 +3,7 @@
 @using Web.Models
 @inject UiStateService UiState
 @inject AuthApiClient AuthApi
+@inject IJSRuntime JS
 
 <div class="overlay" @onclick="Close">
     <div class="modal" @onclick:stopPropagation>
@@ -130,24 +131,17 @@
 
         try
         {
-            var response = await AuthApi.RegisterAsync(request);
-
-            if (response.Success)
-            {
-                UiState.Show(Modal.VerifyEmail);
-            }
-            else
-            {
-                errorMessage = response.Message;
-            }
+            errorMessage = await JS.InvokeAsync<string>("registerUser", request);
         }
         catch
         {
-            errorMessage = "Помилка з'єднання. Спробуйте ще раз.";
+            errorMessage = "Помилка. Спробуйте ще раз.";
         }
-        finally
+
+        if (string.IsNullOrEmpty(errorMessage))
         {
-            isProcessing = false;
-        }
+            UiState.Show(Modal.VerifyEmail, request.Email);
+		}
+		isProcessing = false;
     }
 }

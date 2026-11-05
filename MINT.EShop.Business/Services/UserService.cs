@@ -11,7 +11,9 @@ using MINT.EShop.Core.Interfaces;
 
 namespace MINT.EShop.Business.Services
 {
-    public class UserService(IUnitOfWork unitOfWork, IPasswordHasher passwordHasher, IDistributedCache cache, IEmailSender emailSender) : IUserService
+    public class UserService(IUnitOfWork unitOfWork, IPasswordHasher passwordHasher,
+        IDistributedCache cache, IEmailSender emailSender,
+        IJwtProvider jwtProvider) : IUserService
     {
         public async Task<IEnumerable<UserResponse>> GetAllAsync()
         {
@@ -87,8 +89,52 @@ namespace MINT.EShop.Business.Services
                 PhoneNumber = request.PhoneNumber
             };
         }
+        public async Task<RegisterResponse> ResentCodeAsync(string email)
+        {
+            // Перевіряємо чи існує даний email
+            if (await unitOfWork.Users.ExistsByEmailAsync(email))
+                throw new InvalidOperationException("This email is already registered.");
 
-        public async Task<UserResponse?> VerifyAsync(VerifyRequest request)
+            var oldJson = await cache.GetStringAsync(email) 
+                ?? throw new KeyNotFoundException("The code has expired. Please register again.");
+
+            var data = JsonSerializer.Deserialize<UserData>(oldJson)
+                ?? throw new JsonException("An error occurred. Please try again.");
+
+            var verificationCode = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+
+            // Створюємо DTO для Redis
+            var userData = new UserData
+            {
+                Email = email,
+                FirstName = data.FirstName,
+                LastName = data.LastName,
+                PasswordHash = data.PasswordHash,
+                PhoneNumber = data.PhoneNumber,
+                VerificationCode = verificationCode
+            };
+
+            // Серіалізуємо дані
+            var newJson = JsonSerializer.Serialize(userData);
+
+            // Зберігаємо в Redis
+            await cache.SetStringAsync(email, newJson, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            });
+
+            // Відправляємо верифікаційний код
+            _ = emailSender.SendVerificationCodeAsync(email, verificationCode);
+
+            // Повертаємо відповідь
+            return new RegisterResponse
+            {
+                Email = data.Email,
+                FirstName = data.FirstName,
+                PhoneNumber = data.PhoneNumber
+            };
+        }
+        public async Task<VerifyResponse?> VerifyAsync(VerifyRequest request)
         {
             // Дістаємо json з Redis та перевіряємо на null
             var json = await cache.GetStringAsync(request.Email);
@@ -136,21 +182,45 @@ namespace MINT.EShop.Business.Services
             // Прив'язуємо ClientAccount до користувача
             user.ClientAccount =  clientAccount;
             
-            // Додаємо користувача до бази даних та зберігаємо зміни
+            // Додаємо користувача до бази даних
             await unitOfWork.Users.AddAsync(user);
-            await unitOfWork.CompleteAsync();
             
             // Видалаємо дані з кешу
             await cache.RemoveAsync(request.Email);
 
+            // Генеруємо AccessToken, RefreshToken і ExpiresDate
+            var accessToken = jwtProvider.GenerateToken(user);
+            var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            var expiresDate = DateTime.UtcNow.AddDays(7);
+
+            // Формуємо сесію користувача
+            var userSession = new UserSession
+            {
+                UserId = user.Id,
+                RefreshToken = refreshToken,
+                ExpiresDate = expiresDate,
+            };
+
+            // Додаємо сесію до бази даних
+            unitOfWork.Users.AddSession(userSession);
+
+            // Завершуємо транзакцію, щоб зберегти зміни в базі даних
+            await unitOfWork.CompleteAsync();
+
             // Повертаємо результат
-            return new UserResponse
+            return new VerifyResponse
             {
                 Id = user.Id,
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                PhoneNumber = user.ClientAccount.PhoneNumber
+                PhoneNumber = user.ClientAccount.PhoneNumber,
+                LoginResponse = new LoginResponse
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken,
+                    ExpiresDate = expiresDate
+                }
             };
         }
 

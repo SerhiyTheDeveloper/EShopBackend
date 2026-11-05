@@ -1,8 +1,11 @@
-﻿@using Web.Services
+﻿@using MINT.EShop.Business.DTOs.Identity
+@using Web.Services
 @inject UiStateService UiState
-<div class="overlay">
+@inject IJSRuntime JS
+
+<div class="overlay" @onclick="Close">
     <div class="modal" style="max-width:400px; text-align:center;" @onclick:stopPropagation>
-        <button type="button" class="modal__close" aria-label="Закрити">
+        <button type="button" class="modal__close" aria-label="Закрити" @onclick="Close">
             <svg class="icon" viewBox="0 0 24 24">
                 <line x1="6" y1="6" x2="18" y2="18" />
                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -21,28 +24,201 @@
             Ми надіслали 6-значний код на <b>@UiState.PendingEmail</b>
         </p>
 
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p class="field__error" style="margin-bottom:10px;">
+                @errorMessage
+            </p>
+        }
+
         <div class="code-row">
-            <input class="code-box" maxlength="1" inputmode="numeric" />
-            <input class="code-box" maxlength="1" inputmode="numeric" />
-            <input class="code-box" maxlength="1" inputmode="numeric" />
-            <input class="code-box" maxlength="1" inputmode="numeric" />
-            <input class="code-box" maxlength="1" inputmode="numeric" />
-            <input class="code-box" maxlength="1" inputmode="numeric" />
+            @for (int i = 0; i < 6; i++)
+            {
+                var index = i;
+                <input class="@($"code-box{(digits[index] != "" ? " code-box--filled" : "")}")"
+                       inputmode="numeric"
+                       value="@digits[index]"
+                       maxlength="1"
+                       @ref="inputRefs[index]"
+                       @oninput="e => HandleInput(index, e)"
+                       @onkeydown="e => HandleKeyDown(index, e)" />
+            }
         </div>
 
-        <button type="button" class="btn btn--primary btn--block" style="margin-top:20px;">
-            Підтвердити та завершити
+        <button type="button" class="btn btn--primary btn--block"
+                style="margin-top:20px;"
+                disabled="@(isProcessing || digits.Any(d => string.IsNullOrWhiteSpace(d)))"
+                @onclick="HandleSubmit">
+            @(isProcessing ? "Перевірка..." : "Підтвердити та завершити")
         </button>
 
         <p class="modal__resend">
             Не отримали код?
-            <button type="button" style="background:none;border:none;padding:0;color:var(--purple-600);font-weight:600;cursor:pointer;">
-                Надіслати ще раз через 0:28
-            </button>
+            @if (cooldown > 0)
+            {
+                <span style="color:var(--slate-300);">
+                    Надіслати ще раз через 0:@cooldown.ToString("D2")
+                </span>
+            }
+            else
+            {
+                <button type="button"
+                        style="background:none;border:none;padding:0;color:var(--purple-600);font-weight:600;cursor:pointer;"
+                        @onclick="ResentCode">
+                    Надіслати ще раз
+                </button>
+            }
         </p>
     </div>
 </div>
 
 @code {
+    private string errorMessage { get; set; } = string.Empty;
+    private bool isProcessing { get; set; } = false;
+    private ElementReference[] inputRefs = new ElementReference[6];
+    private string[] digits = Enumerable.Repeat(string.Empty, 6).ToArray();
+    private int cooldown = 30;
+    private System.Timers.Timer? timer;
 
+    protected override void OnInitialized()
+    {
+        StartCooldown();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await inputRefs[0].FocusAsync();
+            }
+            catch (Exception)
+            {
+            }
+        }
+    }
+
+    private void StartCooldown()
+    {
+        cooldown = 30;
+        timer?.Dispose();
+        timer = new System.Timers.Timer(1000);
+        timer.Elapsed += async (_, _) =>
+        {
+            if (cooldown > 0)
+            {
+                cooldown--;
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                timer.Stop();
+            }
+        };
+        timer.Start();
+    }
+
+    private void Close() => UiState.Show(Modal.None);
+
+    private async Task HandleInput(int index, ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString() ?? "";
+        var onlyDigits = new string(value.Where(char.IsDigit).ToArray());
+
+        if (string.IsNullOrEmpty(onlyDigits))
+        {
+            digits[index] = string.Empty;
+            return;
+        }
+
+        if (onlyDigits.Length > 1)
+        {
+            for (int i = 0; i < onlyDigits.Length && i < 6; i++)
+            {
+                digits[i] = onlyDigits[i].ToString();
+            }
+
+            var nextIndex = Math.Min(onlyDigits.Length, 5);
+
+            await inputRefs[nextIndex].FocusAsync();
+
+            if (digits.All(d => d != "")) await HandleSubmit();
+            return;
+        }
+
+        digits[index] = onlyDigits;
+
+        if (digits[index] != "" && index < 5)
+            await inputRefs[index + 1].FocusAsync();
+
+        if (digits.All(d => d != ""))
+            await HandleSubmit();
+    }
+
+    private async Task HandleKeyDown(int index, KeyboardEventArgs e)
+    {
+        if (e.Key == "Backspace")
+        {
+            if (digits[index] != "")
+            {
+                digits[index] = string.Empty;
+            }
+            else if (index > 0)
+            {
+                digits[index - 1] = string.Empty;
+                await inputRefs[index - 1].FocusAsync();
+            }
+        }
+    }
+
+    private async Task ResentCode()
+    {
+        if (cooldown <= 0)
+        {
+            try
+            {
+                errorMessage = await JS.InvokeAsync<string>("resentCode", 
+                new ResentRequest {
+                    Email = UiState.PendingEmail!
+                });
+                StartCooldown();
+            }
+            catch
+            {
+                errorMessage = "Помилка. Спробуйте ще раз.";
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (isProcessing) return;
+        if (digits.Any(d => string.IsNullOrWhiteSpace(d))) return;
+        errorMessage = string.Empty;
+        isProcessing = true;
+
+        var request = new VerifyRequest
+            {
+                Email = UiState.PendingEmail!,
+                VerificationCode = string.Concat(digits)
+            };
+
+        try
+        {
+            errorMessage = await JS.InvokeAsync<string>("verifyUser", request);
+        }
+        catch
+        {
+            errorMessage = "";
+        }
+
+        if (string.IsNullOrEmpty(errorMessage))
+        {
+            UiState.Show(Modal.None);
+        }
+        isProcessing = false;
+    }
+
+    public void Dispose() => timer?.Dispose();
 }

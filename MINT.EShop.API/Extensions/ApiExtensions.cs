@@ -138,18 +138,6 @@ namespace MINT.EShop.API.Extensions
                         RoleClaimType = ClaimTypes.Role,
                         ClockSkew = TimeSpan.Zero
                     };
-
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnMessageReceived = context =>
-                        {
-                            if (context.Request.Cookies.TryGetValue(config["JwtSettings:AccessToken"]!, out var token))
-                            {
-                                context.Token = token;
-                            }
-                            return Task.CompletedTask;
-                        }
-                    };
                 });
             return services;
         }

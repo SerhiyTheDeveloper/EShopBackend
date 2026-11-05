@@ -1,8 +1,12 @@
 ﻿@using MINT.EShop.Business.DTOs.Identity
-@using Web.Services
+@using System.Text.Json
 @using Web.Services
 @inject UiStateService UiState
 @inject AuthApiClient AuthApi
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IConfiguration Configuration
 
 <div class="overlay" @onclick="Close">
     <div class="modal" @onclick:stopPropagation>
@@ -81,7 +85,7 @@
 @code {
     private LoginModel model = new();
 
-    private string errorMessage = string.Empty;
+    private string? errorMessage = string.Empty;
     private bool showPassword = false;
     private bool isProcessing = false;
 
@@ -101,28 +105,20 @@
             Email = model.Email,
             Password = model.Password
         };
-
         try
         {
-            var response = await AuthApi.LoginAsync(request);
-
-            if (response.Success)
-            {
-                UiState.Show(Modal.None);
-            }
-            else
-            {
-                errorMessage = response.Message;
-            }
+            errorMessage = await JS.InvokeAsync<string>("loginUser", request);
         }
         catch
         {
-            errorMessage = "Помилка з'єднання. Спробуйте ще раз.";
+            errorMessage = "Помилка. Спробуйте ще раз.";
         }
-        finally
+
+        if (string.IsNullOrEmpty(errorMessage))
         {
-            isProcessing = false;
+            UiState.Show(Modal.None); 
         }
+        isProcessing = false;
     }
 }
 

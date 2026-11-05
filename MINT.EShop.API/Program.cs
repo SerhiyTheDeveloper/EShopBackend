@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.CookiePolicy;
 using MINT.EShop.API.Extensions;
 using MINT.EShop.API.Middlewares;
 using MINT.EShop.Business.Interfaces;
@@ -66,13 +65,6 @@ app.UseHttpsRedirection();
 app.UseStatusCodePagesExtension();
 
 app.UseCors("AllowBlazor");
-
-app.UseCookiePolicy(new CookiePolicyOptions
-{
-    Secure = CookieSecurePolicy.Always,
-    HttpOnly = HttpOnlyPolicy.Always,
-    MinimumSameSitePolicy = SameSiteMode.Strict
-});
 
 app.UseAuthentication();
 app.UseAuthorization();

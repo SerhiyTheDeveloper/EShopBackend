@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using MINT.EShop.API.Wrappers;
 using MINT.EShop.Business.DTOs.Identity;
 using MINT.EShop.Business.Interfaces;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
+using Org.BouncyCastle.Tls;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace MINT.EShop.API.Controllers
 {
@@ -33,7 +36,7 @@ namespace MINT.EShop.API.Controllers
 
                 // Формуємо відповідь у форматі ApiResponse та надсилаємо її
                 var response = APIResponse<IEnumerable<UserResponse>>.SuccessResponse(users);
-                logger.LogInformation("List of users requested by Admin");
+                logger.LogInformation("List of users requested by Admin.");
                 return Ok(response);
             }
 
@@ -54,21 +57,45 @@ namespace MINT.EShop.API.Controllers
 
                 // Формуємо відповідь у форматі ApiResponse
                 var response = APIResponse<RegisterResponse>.SuccessResponse(result,
-                    "User registered successfully. A verification code has been sent to specified email");
+                    "User registered successfully. A verification code has been sent to specified email.");
 
                 // Надсилаємо відповідь
                 return Ok(response);
             }
-            
+
+            /// <summary>
+            /// Повторно надіслати код на вказану пошту користувача.
+            /// </summary>
+            /// <param name="request">Електронна пошта користувача у ResentRequest.</param>
+            /// <returns>Об'єкт UserResponse у форматі APIResponse.</returns>
+            /// <response code="200">Код відправлено.</response>
+            /// <response code="400">Даний email вже зареєстрований. Спробуйте ввійти.</response>
+            /// <response code="404">Час вичерпано або вказано неправильний Email. Зареєструйтесь заново.</response>
+            [HttpPost("resent")]
+            [ProducesResponseType(typeof(APIResponse<RegisterResponse>), StatusCodes.Status200OK)]
+            [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
+            [ProducesResponseType(typeof(APIResponse), StatusCodes.Status404NotFound)]
+            public async Task<IActionResult> ResentCode([FromBody] ResentRequest request)
+            {
+                // Отримуємо результат бізнес-логіки
+                var result = await userService.ResentCodeAsync(request.Email);
+
+                // Формуємо відповідь у форматі ApiResponse
+                var response = APIResponse<RegisterResponse>.SuccessResponse(result, "A verification code has been resent.");
+
+                // Надсилаємо відповідь
+                return Ok(response);
+            }
+
             /// <summary>
             /// Верифікувати користувача.
             /// </summary>
             /// <param name="request">VerifyRequest (поля: Email, VerificationCode).</param>
-            /// <returns>Об'єкт UserResponse у форматі APIResponse.</returns>
+            /// <returns>Об'єкт VerifyResponse у форматі APIResponse.</returns>
             /// <response code="201">Користувача верифіковано та створено.</response>
             /// <response code="400">Некоректні дані для верифікації користувача.</response>
             [HttpPost("verify")]
-            [ProducesResponseType(typeof(APIResponse<UserResponse>), StatusCodes.Status200OK)]
+            [ProducesResponseType(typeof(APIResponse<VerifyResponse>), StatusCodes.Status200OK)]
             [ProducesResponseType(typeof(APIResponse), StatusCodes.Status400BadRequest)]
             public async Task<IActionResult> Verify([FromBody] VerifyRequest request)
             {
@@ -79,7 +106,7 @@ namespace MINT.EShop.API.Controllers
                 if (result == null) return BadRequest(APIResponse.FailureResponse("Uncorrect verification code"));
                 
                 // Формуємо відповідь у форматі ApiResponse
-                var response = APIResponse<UserResponse>.SuccessResponse(result, "User verified and created successfully.");
+                var response = APIResponse<VerifyResponse>.SuccessResponse(result, "User verified and created successfully.");
                 
                 // Надсилаємо відповідь
                 return CreatedAtAction(nameof(GetById), new { id = result.Id }, response);
