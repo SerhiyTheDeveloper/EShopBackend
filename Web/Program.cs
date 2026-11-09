@@ -38,6 +38,7 @@ builder.Services.AddScoped<AuthHttpMessageHandler>();
 builder.Services.AddScoped<CookieAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
     sp.GetRequiredService<CookieAuthenticationStateProvider>());
+builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddHttpClient<AuthApiClient>(client =>
 {

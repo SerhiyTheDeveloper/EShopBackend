@@ -1,4 +1,5 @@
-﻿@using Web.Services
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Web.Services
 @rendermode InteractiveServer
 @inject UiStateService UiState
 
@@ -39,37 +40,39 @@
 				@* <span class="icon-btn__badge">@cartCount</span> *@
 			</a>
 
-			@if (IsLogin)
-			{
-				<a href="/wishlist" class="icon-btn" id="wishlist" aria-label="Вподобання">
-					<svg class="icon icon--lg" viewBox="0 0 24 24">
-						<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-					</svg>
-					@*<span class="icon-btn__badge">@wishlistCount</span> *@
-				</a>
-				<a href="/orders" class="icon-btn" id="orders" aria-label="Замовлення">
-					<svg class="icon icon--lg" viewBox="0 0 24 24">
-						<path d="M21 7.5 12 3 3 7.5 12 12l9-4.5z" />
-						<path d="M3 7.5v9L12 21l9-4.5v-9" />
-						<path d="M12 12v9" />
-					</svg>
-				</a>
-			}
-			else
-			{
-				<button type="button" class="link-action" @onclick="ShowLogin">
-					<span class="full">Увійти</span>
-				</button>
-				<button type="button" class="link-action link-action--strong" @onclick="ShowRegister">
-					<span class="full">Зареєструватися</span>
-				</button>
-				<button type="button" class="icon-btn icon-btn--guest" aria-label="Увійти або зареєструватися">
-					<svg class="icon" viewBox="0 0 24 24">
-						<circle cx="12" cy="8" r="3.6" />
-						<path d="M4.5 20c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5" />
-					</svg>
-				</button>
-			}
+			<AuthorizeView>
+				<Authorized>
+					@* іконки вподобань і замовлень *@
+					<a href="/wishlist" class="icon-btn" id="wishlist" aria-label="Вподобання">
+						<svg class="icon icon--lg" viewBox="0 0 24 24">
+							<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+						</svg>
+						@*<span class="icon-btn__badge">@wishlistCount</span> *@
+					</a>
+					<a href="/orders" class="icon-btn" id="orders" aria-label="Замовлення">
+						<svg class="icon icon--lg" viewBox="0 0 24 24">
+							<path d="M21 7.5 12 3 3 7.5 12 12l9-4.5z" />
+							<path d="M3 7.5v9L12 21l9-4.5v-9" />
+							<path d="M12 12v9" />
+						</svg>
+					</a>
+				</Authorized>
+				<NotAuthorized>
+					@* кнопки Увійти / Зареєструватися та іконка-людинка для мобільного *@
+					<button type="button" class="link-action" @onclick="ShowLogin">
+						<span class="full">Увійти</span>
+					</button>
+					<button type="button" class="link-action link-action--strong" @onclick="ShowRegister">
+						<span class="full">Зареєструватися</span>
+					</button>
+					<button type="button" class="icon-btn icon-btn--guest" aria-label="Увійти або зареєструватися">
+						<svg class="icon" viewBox="0 0 24 24">
+							<circle cx="12" cy="8" r="3.6" />
+							<path d="M4.5 20c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5" />
+						</svg>
+					</button>
+				</NotAuthorized>
+			</AuthorizeView>
 
 			<button type="button" class="icon-btn" aria-label="Меню" @onclick="ShowSettings">
 				<svg class="icon" id="settings" viewBox="0 0 24 24">
@@ -83,9 +86,6 @@
 </header>
 
 @code {
-	[Parameter]
-	public bool IsLogin { get; set; }
-
 	private void ShowFilter() => UiState.Show(Modal.Filter);
 	private void ShowLogin() => UiState.Show(Modal.Login);
 	private void ShowRegister() => UiState.Show(Modal.Register);

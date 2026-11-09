@@ -1,6 +1,7 @@
 ﻿@using MINT.EShop.Business.DTOs.Identity
 @using Web.Services
 @inject UiStateService UiState
+@inject NavigationManager Nav
 @inject IJSRuntime JS
 
 <div class="overlay" @onclick="Close">
@@ -215,7 +216,8 @@
 
         if (string.IsNullOrEmpty(errorMessage))
         {
-            UiState.Show(Modal.None);
+            Nav.NavigateTo("/", forceLoad: true);
+            return;
         }
         isProcessing = false;
     }
