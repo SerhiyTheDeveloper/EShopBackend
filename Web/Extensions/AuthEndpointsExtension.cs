@@ -18,8 +18,7 @@ namespace Web.Extensions
 
         private static async Task<IResult> LoginAsync(
             LoginRequest request, AuthApiClient apiClient,
-            HttpContext httpContext, TokenStorageService tokenStorage,
-            IOptions<TokenOptions> tokenOptions)
+            HttpContext httpContext, IOptions<TokenOptions> tokenOptions)
         {
             string? errorMessage = null;
 
@@ -49,7 +48,6 @@ namespace Web.Extensions
                             SameSite = SameSiteMode.Strict,
                             Expires = response.Data.ExpiresDate
                         });
-                        tokenStorage.SetTokens(response.Data.AccessToken, response.Data.RefreshToken);
                     }
                 }
                 else
@@ -128,8 +126,7 @@ namespace Web.Extensions
 
         private static async Task<IResult> VerifyAsync(
             VerifyRequest request, AuthApiClient apiClient,
-            HttpContext httpContext, TokenStorageService tokenService,
-            IOptions<TokenOptions> tokenOptions)
+            HttpContext httpContext, IOptions<TokenOptions> tokenOptions)
         {
             string? errorMessage = null;
             try
@@ -157,7 +154,6 @@ namespace Web.Extensions
                             SameSite = SameSiteMode.Strict,
                             Expires = response.Data.LoginResponse.ExpiresDate
                         });
-                        tokenService.SetTokens(response.Data.LoginResponse.AccessToken, response.Data.LoginResponse.RefreshToken);
                     }
                 }
                 else

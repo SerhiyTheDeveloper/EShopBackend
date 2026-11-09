@@ -4,6 +4,7 @@
 @inject UiStateService UiState
 @inject AuthApiClient AuthApi
 @inject HttpClient Http
+@inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IConfiguration Configuration
@@ -116,7 +117,8 @@
 
         if (string.IsNullOrEmpty(errorMessage))
         {
-            UiState.Show(Modal.None); 
+            Nav.NavigateTo("/", forceLoad: true);
+            return;
         }
         isProcessing = false;
     }
