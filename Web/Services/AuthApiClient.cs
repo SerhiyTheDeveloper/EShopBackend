@@ -67,6 +67,52 @@ namespace Web.Services
             }
         }
 
+        public async Task<APIResponse> LogoutAsync(LogoutRequest request, CancellationToken cancToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("api/v1/auth/logout", request, _jsonOptions, cancToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    var successResult = await response.Content.ReadFromJsonAsync<APIResponse>(_jsonOptions, cancToken);
+                    return successResult ?? APIResponse.FailureResponse("Помилка обробки відповіді сервера.");
+                }
+
+                try
+                {
+                    var errorResult = await response.Content.ReadFromJsonAsync<APIResponse>(_jsonOptions, cancToken);
+                    if (errorResult != null)
+                    {
+                        return errorResult;
+                    }
+                }
+                catch (JsonException)
+                {
+                    // Помилка десеріалізації JSON при виході
+                }
+
+                // Запасний варіант, якщо сервер повернув помилку без ApiResponse
+                return response.StatusCode switch
+                {
+                    System.Net.HttpStatusCode.BadRequest => APIResponse<object>.FailureResponse("Некоректний запит."),
+                    System.Net.HttpStatusCode.InternalServerError => APIResponse<object>.FailureResponse("Сервер тимчасово недоступний. Спробуйте пізніше."),
+                    _ => APIResponse<object>.FailureResponse($"Помилка сервера. Статус-код: {response.StatusCode}")
+                };
+            }
+            catch (OperationCanceledException)
+            {
+                return APIResponse<object>.FailureResponse("Перевищено час очікування відповіді. Спробуйте знову.");
+            }
+            catch (HttpRequestException)
+            {
+                return APIResponse<object>.FailureResponse("Не вдалося зв'язатися з сервером. Перевірте підключення.");
+            }
+            catch (Exception ex)
+            {
+                return APIResponse<object>.FailureResponse($"Сталася непередбачувана помилка: {ex.Message}");
+            }
+        }
+
         public async Task<APIResponse<RegisterResponse>> RegisterAsync(RegisterRequest request, CancellationToken cancToken = default)
         {
             try

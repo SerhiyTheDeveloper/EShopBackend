@@ -116,7 +116,7 @@ input, select, textarea {
     height: 28px;
     stroke: currentColor;
     fill: none;
-    stroke-width: 1.8;
+    stroke-width: 1.8px;
     stroke-linecap: round;
     stroke-linejoin: round;
 }
@@ -1198,7 +1198,7 @@ input, select, textarea {
     width: 46px;
     height: 46px;
     stroke: var(--purple-700);
-    stroke-width: 1.5;
+    stroke-width: 1.5px;
     position: relative;
     z-index: 1;
 }
@@ -1529,7 +1529,7 @@ input, select, textarea {
         width: 34px;
         height: 34px;
         color: var(--purple-700);
-        stroke-width: 1.5;
+        stroke-width: 1.5px;
     }
 
 .cart-item__info {
@@ -1793,7 +1793,7 @@ input, select, textarea {
         width: 24px;
         height: 24px;
         color: var(--purple-700);
-        stroke-width: 1.5;
+        stroke-width: 1.5px;
     }
 
 .order-thumb--more {

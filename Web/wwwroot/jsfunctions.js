@@ -54,3 +54,15 @@ async function verifyUser(request) {
         return "Помилка з'єднання. Спробуйте ще раз";
     }
 }
+
+async function logoutUser() {
+    try {
+        const response = await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        return response.ok;
+    } catch (error) {
+        return false;
+    }
+}

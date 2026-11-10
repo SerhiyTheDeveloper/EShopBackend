@@ -8,10 +8,10 @@ namespace MINT.EShop.API.Controllers
     [Route("api/v1/[controller]")]
     [ApiController]
     [Produces("application/json")]
-    public class AuthController(IAuthService authService, IConfiguration config) : ControllerBase
+    public class AuthController(IAuthService authService) : ControllerBase
     {
         /// <summary>
-        /// Ввід в систему.
+        /// Вхід в систему.
         /// </summary>
         /// <param name="request">LoginRequest (поля: Email, Password)</param>
         /// <returns>Об'єкт LoginResponse у форматі APIResponse</returns>
@@ -57,6 +57,22 @@ namespace MINT.EShop.API.Controllers
 
             // Формуємо відповідь у форматі ApiResponse та надсилаємо її
             var response = APIResponse<LoginResponse>.SuccessResponse(result);
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Видалити поточну сесію
+        /// </summary>
+        /// <param name="request">LogoutRequest (поля: RefreshToken)</param>
+        /// <returns>Результат операції</returns>
+        /// <response code="200">Сесію видалено.</response>
+        [HttpPost("logout")]
+        [ProducesResponseType(typeof(APIResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
+        {
+            await authService.LogoutAsync(request.RefreshToken);
+
+            var response = APIResponse.SuccessResponse();
             return Ok(response);
         }
     }

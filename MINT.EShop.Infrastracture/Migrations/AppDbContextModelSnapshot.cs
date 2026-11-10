@@ -22,26 +22,6 @@ namespace MINT.EShop.Infrastracture.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("MINT.EShop.Core.Entities.ClientAccount", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("ClientAccounts");
-                });
-
             modelBuilder.Entity("MINT.EShop.Core.Entities.Order.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -97,13 +77,64 @@ namespace MINT.EShop.Infrastracture.Migrations
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("MINT.EShop.Core.Entities.Product", b =>
+            modelBuilder.Entity("MINT.EShop.Core.Entities.Product.Category", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("MINT.EShop.Core.Entities.Product.Producer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Producers");
+                });
+
+            modelBuilder.Entity("MINT.EShop.Core.Entities.Product.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -118,17 +149,46 @@ namespace MINT.EShop.Infrastracture.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<Guid>("ProducerId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Stock")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.HasIndex("ManagerId");
+
+                    b.HasIndex("ProducerId");
 
                     b.ToTable("Products", t =>
                         {
                             t.HasCheckConstraint("CK_Product_Stock_Min", "\"Stock\" >= 0");
                         });
+                });
+
+            modelBuilder.Entity("MINT.EShop.Core.Entities.UserData.ClientAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("ClientAccounts");
                 });
 
             modelBuilder.Entity("MINT.EShop.Core.Entities.UserData.User", b =>
@@ -216,20 +276,24 @@ namespace MINT.EShop.Infrastracture.Migrations
                     b.ToTable("UserSessions");
                 });
 
-            modelBuilder.Entity("MINT.EShop.Core.Entities.ClientAccount", b =>
+            modelBuilder.Entity("MINT.EShop.Core.Entities.UserData.WishListItem", b =>
                 {
-                    b.HasOne("MINT.EShop.Core.Entities.UserData.User", "User")
-                        .WithOne("ClientAccount")
-                        .HasForeignKey("MINT.EShop.Core.Entities.ClientAccount", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
 
-                    b.Navigation("User");
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ClientId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("WishListItems");
                 });
 
             modelBuilder.Entity("MINT.EShop.Core.Entities.Order.Order", b =>
                 {
-                    b.HasOne("MINT.EShop.Core.Entities.ClientAccount", "ClientAccount")
+                    b.HasOne("MINT.EShop.Core.Entities.UserData.ClientAccount", "ClientAccount")
                         .WithMany("Orders")
                         .HasForeignKey("ClientAccountId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -246,7 +310,7 @@ namespace MINT.EShop.Infrastracture.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("MINT.EShop.Core.Entities.Product", "Product")
+                    b.HasOne("MINT.EShop.Core.Entities.Product.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -257,11 +321,38 @@ namespace MINT.EShop.Infrastracture.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("MINT.EShop.Core.Entities.Product", b =>
+            modelBuilder.Entity("MINT.EShop.Core.Entities.Product.Product", b =>
                 {
+                    b.HasOne("MINT.EShop.Core.Entities.Product.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("MINT.EShop.Core.Entities.UserData.User", null)
                         .WithMany()
                         .HasForeignKey("ManagerId");
+
+                    b.HasOne("MINT.EShop.Core.Entities.Product.Producer", "Producer")
+                        .WithMany("Products")
+                        .HasForeignKey("ProducerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Producer");
+                });
+
+            modelBuilder.Entity("MINT.EShop.Core.Entities.UserData.ClientAccount", b =>
+                {
+                    b.HasOne("MINT.EShop.Core.Entities.UserData.User", "User")
+                        .WithOne("ClientAccount")
+                        .HasForeignKey("MINT.EShop.Core.Entities.UserData.ClientAccount", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MINT.EShop.Core.Entities.UserData.UserCredential", b =>
@@ -286,14 +377,45 @@ namespace MINT.EShop.Infrastracture.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("MINT.EShop.Core.Entities.ClientAccount", b =>
+            modelBuilder.Entity("MINT.EShop.Core.Entities.UserData.WishListItem", b =>
                 {
-                    b.Navigation("Orders");
+                    b.HasOne("MINT.EShop.Core.Entities.UserData.ClientAccount", "ClientAccount")
+                        .WithMany("Wishlist")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MINT.EShop.Core.Entities.Product.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ClientAccount");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("MINT.EShop.Core.Entities.Order.Order", b =>
                 {
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("MINT.EShop.Core.Entities.Product.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("MINT.EShop.Core.Entities.Product.Producer", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("MINT.EShop.Core.Entities.UserData.ClientAccount", b =>
+                {
+                    b.Navigation("Orders");
+
+                    b.Navigation("Wishlist");
                 });
 
             modelBuilder.Entity("MINT.EShop.Core.Entities.UserData.User", b =>

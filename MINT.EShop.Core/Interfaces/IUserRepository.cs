@@ -10,6 +10,8 @@ namespace MINT.EShop.Core.Interfaces
         Task<IEnumerable<User>> GetAllAsync();
         Task AddAsync(User user);
         void AddSession(UserSession session);
+        Task<UserSession?> GetSessionByRTAsync(string refreshToken);
+        void DeleteSession(UserSession session);
         void Update(User user);
         void Delete(User user);
 
