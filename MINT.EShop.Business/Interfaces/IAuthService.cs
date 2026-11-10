@@ -4,7 +4,8 @@ namespace MINT.EShop.Business.Interfaces
 {
     public interface IAuthService
     {
-        public Task<LoginResponse?> LoginAsync(LoginRequest request);
-        public Task<LoginResponse> RefreshTokenAsync(RefreshRequest request);
+        Task<LoginResponse?> LoginAsync(LoginRequest request);
+        Task<LoginResponse> RefreshTokenAsync(RefreshRequest request);
+        Task LogoutAsync(string refreshToken);
     }
 }

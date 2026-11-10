@@ -12,8 +12,37 @@ namespace Web.Extensions
             app.MapPost("/api/auth/register", RegisterAsync);
             app.MapPost("/api/auth/verify", VerifyAsync);
             app.MapPost("/api/auth/resent", ResentAsync);
+            app.MapPost("/api/auth/logout", LogoutAsync);
 
             return app;
+        }
+
+        private static async Task<IResult> LogoutAsync(
+            HttpContext httpContext, AuthApiClient apiClient,
+            IOptions<TokenOptions> tokenOptions)
+        {
+            var refreshToken = httpContext.Request.Cookies[tokenOptions.Value.RefreshToken];
+            if (!string.IsNullOrEmpty(refreshToken))
+            {
+                try
+                {
+                    await apiClient.LogoutAsync(new LogoutRequest { RefreshToken = refreshToken });
+                }
+                catch
+                {
+                }
+            }
+
+           var options = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict
+            };
+            httpContext.Response.Cookies.Delete(tokenOptions.Value.AccessToken, options);
+            httpContext.Response.Cookies.Delete(tokenOptions.Value.RefreshToken, options);
+
+            return Results.Ok();
         }
 
         private static async Task<IResult> LoginAsync(

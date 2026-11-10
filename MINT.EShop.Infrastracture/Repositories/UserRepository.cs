@@ -53,9 +53,20 @@ namespace MINT.EShop.Infrastracture.Repositories
             dbContext.Set<UserSession>().Add(session);
         }
 
+        public async Task<UserSession?> GetSessionByRTAsync(string refreshToken)
+        {
+            return await dbContext.UserSessions
+                .FirstOrDefaultAsync(s => s.RefreshToken == refreshToken);
+        }
+
         public void Update(User user)
         {
             dbContext.Users.Update(user);
+        }
+
+        public void DeleteSession(UserSession session)
+        {
+            dbContext.UserSessions.Remove(session);
         }
     }
 }

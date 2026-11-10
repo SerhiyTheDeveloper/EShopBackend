@@ -96,5 +96,18 @@ namespace MINT.EShop.Business.Services
                 ExpiresDate = userSession.ExpiresDate
             };
         }
+
+        public async Task LogoutAsync(string refreshToken)
+        {
+            // Дістаємо сесію
+            var session = await unitOfWork.Users.GetSessionByRTAsync(refreshToken);
+            if (session is null) return;
+
+            // Видаляємо сесію
+            unitOfWork.Users.DeleteSession(session);
+
+            // Завершуємо транзакцію, щоб зберегти зміни в базі даних
+            await unitOfWork.CompleteAsync();
+        }
     }
 }
