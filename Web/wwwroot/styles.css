@@ -641,41 +641,6 @@ input, select, textarea {
     color: var(--ink-700);
 }
 
-.radio-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 0;
-    cursor: pointer;
-}
-
-.radio-row--sub {
-    padding-left: 28px;
-}
-
-.radio-box {
-    width: 19px;
-    height: 19px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    border: 1.5px solid var(--line-200);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.radio-box--checked {
-    border-color: var(--purple-600);
-}
-
-    .radio-box--checked::after {
-        content: '';
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: var(--purple-600);
-    }
-
 /* =================================================================
    MODAL / OVERLAY
    ================================================================= */
@@ -1447,34 +1412,6 @@ input, select, textarea {
     padding-right: 4px;
 }
 
-.filter-block--brand.is-disabled {
-    opacity: 1;
-}
-
-    .filter-block--brand.is-disabled .filter-block__label {
-        color: var(--slate-300);
-    }
-
-        .filter-block--brand.is-disabled .filter-block__label .icon {
-            color: var(--slate-300);
-        }
-
-.brand-locked {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--line-100);
-    border-radius: var(--radius-sm);
-    padding: 14px;
-    color: var(--slate-500);
-    font-size: 13px;
-}
-
-    .brand-locked .icon {
-        color: var(--slate-300);
-        flex-shrink: 0;
-    }
-
 .brand-chip-grid {
     display: flex;
     flex-wrap: wrap;
@@ -1502,6 +1439,73 @@ input, select, textarea {
     border-color: var(--purple-600);
     color: var(--white);
 }
+
+.brand-chip__count {
+    margin-left: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--slate-500);
+}
+
+.brand-chip--active .brand-chip__count {
+    color: rgba(255, 255, 255, .75);
+}
+
+.brand-chip:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+    .brand-chip:disabled:hover {
+        border-color: var(--line-200);
+        color: var(--ink-700);
+    }
+
+/* ---------- Active filters row on the home page ---------- */
+.active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border: 1.5px solid var(--purple-100);
+    border-radius: var(--radius-full);
+    background: var(--purple-50);
+    color: var(--purple-700);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+
+    .filter-tag:hover {
+        border-color: var(--purple-500);
+        background: var(--purple-100);
+    }
+
+.filter-tag__x {
+    font-size: 16px;
+    line-height: 1;
+    color: var(--purple-600);
+}
+
+.filter-tag--reset {
+    background: var(--white);
+    border-color: var(--line-200);
+    color: var(--slate-500);
+}
+
+    .filter-tag--reset:hover {
+        border-color: var(--coral-600);
+        background: var(--white);
+        color: var(--coral-600);
+    }
 
 .filter-panel__actions {
     display: flex;

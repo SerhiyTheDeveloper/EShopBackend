@@ -1,7 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Web.Services
 @rendermode InteractiveServer
+@implements IDisposable
 @inject UiStateService UiState
+@inject ProductFilterService Filter
 
 <header class="topbar">
 	<div class="topbar__inner">
@@ -17,6 +19,10 @@
 				<circle cx="11" cy="18" r="2" fill="currentColor" stroke="none" />
 			</svg>
 			<span class="btn-filter__text">Фільтр</span>
+			@if (Filter.Applied.ActiveCount > 0)
+			{
+				<span class="btn-filter__count" aria-label="Активних фільтрів: @Filter.Applied.ActiveCount">@Filter.Applied.ActiveCount</span>
+			}
 		</button>
 
 		<form class="search" role="search">
@@ -86,6 +92,12 @@
 </header>
 
 @code {
+	protected override void OnInitialized() => Filter.OnChange += HandleFilterChange;
+
+	private void HandleFilterChange() => InvokeAsync(StateHasChanged);
+
+	public void Dispose() => Filter.OnChange -= HandleFilterChange;
+
 	private void ShowFilter() => UiState.Show(Modal.Filter);
 	private void ShowLogin() => UiState.Show(Modal.Login);
 	private void ShowRegister() => UiState.Show(Modal.Register);
