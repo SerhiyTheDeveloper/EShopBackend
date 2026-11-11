@@ -1,0 +1,33 @@
+@* Картка товару. Назва це посилання на сторінку товару; через ::after воно розтягується на всю картку,
+   а серце та кнопка «У кошик» лежать вище й працюють окремо *@
+
+<article class="product-card">
+	<button class="product-card__wish" aria-label="Додати до вподобань">
+		<svg class="icon icon--sm" viewBox="0 0 24 24">
+			<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+		</svg>
+	</button>
+	<div class="product-card__media product-card__media--tall @(HasImage ? "product-card__media--has-image" : "")">
+		<span class="product-card__blob"></span>
+		<svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.4"></rect><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"></line></svg>
+		@if (HasImage)
+		{
+			@* Якщо картинка не завантажилась, прибираємо клас has-image: CSS ховає <img> і повертає заглушку *@
+			<img class="product-card__img" src="@Product.ImageUrl" alt="@Product.Name"
+				 loading="lazy" referrerpolicy="no-referrer"
+				 onerror="this.parentElement.classList.remove('product-card__media--has-image')" />
+		}
+	</div>
+	<p class="product-card__category">@Product.Category</p>
+	<h3 class="product-card__title"><a class="product-card__link" href="/product/@Product.Id">@Product.Name</a></h3>
+	<div class="product-card__price-row">
+		<span class="price">@Product.Price ₴</span>
+	</div>
+	<button class="btn-add">У кошик</button>
+</article>
+
+@code {
+	[Parameter, EditorRequired] public ProductResponse Product { get; set; } = null!;
+
+	private bool HasImage => !string.IsNullOrWhiteSpace(Product.ImageUrl);
+}

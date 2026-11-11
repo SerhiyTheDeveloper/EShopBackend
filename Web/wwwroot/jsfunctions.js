@@ -118,3 +118,7 @@ function deleteUser(userId) {
 function callManagerApi(method, path, request) {
     return callApi(method, '/api/manager/' + path, request);
 }
+
+function callShopApi(method, path, request) {
+    return callApi(method, '/api/shop/' + path, request);
+}
