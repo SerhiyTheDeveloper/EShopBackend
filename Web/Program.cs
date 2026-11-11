@@ -58,6 +58,7 @@ builder.Services.AddHttpClient<ManagerApiClient>(configureApiClient);
 builder.Services.AddScoped<UserProfileService>();
 builder.Services.AddScoped<AdminUsersService>();
 builder.Services.AddScoped<ManagerService>();
+builder.Services.AddScoped<ProductFilterService>();
 builder.Services.AddScoped<TokenRefreshService>();
 
 var app = builder.Build();

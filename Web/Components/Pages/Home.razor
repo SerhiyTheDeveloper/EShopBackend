@@ -1,7 +1,8 @@
 ﻿@page "/"
+@implements IDisposable
+@using System.Globalization
 @using Web.Services
-@inject HttpClient Http
-@inject UiStateService UiState
+@inject ProductFilterService Filter
 @rendermode InteractiveServer
 
 <PageTitle>Shopik - інтернет-магазин електроніки</PageTitle>
@@ -12,18 +13,58 @@
 	</div>
 
 	<section style="padding-top:18px;">
-		@if (apiResponse == null)
+		@{ var filtered = Filter.Filtered.ToList(); }
+		@if (Filter.Applied.IsActive)
+		{
+			<div class="active-filters">
+				@if (Filter.Applied.HasPrice)
+				{
+					<button type="button" class="filter-tag" @onclick="Filter.RemovePrice" aria-label="Прибрати фільтр за ціною">
+						@PriceText <span class="filter-tag__x">×</span>
+					</button>
+				}
+				@if (Filter.Applied.Category is not null)
+				{
+					<button type="button" class="filter-tag" @onclick="Filter.RemoveCategory" aria-label="Прибрати фільтр за категорією">
+						@Filter.Applied.Category <span class="filter-tag__x">×</span>
+					</button>
+				}
+				@foreach (var brand in Filter.Applied.Brands.OrderBy(b => b))
+				{
+					<button type="button" class="filter-tag" @onclick="() => Filter.RemoveBrand(brand)" aria-label="Прибрати бренд @brand">
+						@brand <span class="filter-tag__x">×</span>
+					</button>
+				}
+				<button type="button" class="filter-tag filter-tag--reset" @onclick="Filter.Reset">Скинути все</button>
+			</div>
+		}
+
+		@if (!Filter.IsLoaded && Filter.LoadError is null)
 		{
 			<div class="loading">Завантаження товарів...</div>
 		}
-		else if (apiResponse.Data == null || !apiResponse.Data.Any())
+		else if (!Filter.IsLoaded)
+		{
+			<div class="empty">
+				<p>@Filter.LoadError</p>
+				<button type="button" class="btn btn--outline btn--sm" style="margin-top:12px;" @onclick="Filter.ReloadAsync">Спробувати ще раз</button>
+			</div>
+		}
+		else if (Filter.Products.Count == 0)
 		{
 			<div class="empty">Товарів не знайдено.</div>
+		}
+		else if (filtered.Count == 0)
+		{
+			<div class="empty">
+				<p>За вибраними умовами нічого не знайдено.</p>
+				<button type="button" class="btn btn--outline btn--sm" style="margin-top:12px;" @onclick="Filter.Reset">Скинути фільтр</button>
+			</div>
 		}
 		else
 		{
 			<div class="product-grid">
-				@foreach (var product in apiResponse.Data)
+				@foreach (var product in filtered)
 				{
 					<article class="product-card">
 						<button class="product-card__wish" aria-label="Додати до вподобань">
@@ -56,19 +97,31 @@
 </main>
 
 @code{
-	private APIResponse<IEnumerable<ProductResponse>>? apiResponse;
+	private string PriceText
+	{
+		get
+		{
+			var applied = Filter.Applied;
+			var from = applied.MinPrice?.ToString("0.##", CultureInfo.InvariantCulture);
+			var to = applied.MaxPrice?.ToString("0.##", CultureInfo.InvariantCulture);
+
+			if (from is not null && to is not null) return $"Ціна: {from}–{to} ₴";
+			return from is not null ? $"Ціна: від {from} ₴" : $"Ціна: до {to} ₴";
+		}
+	}
 
 	private static bool HasImage(ProductResponse product) => !string.IsNullOrWhiteSpace(product.ImageUrl);
 
 	protected override async Task OnInitializedAsync()
 	{
-		try
-		{
-			apiResponse = await Http.GetFromJsonAsync<APIResponse<IEnumerable<ProductResponse>>>("https://localhost:7254/api/v1/Products");
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"Помилка завантаження даних: {ex.Message}");
-		}
+		Filter.OnChange += HandleChange;
+		await Filter.EnsureLoadedAsync();
+	}
+
+	private void HandleChange() => InvokeAsync(StateHasChanged);
+
+	public void Dispose()
+	{
+		Filter.OnChange -= HandleChange;
 	}
 }
