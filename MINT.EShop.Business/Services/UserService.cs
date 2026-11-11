@@ -27,7 +27,8 @@ namespace MINT.EShop.Business.Services
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                PhoneNumber = user.ClientAccount.PhoneNumber
+                PhoneNumber = user.ClientAccount.PhoneNumber,
+                Role = user.Role
             });
         }
 
@@ -44,7 +45,8 @@ namespace MINT.EShop.Business.Services
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                PhoneNumber = user.ClientAccount.PhoneNumber
+                PhoneNumber = user.ClientAccount.PhoneNumber,
+                Role = user.Role
             };
         }
 
@@ -246,7 +248,8 @@ namespace MINT.EShop.Business.Services
                 Email = existingUser.Email,
                 FirstName = existingUser.FirstName,
                 LastName = existingUser.LastName,
-                PhoneNumber = existingUser.ClientAccount.PhoneNumber
+                PhoneNumber = existingUser.ClientAccount.PhoneNumber,
+                Role = existingUser.Role
             };
         }
 
@@ -256,6 +259,10 @@ namespace MINT.EShop.Business.Services
             var existingUser = await unitOfWork.Users.GetByIdAsync(id);
             if (existingUser == null)
                 return false;
+
+            // Адміністратора видаляти заборонено
+            if (existingUser.Role == Role.Admin)
+                throw new InvalidOperationException("Cannot delete an admin.");
 
             // Видаляємо користувача з бази даних та зберігаємо зміни
             unitOfWork.Users.Delete(existingUser);

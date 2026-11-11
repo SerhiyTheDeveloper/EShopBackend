@@ -1,4 +1,7 @@
-﻿namespace MINT.EShop.Business.DTOs.Identity
+﻿using System.Text.Json.Serialization;
+using MINT.EShop.Core.Enums;
+
+namespace MINT.EShop.Business.DTOs.Identity
 {
     public record UserResponse
     {
@@ -26,5 +29,11 @@
         /// </summary>
         /// <example>0937026525</example>
         public required string PhoneNumber { get; init; }
+        /// <summary>
+        /// Роль користувача (Admin, Manager або Client).
+        /// </summary>
+        /// <example>Client</example>
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public required Role Role { get; init; }
     }
 }

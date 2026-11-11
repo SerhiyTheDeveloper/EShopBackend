@@ -88,3 +88,24 @@ function getCurrentUser() {
 function updateCurrentUser(request) {
     return callUserApi('PUT', request);
 }
+
+async function callApi(method, url) {
+    try {
+        const response = await fetch(url, { method: method, credentials: 'include' });
+        return await response.json();
+    } catch (error) {
+        return { success: false, message: "Помилка з'єднання. Спробуйте ще раз" };
+    }
+}
+
+function getAdminUsers() {
+    return callApi('GET', '/api/admin/users');
+}
+
+function changeUserRole(userId, promote) {
+    return callApi('POST', '/api/admin/users/' + userId + (promote ? '/promote' : '/demote'));
+}
+
+function deleteUser(userId) {
+    return callApi('DELETE', '/api/admin/users/' + userId);
+}

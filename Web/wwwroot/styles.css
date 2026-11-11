@@ -2024,6 +2024,104 @@ input, select, textarea {
     overflow-wrap: anywhere;
 }
 
+/* ---------- Admin page: users ---------- */
+.admin-page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-bottom: 70px;
+}
+
+.admin-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+    .admin-toolbar input.input {
+        flex: 1 1 240px;
+    }
+
+    .admin-toolbar select.input {
+        flex: 0 0 170px;
+    }
+
+.admin-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line-100);
+    border-radius: var(--radius-md);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+    .admin-table th {
+        text-align: left;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--slate-500);
+        padding: 12px 16px;
+        background: var(--mist);
+    }
+
+    .admin-table td {
+        padding: 14px 16px;
+        border-top: 1px solid var(--line-100);
+        vertical-align: middle;
+    }
+
+.admin-user__name {
+    font-weight: 600;
+    color: var(--ink-900);
+}
+
+.admin-user__email {
+    font-size: 13px;
+    color: var(--slate-500);
+    overflow-wrap: anywhere;
+}
+
+.admin-table__actions {
+    text-align: right;
+}
+
+.admin-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.admin-muted {
+    font-size: 13px;
+    color: var(--slate-300);
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--mist);
+    color: var(--slate-500);
+}
+
+.role-badge--manager {
+    background: var(--purple-50);
+    color: var(--purple-700);
+}
+
+.role-badge--admin {
+    background: var(--ink-900);
+    color: var(--white);
+}
+
 .theme-toggle {
     display: flex;
     gap: 14px;
@@ -2308,6 +2406,10 @@ input, select, textarea {
 }
 
 @media (max-width:658px) {
+    .admin-col-phone {
+        display: none;
+    }
+
     .btn-filter__text {
         display: none;
     }
@@ -2384,6 +2486,15 @@ input, select, textarea {
 }
 
 @media (max-width: 480px) {
+    .admin-table th,
+    .admin-table td {
+        padding: 12px;
+    }
+
+    .admin-toolbar select.input {
+        flex: 1 1 100%;
+    }
+
     .modal {
         padding: 24px 18px 20px;
         border-radius: var(--radius-md);

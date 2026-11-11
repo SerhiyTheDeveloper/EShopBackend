@@ -1,0 +1,313 @@
+@page "/admin"
+@rendermode InteractiveServer
+@using MINT.EShop.Business.DTOs.Identity
+@using MINT.EShop.Core.Enums
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AdminUsersService AdminUsers
+@inject AuthenticationStateProvider AuthProvider
+
+<PageTitle>Shopik — Адмін-панель</PageTitle>
+
+<AuthorizeView Roles="Admin" Context="auth">
+	<Authorized>
+		<main class="container">
+			<div class="admin-page">
+				<div class="page-head">
+					<div class="breadcrumb">
+						<a href="/">Головна</a>
+						<svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18" /></svg>
+						<span>Адмін-панель</span>
+					</div>
+					<h1>Адмін-панель</h1>
+					<p class="page-head__sub">Переглядайте користувачів і керуйте ролями менеджерів.</p>
+				</div>
+
+				<div class="settings-card">
+					<h2>Користувачі</h2>
+					<p class="settings-card__desc">
+						@if (isLoading)
+						{
+							<span>Завантаження...</span>
+						}
+						else
+						{
+							<span>Показано @FilteredUsers.Count() із @users.Count</span>
+						}
+					</p>
+
+					<div class="admin-toolbar">
+						<input class="input" type="search" placeholder="Пошук за ім'ям, поштою чи телефоном"
+							   aria-label="Пошук користувачів"
+							   @bind="search" @bind:event="oninput" />
+						<select class="input" aria-label="Фільтр за роллю" @bind="roleFilter">
+							<option value="">Усі ролі</option>
+							<option value="Client">Клієнти</option>
+							<option value="Manager">Менеджери</option>
+							<option value="Admin">Адміни</option>
+						</select>
+						<button type="button" class="btn btn--outline" @onclick="Reload" disabled="@isLoading">Оновити</button>
+					</div>
+
+					@if (!string.IsNullOrEmpty(actionError))
+					{
+						<p class="field__error" style="margin-bottom:14px;">@actionError</p>
+					}
+					@if (!string.IsNullOrEmpty(actionSuccess))
+					{
+						<p class="field__hint" style="margin-bottom:14px;">@actionSuccess</p>
+					}
+
+					@if (isLoading)
+					{
+						@* завантаження: таблицю не показуємо *@
+					}
+					else if (loadError is not null)
+					{
+						<p class="field__error">@loadError</p>
+					}
+					else if (!FilteredUsers.Any())
+					{
+						<p class="settings-card__desc">Нікого не знайдено.</p>
+					}
+					else
+					{
+						<div class="admin-table-wrap">
+							<table class="admin-table">
+								<thead>
+									<tr>
+										<th>Користувач</th>
+										<th class="admin-col-phone">Телефон</th>
+										<th>Роль</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (var user in FilteredUsers)
+									{
+										<tr>
+											<td>
+												<div class="admin-user__name">@FullName(user)</div>
+												<div class="admin-user__email">@user.Email</div>
+											</td>
+											<td class="admin-col-phone">@user.PhoneNumber</td>
+											<td><span class="role-badge @RoleClass(user.Role)">@RoleLabel(user.Role)</span></td>
+											<td class="admin-table__actions">
+											@if (user.Role == Role.Admin)
+											{
+												<span class="admin-muted">Не змінюється</span>
+											}
+											else
+											{
+												<div class="admin-actions">
+													@if (user.Role == Role.Client)
+													{
+														<button type="button" class="btn btn--outline btn--sm" @onclick="() => AskChange(user, AdminAction.Promote)">Зробити менеджером</button>
+													}
+													else
+													{
+														<button type="button" class="btn btn--outline btn--sm" @onclick="() => AskChange(user, AdminAction.Demote)">Забрати роль</button>
+													}
+													<button type="button" class="btn btn--danger-outline btn--sm" @onclick="() => AskChange(user, AdminAction.Delete)">Видалити</button>
+												</div>
+											}
+										</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					}
+				</div>
+			</div>
+		</main>
+
+		@if (pendingUser is not null)
+		{
+			<div class="overlay" @onclick="CancelChange">
+				<div class="modal" @onclick:stopPropagation>
+					<button type="button" class="modal__close" aria-label="Закрити" @onclick="CancelChange">
+						<svg class="icon" viewBox="0 0 24 24">
+							<line x1="6" y1="6" x2="18" y2="18" />
+							<line x1="18" y1="6" x2="6" y2="18" />
+						</svg>
+					</button>
+
+					@if (pendingAction == AdminAction.Promote)
+					{
+						<h2 class="modal__title">Зробити менеджером?</h2>
+						<p class="modal__subtitle">@FullName(pendingUser) отримає доступ до керування товарами й замовленнями. Роль почне діяти після оновлення сесії (до 15 хвилин).</p>
+					}
+					else if (pendingAction == AdminAction.Demote)
+					{
+						<h2 class="modal__title">Забрати роль менеджера?</h2>
+						<p class="modal__subtitle">@FullName(pendingUser) стане звичайним клієнтом. Зміна почне діяти після оновлення сесії (до 15 хвилин).</p>
+					}
+					else
+					{
+						<h2 class="modal__title">Видалити користувача?</h2>
+						<p class="modal__subtitle">@FullName(pendingUser) (@pendingUser.Email) буде видалено разом із замовленнями та списком вподобань. Цю дію не можна скасувати.</p>
+					}
+
+					<div class="settings-card__actions">
+						<button type="button" class="btn btn--outline" @onclick="CancelChange" disabled="@isProcessing">Скасувати</button>
+						<button type="button" class="btn @(pendingAction == AdminAction.Delete ? "btn--danger-outline" : "btn--primary")" @onclick="ConfirmChange" disabled="@isProcessing">
+							@if (isProcessing)
+							{
+								<span>Зачекайте...</span>
+							}
+							else
+							{
+								<span>@(pendingAction == AdminAction.Delete ? "Видалити" : "Підтвердити")</span>
+							}
+						</button>
+					</div>
+				</div>
+			</div>
+		}
+	</Authorized>
+	<NotAuthorized>
+		@* Для не-адмінів показуємо 404, щоб не розкривати існування сторінки *@
+		<main class="container">
+			<div class="page-head">
+				<h1>Сторінку не знайдено</h1>
+				<p class="page-head__sub">Такої сторінки не існує.</p>
+			</div>
+		</main>
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+	private List<UserResponse> users = [];
+	private string search = string.Empty;
+	private string roleFilter = string.Empty;
+	private bool isLoading = true;
+	private bool isProcessing;
+	private string? loadError;
+	private string? actionError;
+	private string? actionSuccess;
+	private UserResponse? pendingUser;
+	private AdminAction pendingAction;
+
+	private enum AdminAction { Promote, Demote, Delete }
+
+	private IEnumerable<UserResponse> FilteredUsers => users
+		.Where(u => roleFilter.Length == 0 || u.Role.ToString() == roleFilter)
+		.Where(Matches)
+		.OrderBy(u => u.Role)
+		.ThenBy(u => u.FirstName);
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+
+		// Дані завантажуються лише в circuit (під час prerender JS недоступний) і лише для адміна
+		var state = await AuthProvider.GetAuthenticationStateAsync();
+		if (!state.User.IsInRole("Admin")) return;
+
+		await LoadAsync(showLoading: true);
+		StateHasChanged();
+	}
+
+	private async Task LoadAsync(bool showLoading)
+	{
+		if (showLoading) isLoading = true;
+
+		var response = await AdminUsers.GetUsersAsync();
+		if (response.Success && response.Data is not null)
+		{
+			users = response.Data;
+			loadError = null;
+		}
+		else
+		{
+			loadError = string.IsNullOrWhiteSpace(response.Message)
+				? "Не вдалося завантажити користувачів."
+				: response.Message;
+		}
+
+		isLoading = false;
+	}
+
+	private async Task Reload()
+	{
+		actionError = null;
+		actionSuccess = null;
+		await LoadAsync(showLoading: true);
+	}
+
+	private void AskChange(UserResponse user, AdminAction action)
+	{
+		pendingUser = user;
+		pendingAction = action;
+		actionError = null;
+		actionSuccess = null;
+	}
+
+	private void CancelChange()
+	{
+		if (isProcessing) return;
+		pendingUser = null;
+	}
+
+	private async Task ConfirmChange()
+	{
+		if (pendingUser is null || isProcessing) return;
+		isProcessing = true;
+
+		var user = pendingUser;
+		var action = pendingAction;
+		var error = action == AdminAction.Delete
+			? await AdminUsers.DeleteUserAsync(user.Id)
+			: await AdminUsers.ChangeRoleAsync(user.Id, action == AdminAction.Promote);
+
+		pendingUser = null;
+		if (error is null)
+		{
+			actionSuccess = action switch
+			{
+				AdminAction.Promote => $"{FullName(user)} тепер менеджер.",
+				AdminAction.Demote => $"{FullName(user)} тепер клієнт.",
+				_ => $"{FullName(user)} видалено."
+			};
+			await LoadAsync(showLoading: false);
+		}
+		else
+		{
+			actionError = action == AdminAction.Delete
+				? $"Не вдалося видалити користувача: {error}"
+				: $"Не вдалося змінити роль: {error}";
+		}
+
+		isProcessing = false;
+	}
+
+	private bool Matches(UserResponse user)
+	{
+		var query = search.Trim();
+		if (query.Length == 0) return true;
+
+		return Contains(FullName(user), query)
+			|| Contains(user.Email, query)
+			|| Contains(user.PhoneNumber, query);
+	}
+
+	private static bool Contains(string? value, string query)
+		=> value is not null && value.Contains(query, StringComparison.OrdinalIgnoreCase);
+
+	private static string FullName(UserResponse user)
+		=> $"{user.FirstName} {user.LastName}".Trim();
+
+	private static string RoleLabel(Role role) => role switch
+	{
+		Role.Admin => "Адмін",
+		Role.Manager => "Менеджер",
+		_ => "Клієнт"
+	};
+
+	private static string RoleClass(Role role) => role switch
+	{
+		Role.Admin => "role-badge--admin",
+		Role.Manager => "role-badge--manager",
+		_ => string.Empty
+	};
+}

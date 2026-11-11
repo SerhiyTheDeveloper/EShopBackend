@@ -40,7 +40,7 @@ builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
     sp.GetRequiredService<CookieAuthenticationStateProvider>());
 builder.Services.AddCascadingAuthenticationState();
 
-builder.Services.AddHttpClient<AuthApiClient>(client =>
+Action<HttpClient> configureApiClient = client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["BaseUrl"]!);
 
@@ -48,17 +48,13 @@ builder.Services.AddHttpClient<AuthApiClient>(client =>
 
     client.DefaultRequestHeaders.Accept.Clear();
     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-});
-builder.Services.AddHttpClient<UserApiClient>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["BaseUrl"]!);
+};
 
-    client.Timeout = TimeSpan.FromSeconds(10);
-
-    client.DefaultRequestHeaders.Accept.Clear();
-    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-});
+builder.Services.AddHttpClient<AuthApiClient>(configureApiClient);
+builder.Services.AddHttpClient<UserApiClient>(configureApiClient);
+builder.Services.AddHttpClient<AdminApiClient>(configureApiClient);
 builder.Services.AddScoped<UserProfileService>();
+builder.Services.AddScoped<AdminUsersService>();
 builder.Services.AddScoped<TokenRefreshService>();
 
 var app = builder.Build();
@@ -82,6 +78,7 @@ app.UseAuthorization();
 
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
+app.MapAdminEndpoints();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
