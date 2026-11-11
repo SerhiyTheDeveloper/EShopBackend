@@ -1128,6 +1128,8 @@ input, select, textarea {
     border: 1px solid var(--line-100);
     padding: 16px 16px 18px;
     position: relative;
+    display: flex;
+    flex-direction: column;
     transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 
@@ -1203,6 +1205,31 @@ input, select, textarea {
     z-index: 1;
 }
 
+/* Картка з фото товару: заглушка (блоб + іконка) ховається, фото вписується без обрізання */
+.product-card__img {
+    display: none;
+}
+
+/* Однакова висота блоку зображення в усіх картках, з фото чи без, щоб решта елементів не зсувалась */
+.product-card__media--tall {
+    height: 170px;
+}
+
+    .product-card__media--has-image .product-card__blob,
+    .product-card__media--has-image > .icon {
+        display: none;
+    }
+
+    .product-card__media--has-image .product-card__img {
+        display: block;
+        position: relative;
+        z-index: 1;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: var(--radius-sm);
+    }
+
 .product-card__category {
     font-size: 11.5px;
     color: var(--slate-500);
@@ -1244,6 +1271,7 @@ input, select, textarea {
     display: flex;
     align-items: baseline;
     gap: 8px;
+    margin-top: auto;
     margin-bottom: 14px;
 }
 
