@@ -66,3 +66,25 @@ async function logoutUser() {
         return false;
     }
 }
+
+async function callUserApi(method, request) {
+    try {
+        const response = await fetch('/api/user/me', {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: request ? JSON.stringify(request) : undefined,
+            credentials: 'include'
+        });
+        return await response.json();
+    } catch (error) {
+        return { success: false, message: "Помилка з'єднання. Спробуйте ще раз" };
+    }
+}
+
+function getCurrentUser() {
+    return callUserApi('GET');
+}
+
+function updateCurrentUser(request) {
+    return callUserApi('PUT', request);
+}

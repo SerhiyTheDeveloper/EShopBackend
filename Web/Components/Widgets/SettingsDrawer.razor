@@ -1,5 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@implements IDisposable
 @inject UiStateService UiState
+@inject UserProfileService Profile
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
@@ -15,13 +17,10 @@
         <AuthorizeView>
             <Authorized>
                 <div class="drawer__profile">
-                    <div class="drawer__avatar">ОК</div>
-                    @* замінити ініціали на @userInitials *@
+                    <div class="drawer__avatar">@Profile.Initials</div>
                     <div>
-                        <div class="drawer__name">Олена Коваль</div>
-                        @* замінити на @userName *@
-                        <div class="drawer__email">user@gmail.com</div>
-                        @* замінити на @userEmail *@
+                        <div class="drawer__name">@Profile.DisplayName</div>
+                        <div class="drawer__email">@Profile.User?.Email</div>
                     </div>
                 </div>
 
@@ -202,9 +201,13 @@
     private void ShowLogin() => UiState.Show(Modal.Login);
     private void ShowRegister() => UiState.Show(Modal.Register);
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         UiState.OnChange += HandleChange;
+        Profile.OnChange += HandleChange;
+
+        // Для гостя нічого не завантажується; помилку тут не показуємо (є запасні значення)
+        await Profile.LoadAsync();
     }
 
     private async Task SignOut()
@@ -223,5 +226,6 @@
     public void Dispose()
     {
         UiState.OnChange -= HandleChange;
+        Profile.OnChange -= HandleChange;
     }
 }

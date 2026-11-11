@@ -1,40 +1,53 @@
 ﻿using Microsoft.Extensions.Options;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Web.Services
 {
+    /// <summary>
+    /// Пара токенів, які middleware щойно оновив у поточному запиті (cookie ще не повернулись
+    /// від браузера, тому поточний запит бере їх звідси).
+    /// </summary>
+    public record TokenPair(string? AccessToken, string? RefreshToken);
+
     public class TokenStorageService(IOptions<TokenOptions> tokenOptions, IHttpContextAccessor httpContextAccessor)
     {
+        public const string ItemsKey = "Web.TokenPair";
+
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         private readonly TokenOptions _tokenOptions = tokenOptions.Value;
-        private string? accessToken;
-        private string? refreshToken;
 
         public string? GetAccessToken()
         {
-            if (!string.IsNullOrEmpty(accessToken)) 
-                return accessToken;
-            return _httpContextAccessor.HttpContext?
-                .Request.Cookies[_tokenOptions.AccessToken];
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext?.Items[ItemsKey] is TokenPair pair)
+                return pair.AccessToken;
+
+            return httpContext?.Request.Cookies[_tokenOptions.AccessToken];
         }
 
         public string? GetRefreshToken()
         {
-            if (!string.IsNullOrEmpty(refreshToken)) 
-                return refreshToken;
-            return _httpContextAccessor.HttpContext?
-                .Request.Cookies[_tokenOptions.RefreshToken];
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext?.Items[ItemsKey] is TokenPair pair)
+                return pair.RefreshToken;
+
+            return httpContext?.Request.Cookies[_tokenOptions.RefreshToken];
         }
 
-        public void ClearTokens()
+        /// <summary>
+        /// Чи прострочений JWT (з запасом skew). Непрочитний токен вважається простроченим.
+        /// </summary>
+        public static bool IsExpired(string jwt, TimeSpan? skew = null)
         {
-            accessToken = null;
-            refreshToken = null;
-        }
-
-        public void SetTokens(string accessToken, string refreshToken)
-        {
-            this.accessToken = accessToken;
-            this.refreshToken = refreshToken;
+            try
+            {
+                var token = new JwtSecurityTokenHandler().ReadJwtToken(jwt);
+                return token.ValidTo <= DateTime.UtcNow.Add(skew ?? TimeSpan.Zero);
+            }
+            catch
+            {
+                return true;
+            }
         }
     }
 }

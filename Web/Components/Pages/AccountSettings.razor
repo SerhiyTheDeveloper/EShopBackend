@@ -1,4 +1,8 @@
 ﻿@page "/account"
+@rendermode InteractiveServer
+@using MINT.EShop.Business.DTOs.Identity
+@using Microsoft.AspNetCore.Components.Authorization
+@inject UserProfileService Profile
 
 <PageTitle>Shopik — Налаштування акаунта</PageTitle>
 
@@ -15,49 +19,94 @@
 		</div>
 
 		<div class="settings-shell">
-			<div class="settings-card">
-				<h2>Особиста інформація</h2>
-				<p class="settings-card__desc">Ці дані бачить тільки ви та служба підтримки Shopik.</p>
+			<AuthorizeView Context="auth">
+				<Authorized>
+					<div class="settings-card">
+						<h2>Особиста інформація</h2>
+						<p class="settings-card__desc">Ці дані бачить тільки ви та служба підтримки Shopik.</p>
 
-				<div class="settings-grid">
-					<div class="field">
-						<label class="field__label" for="set-name">Ім'я</label>
-						<input class="input" id="set-name" type="text" value="Олена" />
-						@* замінити value на @user.FirstName або @bind *@
-					</div>
-					<div class="field">
-						<label class="field__label" for="set-surname">Прізвище</label>
-						<input class="input" id="set-surname" type="text" value="Коваль" />
-						@* замінити value на @user.LastName або @bind *@
-					</div>
-					<div class="field">
-						<label class="field__label" for="set-phone">Номер телефону</label>
-						<div class="phone-wrap">
-							<input class="phone-code" type="text" value="+380" readonly />
-							<input class="input" id="set-phone" type="tel" value="67 123 45 67" />
-							@* замінити value на @user.Phone або @bind *@
-						</div>
-					</div>
-					<div class="field">
-						<label class="field__label" for="set-email">Електронна пошта</label>
-						<input class="input input--readonly" id="set-email" type="email"
-							   value="user@gmail.com" readonly />
-						@* замінити value на @user.Email *@
-						<p class="field__hint field__hint--lock">
-							<svg class="icon icon--sm" viewBox="0 0 24 24">
-								<rect x="5" y="11" width="14" height="9" rx="2" />
-								<path d="M8 11V7a4 4 0 0 1 8 0v4" />
-							</svg>
-							Пошту не можна змінити
-						</p>
-					</div>
-				</div>
+						@if (isLoading)
+						{
+							<p class="settings-card__desc">Завантаження...</p>
+						}
+						else if (Profile.User is null)
+						{
+							<p class="field__error">@(loadError ?? "Не вдалося завантажити дані акаунта.")</p>
+							<div class="settings-card__actions">
+								<button type="button" class="btn btn--outline" @onclick="Reload">Спробувати ще раз</button>
+							</div>
+						}
+						else
+						{
+							<EditForm Model="model" OnValidSubmit="Save" novalidate>
+								<DataAnnotationsValidator />
 
-				<div class="settings-card__actions">
-					<button type="button" class="btn btn--outline">Скасувати</button>
-					<button type="button" class="btn btn--primary">Зберегти зміни</button>
-				</div>
-			</div>
+								<div class="settings-grid">
+									<div class="field">
+										<label class="field__label" for="set-name">Ім'я</label>
+										<InputText class="input" id="set-name" @bind-Value="model.FirstName" />
+										<ValidationMessage For="() => model.FirstName" class="field__error" />
+									</div>
+									<div class="field">
+										<label class="field__label" for="set-surname">Прізвище</label>
+										<InputText class="input" id="set-surname" @bind-Value="model.LastName" />
+										<ValidationMessage For="() => model.LastName" class="field__error" />
+									</div>
+									<div class="field">
+										<label class="field__label" for="set-phone">Номер телефону</label>
+										<div class="phone-wrap">
+											<input class="phone-code" type="text" value="+380" readonly aria-label="Код країни" />
+											<InputText class="input" id="set-phone" type="tel" @bind-Value="model.Phone" />
+										</div>
+										<ValidationMessage For="() => model.Phone" class="field__error" />
+									</div>
+									<div class="field">
+										<label class="field__label" for="set-email">Електронна пошта</label>
+										<input class="input input--readonly" id="set-email" type="email"
+											   value="@Profile.User.Email" readonly />
+										<p class="field__hint field__hint--lock">
+											<svg class="icon icon--sm" viewBox="0 0 24 24">
+												<rect x="5" y="11" width="14" height="9" rx="2" />
+												<path d="M8 11V7a4 4 0 0 1 8 0v4" />
+											</svg>
+											Пошту не можна змінити
+										</p>
+									</div>
+								</div>
+
+								@if (!string.IsNullOrEmpty(saveError))
+								{
+									<p class="field__error" style="margin-top:14px;">@saveError</p>
+								}
+								@if (!string.IsNullOrEmpty(successMessage))
+								{
+									<p class="field__hint" style="margin-top:14px;">@successMessage</p>
+								}
+
+								<div class="settings-card__actions">
+									<button type="button" class="btn btn--outline" @onclick="Cancel" disabled="@isSaving">Скасувати</button>
+									<button type="submit" class="btn btn--primary" disabled="@isSaving">
+										@if (isSaving)
+										{
+											<span>Зачекайте...</span>
+										}
+										else
+										{
+											<span>Зберегти зміни</span>
+										}
+									</button>
+								</div>
+							</EditForm>
+						}
+					</div>
+				</Authorized>
+				<NotAuthorized>
+					<div class="settings-card">
+						<h2>Особиста інформація</h2>
+						<p class="settings-card__desc">Увійдіть в акаунт, щоб переглядати та змінювати свої дані.</p>
+					</div>
+				</NotAuthorized>
+			</AuthorizeView>
 
 			<div class="settings-card">
 				<h2>Тема оформлення</h2>
@@ -110,5 +159,67 @@
 </main>
 
 @code {
+	private readonly AccountSettingsModel model = new();
+	private bool isLoading = true;
+	private bool isSaving;
+	private string? loadError;
+	private string? saveError;
+	private string? successMessage;
 
+	protected override async Task OnInitializedAsync()
+	{
+		// force: щоб на сторінці завжди були актуальні дані, а не кеш із SettingsDrawer
+		loadError = await Profile.LoadAsync(force: true);
+		FillModel();
+		isLoading = false;
+	}
+
+	private async Task Reload()
+	{
+		isLoading = true;
+		loadError = await Profile.LoadAsync(force: true);
+		FillModel();
+		isLoading = false;
+	}
+
+	private void FillModel()
+	{
+		var user = Profile.User;
+		if (user is null) return;
+
+		model.FirstName = user.FirstName;
+		model.LastName = user.LastName ?? string.Empty;
+		model.Phone = user.PhoneNumber;
+	}
+
+	private void Cancel()
+	{
+		FillModel();
+		saveError = null;
+		successMessage = null;
+	}
+
+	private async Task Save()
+	{
+		if (isSaving) return;
+		isSaving = true;
+		saveError = null;
+		successMessage = null;
+
+		var request = new UpdateUserDataRequest
+		{
+			FirstName = model.FirstName.Trim(),
+			LastName = string.IsNullOrWhiteSpace(model.LastName) ? null : model.LastName.Trim(),
+			PhoneNumber = model.Phone.Trim()
+		};
+
+		saveError = await Profile.UpdateAsync(request);
+		if (saveError is null)
+		{
+			successMessage = "Зміни збережено.";
+			FillModel();
+		}
+
+		isSaving = false;
+	}
 }

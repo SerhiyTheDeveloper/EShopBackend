@@ -4,6 +4,8 @@ using System.Text.Json;
 
 namespace Web.Services
 {
+    public record RefreshOutcome(LoginResponse? Tokens, bool Rejected);
+
     public class AuthApiClient
     {
         private readonly HttpClient _httpClient;
@@ -64,6 +66,38 @@ namespace Web.Services
             catch (Exception ex)
             {
                 return APIResponse<LoginResponse>.FailureResponse($"Сталася непередбачувана помилка: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Оновлює пару токенів. Rejected = true, якщо API відхилив токени (4xx),
+        /// тоді сесія недійсна. Інші збої (мережа, 5xx) тимчасові, cookie чіпати не можна.
+        /// </summary>
+        public async Task<RefreshOutcome> RefreshAsync(RefreshRequest request, CancellationToken cancToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("api/v1/auth/refresh", request, _jsonOptions, cancToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<APIResponse<LoginResponse>>(_jsonOptions, cancToken);
+                    return result?.Data is { } tokens ? new RefreshOutcome(tokens, false) : new RefreshOutcome(null, false);
+                }
+
+                var rejected = (int)response.StatusCode is >= 400 and < 500;
+                return new RefreshOutcome(null, rejected);
+            }
+            catch (OperationCanceledException)
+            {
+                return new RefreshOutcome(null, false);
+            }
+            catch (HttpRequestException)
+            {
+                return new RefreshOutcome(null, false);
+            }
+            catch (Exception)
+            {
+                return new RefreshOutcome(null, false);
             }
         }
 
