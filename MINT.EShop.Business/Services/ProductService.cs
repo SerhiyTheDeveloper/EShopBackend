@@ -132,6 +132,8 @@ namespace MINT.EShop.Business.Services
             existingProduct.Name = request.Name;
             existingProduct.Description = request.Description;
             existingProduct.Price = request.Price;
+            existingProduct.Stock = request.Stock;
+            existingProduct.ImageUrl = request.ImageUrl;
 
             // Завершуємо транзакцію, щоб зберегти зміни в базі даних
             await unitOfWork.CompleteAsync();
