@@ -180,11 +180,15 @@
         if (!draft.Brands.Remove(brand)) draft.Brands.Add(brand);
     }
 
-    private void ResetDraft() => draft = new ProductFilter();
+    // Пошуковий запит живе у шапці й має власне керування, тож «Скинути» його не чіпає
+    private void ResetDraft() => draft = new ProductFilter { Search = draft.Search };
 
     private void Apply()
     {
         if (PriceInvalid) return;
+
+        // Запит міг змінитися, поки drawer був відкритий
+        draft.Search = Filter.Applied.Search;
 
         Filter.Apply(draft);
         UiState.Show(Modal.None);

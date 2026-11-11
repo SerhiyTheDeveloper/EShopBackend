@@ -65,6 +65,20 @@ namespace Web.Services
             Apply(filter);
         }
 
+        /// <summary>Пошуковий запит із шапки. Порожній текст знімає пошук; решта фільтра не змінюється.</summary>
+        public void SetSearch(string? text)
+        {
+            var trimmed = text?.Trim();
+            var normalized = string.IsNullOrEmpty(trimmed) ? null : trimmed;
+            if (normalized == Applied.Search) return;
+
+            var filter = Applied.Clone();
+            filter.Search = normalized;
+            Apply(filter);
+        }
+
+        public void RemoveSearch() => SetSearch(null);
+
         public void RemoveBrand(string brand)
         {
             var filter = Applied.Clone();
