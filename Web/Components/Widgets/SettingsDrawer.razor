@@ -206,7 +206,6 @@
         UiState.OnChange += HandleChange;
         Profile.OnChange += HandleChange;
 
-        // Для гостя нічого не завантажується; помилку тут не показуємо (є запасні значення)
         await Profile.LoadAsync();
     }
 
