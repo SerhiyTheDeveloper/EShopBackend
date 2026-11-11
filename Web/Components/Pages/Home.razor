@@ -72,30 +72,7 @@
 			<div class="product-grid">
 				@foreach (var product in filtered)
 				{
-					<article class="product-card">
-						<button class="product-card__wish" aria-label="Додати до вподобань">
-							<svg class="icon icon--sm" viewBox="0 0 24 24">
-								<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-							</svg>
-						</button>
-						<div class="product-card__media product-card__media--tall @(HasImage(product) ? "product-card__media--has-image" : "")">
-							<span class="product-card__blob"></span>
-							<svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.4"></rect><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"></line></svg>
-							@if (HasImage(product))
-							{
-								@* Якщо картинка не завантажилась, прибираємо клас has-image: CSS ховає <img> і повертає заглушку *@
-								<img class="product-card__img" src="@product.ImageUrl" alt="@product.Name"
-									 loading="lazy" referrerpolicy="no-referrer"
-									 onerror="this.parentElement.classList.remove('product-card__media--has-image')" />
-							}
-						</div>
-						<p class="product-card__category">@product.Category</p>
-						<h3 class="product-card__title">@product.Name</h3>
-						<div class="product-card__price-row">
-							<span class="price">@product.Price ₴</span>
-						</div>
-						<button class="btn-add">У кошик</button>
-					</article>
+					<ProductCard Product="product" />
 				}
 			</div>
 		}
@@ -116,12 +93,14 @@
 		}
 	}
 
-	private static bool HasImage(ProductResponse product) => !string.IsNullOrWhiteSpace(product.ImageUrl);
-
 	protected override async Task OnInitializedAsync()
 	{
 		Filter.OnChange += HandleChange;
+
+		// Каталог кешується на сеанс, тому при поверненні на головну тихо підтягуємо свіжі залишки
+		var wasLoaded = Filter.IsLoaded;
 		await Filter.EnsureLoadedAsync();
+		if (wasLoaded) _ = Filter.RefreshAsync();
 	}
 
 	private void HandleChange() => InvokeAsync(StateHasChanged);

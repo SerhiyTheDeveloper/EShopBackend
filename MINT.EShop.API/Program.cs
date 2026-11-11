@@ -31,6 +31,7 @@ builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProducerService, ProducerService>();
+builder.Services.AddScoped<IWishListService, WishListService>();
 
 builder.Services.AddRedisExtension(builder.Configuration);
 builder.Services.AddControllersExtension();

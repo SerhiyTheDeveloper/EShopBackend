@@ -1,50 +1,124 @@
-﻿@* @page "/account/cart"
+﻿@page "/cart"
+@rendermode InteractiveServer
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Authorization
+@inject CartService CartState
+@inject CatalogApiClient Catalog
+@inject ShopService Shop
+@inject ProductFilterService Filter
+@inject UiStateService UiState
+@inject AuthenticationStateProvider AuthProvider
+
+<PageTitle>Shopik — Кошик</PageTitle>
 
 <main class="container">
+	@{
+		var lines = Lines.ToList();
+		var available = lines.Where(l => l.Product.Stock > 0).ToList();
+		var totalUnits = available.Sum(l => l.Quantity);
+		var total = available.Sum(l => l.Product.Price * l.Quantity);
+		var hasUnavailable = lines.Any(l => l.Product.Stock <= 0);
+	}
+
 	<div class="page-head">
 		<div class="breadcrumb">
-			<a href="index-logged-in.html">Головна</a>
+			<a href="/">Головна</a>
 			<svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"></polyline></svg>
 			<span>Кошик</span>
 		</div>
 		<h1>Кошик</h1>
-		<p class="page-head__sub">2 товари у вашому кошику</p>
+		@if (!isLoading && lines.Count > 0)
+		{
+			<p class="page-head__sub">@totalUnits @UkrainianPlural.Goods(totalUnits) у вашому кошику</p>
+		}
 	</div>
 
-	<div class="cart-layout">
-		@if (apiResponse == null)
+	@if (placedOrder is not null)
+	{
+		<div class="order-success" role="status">
+			<div>
+				<div class="order-success__title">Замовлення оформлено</div>
+				<div class="order-success__text">Сума: @placedOrder.TotalAmount ₴. Статус замовлення можна переглянути у списку замовлень.</div>
+			</div>
+			<a href="/account/orders" class="btn btn--primary btn--sm">Мої замовлення</a>
+		</div>
+	}
+
+	@if (isLoading)
+	{
+		<div class="loading">Завантаження кошика...</div>
+	}
+	else if (loadError is not null)
+	{
+		<div class="empty">
+			<p>@loadError</p>
+			<button type="button" class="btn btn--outline btn--sm" style="margin-top:12px;" @onclick="LoadAsync">Спробувати ще раз</button>
+		</div>
+	}
+	else if (lines.Count == 0)
+	{
+		@if (placedOrder is null)
 		{
-			<div class="loading">Завантаження товарів...</div>
-		}
-		else if (apiResponse.Data == null || !apiResponse.Data.Any())
-		{
-			<div class="empty">У кошику пусто.</div>
+			<EmptyState Icon="EmptyState.EmptyStateIcon.Cart" Title="У кошику порожньо"
+							Description="Додайте товари з каталогу, і вони з'являться тут.">
+				<a href="/" class="btn btn--primary">До каталогу</a>
+			</EmptyState>
 		}
 		else
 		{
+			<a href="/" class="btn btn--outline btn--sm">Продовжити покупки</a>
+		}
+	}
+	else
+	{
+		<div class="cart-layout">
 			<div class="cart-list">
-				@foreach (var product in apiResponse.Data)
+				@foreach (var line in lines)
 				{
-					<div class="cart-item">
-						<div class="cart-item__media">
+					var product = line.Product;
+					var inStock = product.Stock > 0;
+					var hasImage = !string.IsNullOrWhiteSpace(product.ImageUrl);
+
+					<div class="cart-item @(inStock ? "" : "cart-item--unavailable")">
+						<a href="/product/@product.Id" class="cart-item__media @(hasImage ? "cart-item__media--has-image" : "")" aria-label="@product.Name">
 							<svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.4"></rect><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"></line></svg>
-						</div>
+							@if (hasImage)
+							{
+								@* Якщо картинка не завантажилась, прибираємо клас has-image: CSS ховає <img> і повертає заглушку *@
+								<img class="cart-item__img" src="@product.ImageUrl" alt="" loading="lazy" referrerpolicy="no-referrer"
+									 onerror="this.parentElement.classList.remove('cart-item__media--has-image')" />
+							}
+						</a>
 						<div class="cart-item__info">
 							<p class="cart-item__cat">@product.Category</p>
-							<h3 class="cart-item__title">@product.Name</h3>
-							<p class="cart-item__spec">@product.Description</p>
+							<h3 class="cart-item__title"><a href="/product/@product.Id">@product.Name</a></h3>
+							@if (inStock)
+							{
+								<p class="cart-item__spec">@product.Price ₴ за одиницю</p>
+							}
+							else
+							{
+								<p class="field__error" style="margin:0;">Немає в наявності. Приберіть товар, щоб оформити замовлення.</p>
+							}
 						</div>
-						<div class="cart-item__qty">
-							<button class="qty-btn" aria-label="Зменшити кількість">
-								<svg class="icon icon--sm" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-							</button>
-							<span class="qty-val">1</span>
-							<button class="qty-btn" aria-label="Збільшити кількість">
-								<svg class="icon icon--sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-							</button>
-						</div>
-						<div class="cart-item__price">32 999 ₴</div>
-						<button class="cart-item__remove" aria-label="Видалити товар">
+
+						@if (inStock)
+						{
+							<div class="cart-item__qty">
+								<button type="button" class="qty-btn" aria-label="Зменшити кількість"
+										@onclick="() => ChangeQuantityAsync(line, -1)" disabled="@(line.Quantity <= 1)">
+									<svg class="icon icon--sm" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+								</button>
+								<span class="qty-val">@line.Quantity</span>
+								<button type="button" class="qty-btn" aria-label="Збільшити кількість"
+										@onclick="() => ChangeQuantityAsync(line, 1)" disabled="@(line.Quantity >= product.Stock)">
+									<svg class="icon icon--sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+								</button>
+							</div>
+							<div class="cart-item__price">@(product.Price * line.Quantity) ₴</div>
+						}
+
+						<button type="button" class="cart-item__remove" aria-label="Видалити товар" @onclick="() => RemoveAsync(line)">
 							<svg class="icon icon--sm" viewBox="0 0 24 24"><polyline points="3.5 6.5 5.5 6.5 20.5 6.5"></polyline><path d="M18.5 6.5 17 19a2 2 0 0 1-2 1.8H9a2 2 0 0 1-2-1.8L5.5 6.5"></path><path d="M9.5 11v5M14.5 11v5"></path><path d="M9 6.5V4.3A1.3 1.3 0 0 1 10.3 3h3.4a1.3 1.3 0 0 1 1.3 1.3v2.2"></path></svg>
 						</button>
 					</div>
@@ -53,25 +127,141 @@
 
 			<div class="summary-card">
 				<h3>Разом</h3>
-				<div class="summary-row"><span>Товари (2)</span><span>35 198 ₴</span></div>
-				<div class="summary-row"><span>Доставка</span><span>Безкоштовно</span></div>
+				<div class="summary-row"><span>Товари (@totalUnits)</span><span>@total ₴</span></div>
+				<div class="summary-row summary-row--total"><span>До сплати</span><span class="price">@total ₴</span></div>
 
-				<div class="promo-row">
-					<input class="input" type="text" placeholder="Промокод">
-					<button class="btn btn--outline btn--sm">Застосувати</button>
-				</div>
+				@if (!string.IsNullOrEmpty(checkoutError))
+				{
+					<p class="field__error" style="margin-top:12px;">@checkoutError</p>
+				}
 
-				<div class="summary-row summary-row--total"><span>До сплати</span><span class="price">35 198 ₴</span></div>
-
-				<a href="#" class="btn btn--primary btn--block" style="margin-top:18px;">Оформити замовлення</a>
+				<button type="button" class="btn btn--primary btn--block" style="margin-top:18px;"
+						@onclick="CheckoutAsync" disabled="@(isOrdering || hasUnavailable || available.Count == 0)">
+					@if (isOrdering)
+					{
+						<span>Зачекайте...</span>
+					}
+					else
+					{
+						<span>Оформити замовлення</span>
+					}
+				</button>
 			</div>
-		}
-
-	</div>
+		</div>
+	}
 </main>
 
 @code {
-	    private ApiResponse<CartItemDto>? apiResponse;
-		...
-} *@
+	private sealed record CartLine(ProductResponse Product, int Quantity);
 
+	private Dictionary<Guid, ProductResponse> products = [];
+	private bool isLoading = true;
+	private string? loadError;
+	private bool isOrdering;
+	private string? checkoutError;
+	private OrderCreatedResponse? placedOrder;
+
+	// Позиції кошика разом з актуальними даними товарів
+	private IEnumerable<CartLine> Lines => CartState.Items
+		.Where(i => products.ContainsKey(i.ProductId))
+		.Select(i => new CartLine(products[i.ProductId], i.Quantity));
+
+	protected override void OnInitialized() => CartState.OnChange += HandleChange;
+
+	// Дані читаються з localStorage лише в circuit (під час prerender JS недоступний)
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+
+		await LoadAsync();
+	}
+
+	private void HandleChange() => InvokeAsync(StateHasChanged);
+
+	private async Task LoadAsync()
+	{
+		isLoading = true;
+		loadError = null;
+		StateHasChanged();
+
+		await CartState.EnsureLoadedAsync();
+
+		if (CartState.Items.Count == 0)
+		{
+			products = [];
+		}
+		else
+		{
+			var response = await Catalog.GetProductsByIdsAsync(CartState.Items.Select(i => i.ProductId));
+			if (response.Success && response.Data is not null)
+			{
+				products = response.Data.ToDictionary(p => p.Id);
+
+				// Прибираємо товари, яких уже немає, і зменшуємо кількість до залишку
+				await CartState.ReconcileAsync(response.Data);
+			}
+			else
+			{
+				loadError = string.IsNullOrWhiteSpace(response.Message)
+					? "Не вдалося завантажити товари кошика."
+					: response.Message;
+			}
+		}
+
+		isLoading = false;
+		StateHasChanged();
+	}
+
+	private async Task ChangeQuantityAsync(CartLine line, int delta)
+	{
+		var quantity = Math.Clamp(line.Quantity + delta, 1, Math.Max(line.Product.Stock, 1));
+		if (quantity == line.Quantity) return;
+
+		checkoutError = null;
+		await CartState.SetQuantityAsync(line.Product.Id, quantity);
+	}
+
+	private async Task RemoveAsync(CartLine line)
+	{
+		checkoutError = null;
+		await CartState.RemoveAsync(line.Product.Id);
+	}
+
+	private async Task CheckoutAsync()
+	{
+		if (isOrdering) return;
+		checkoutError = null;
+
+		// Гість спершу входить: кошик при цьому зберігається в браузері
+		var state = await AuthProvider.GetAuthenticationStateAsync();
+		if (state.User.Identity?.IsAuthenticated != true)
+		{
+			UiState.Show(Modal.Login);
+			return;
+		}
+
+		isOrdering = true;
+		var (order, error) = await Shop.PlaceOrderAsync(CartState.Items);
+		isOrdering = false;
+
+		if (order is not null)
+		{
+			placedOrder = order;
+			await CartState.ClearAsync();
+
+			// Залишки змінилися: оновлюємо каталог, щоб картки на головній показували актуальну наявність
+			await Filter.RefreshAsync();
+			return;
+		}
+
+		if (error == ApiClientBase.SessionExpiredMessage)
+		{
+			UiState.Show(Modal.Login);
+			return;
+		}
+
+		checkoutError = $"Не вдалося оформити замовлення: {error}";
+	}
+
+	public void Dispose() => CartState.OnChange -= HandleChange;
+}

@@ -55,9 +55,14 @@ builder.Services.AddHttpClient<UserApiClient>(configureApiClient);
 builder.Services.AddHttpClient<AdminApiClient>(configureApiClient);
 builder.Services.AddHttpClient<CatalogApiClient>(configureApiClient);
 builder.Services.AddHttpClient<ManagerApiClient>(configureApiClient);
+builder.Services.AddHttpClient<ShopApiClient>(configureApiClient);
+builder.Services.AddHttpClient<WishListApiClient>(configureApiClient);
 builder.Services.AddScoped<UserProfileService>();
 builder.Services.AddScoped<AdminUsersService>();
 builder.Services.AddScoped<ManagerService>();
+builder.Services.AddScoped<ShopService>();
+builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<WishListStateService>();
 builder.Services.AddScoped<ProductFilterService>();
 builder.Services.AddScoped<TokenRefreshService>();
 
@@ -84,6 +89,8 @@ app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapAdminEndpoints();
 app.MapManagerEndpoints();
+app.MapShopEndpoints();
+app.MapWishListEndpoints();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

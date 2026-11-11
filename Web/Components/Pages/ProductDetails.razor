@@ -1,0 +1,366 @@
+@page "/product/{Id:guid}"
+@rendermode InteractiveServer
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Authorization
+@inject CatalogApiClient Catalog
+@inject ProductFilterService Filter
+@inject ShopService Shop
+@inject WishListStateService Wish
+@inject CartService Cart
+@inject UiStateService UiState
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthProvider
+
+<PageTitle>@(product is null ? "Товар" : product.Name) — Shopik</PageTitle>
+
+<main class="container product-page">
+	@if (isLoading)
+	{
+		<div class="loading">Завантаження товару...</div>
+	}
+	else if (product is null)
+	{
+		<div class="empty">
+			<p>Товар не знайдено або його вже немає.</p>
+			<a href="/" class="btn btn--outline btn--sm" style="margin-top:12px;">На головну</a>
+		</div>
+	}
+	else
+	{
+		<div class="page-head">
+			<div class="breadcrumb">
+				<a href="/">Головна</a>
+				<svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18" /></svg>
+				<a href="/" @onclick="OpenCategory" @onclick:preventDefault>@product.Category</a>
+				<svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18" /></svg>
+				<span>@product.Name</span>
+			</div>
+		</div>
+
+		@if (placedOrder is not null)
+		{
+			<div class="order-success" role="status">
+				<div>
+					<div class="order-success__title">Замовлення оформлено</div>
+					<div class="order-success__text">Сума: @placedOrder.TotalAmount ₴. Статус замовлення можна переглянути у списку замовлень.</div>
+				</div>
+				<a href="/account/orders" class="btn btn--primary btn--sm">Мої замовлення</a>
+			</div>
+		}
+
+		<div class="product-details">
+			<div class="product-details__media @(HasImage ? "product-details__media--has-image" : "")">
+				<span class="product-details__blob"></span>
+				<svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.4"></rect><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"></line></svg>
+				@if (HasImage)
+				{
+					@* Якщо картинка не завантажилась, прибираємо клас has-image: CSS ховає <img> і повертає заглушку *@
+					<img class="product-details__img" src="@product.ImageUrl" alt="@product.Name" referrerpolicy="no-referrer"
+						 onerror="this.parentElement.classList.remove('product-details__media--has-image')" />
+				}
+			</div>
+
+			<div class="product-details__info">
+				<p class="product-details__meta">@product.Category · @product.Producer</p>
+				<h1>@product.Name</h1>
+				<span class="stock-badge @StockClass">@StockText</span>
+
+				<div class="product-details__buy">
+					<div class="product-details__price">@product.Price ₴</div>
+
+					@if (product.Stock > 0)
+					{
+						<div class="cart-item__qty">
+							<button type="button" class="qty-btn" aria-label="Зменшити кількість" @onclick="Decrease" disabled="@(quantity <= 1)">
+								<svg class="icon icon--sm" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							</button>
+							<span class="qty-val">@quantity</span>
+							<button type="button" class="qty-btn" aria-label="Збільшити кількість" @onclick="Increase" disabled="@(quantity >= product.Stock)">
+								<svg class="icon icon--sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							</button>
+						</div>
+
+						<button type="button" class="btn btn--outline" @onclick="CartClickAsync">@(inCart ? "У кошику" : "У кошик")</button>
+						<button type="button" class="btn btn--primary" @onclick="StartBuyAsync">Купити зараз</button>
+					}
+
+					<button type="button" class="btn-wish @(isWished ? "btn-wish--active" : "")"
+							aria-pressed="@isWished" aria-label="@(isWished ? "Прибрати з вподобань" : "Додати до вподобань")"
+							@onclick="ToggleWishAsync">
+						<svg class="icon" viewBox="0 0 24 24">
+							<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+						</svg>
+					</button>
+
+					@if (!string.IsNullOrEmpty(buyError))
+					{
+						<p class="field__error product-details__error">@buyError</p>
+					}
+				</div>
+
+			</div>
+		</div>
+
+
+		<section class="settings-card">
+			<h2>Опис</h2>
+			<p class="product-details__desc @(IsLongDescription && !isExpanded ? "product-details__desc--clamped" : "")">@(string.IsNullOrWhiteSpace(product.Description) ? "Опис відсутній." : product.Description)</p>
+			@if (IsLongDescription)
+			{
+				<button type="button" class="btn btn--outline btn--sm product-details__more" aria-expanded="@isExpanded"
+						@onclick="() => isExpanded = !isExpanded">
+					@(isExpanded ? "Згорнути" : "Показати повністю")
+				</button>
+			}
+		</section>
+
+		@if (similar.Count > 0)
+		{
+			<div class="section-title-row" style="margin-top:34px;">
+				<h2>Схожі товари</h2>
+			</div>
+			<div class="product-grid">
+				@foreach (var item in similar)
+				{
+					<ProductCard Product="item" />
+				}
+			</div>
+		}
+	}
+</main>
+
+@if (showConfirm && product is not null)
+{
+	<div class="overlay" @onclick="CancelBuy">
+		<div class="modal" @onclick:stopPropagation>
+			<button type="button" class="modal__close" aria-label="Закрити" @onclick="CancelBuy">
+				<svg class="icon" viewBox="0 0 24 24">
+					<line x1="6" y1="6" x2="18" y2="18" />
+					<line x1="18" y1="6" x2="6" y2="18" />
+				</svg>
+			</button>
+
+			<h2 class="modal__title">Оформити замовлення?</h2>
+			<p class="modal__subtitle">@product.Name × @quantity = @(product.Price * quantity) ₴</p>
+
+			<div class="settings-card__actions">
+				<button type="button" class="btn btn--outline" @onclick="CancelBuy" disabled="@isBuying">Скасувати</button>
+				<button type="button" class="btn btn--primary" @onclick="ConfirmBuyAsync" disabled="@isBuying">
+					@if (isBuying)
+					{
+						<span>Зачекайте...</span>
+					}
+					else
+					{
+						<span>Підтвердити</span>
+					}
+				</button>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public Guid Id { get; set; }
+
+	private ProductResponse? product;
+	private List<ProductResponse> similar = [];
+	private bool isLoading = true;
+	private Guid loadedId;
+
+	private int quantity = 1;
+	private bool showConfirm;
+	private bool isBuying;
+	private string? buyError;
+	private OrderCreatedResponse? placedOrder;
+	private bool isExpanded;
+
+	// Довгий опис показуємо згорнутим із кнопкою «Показати повністю», щоб схожі товари не відлітали далеко вниз
+	private bool IsLongDescription => product?.Description is { } text
+		&& (text.Length > 500 || text.Count(c => c == '\n') > 6);
+
+	private bool HasImage => product is not null && !string.IsNullOrWhiteSpace(product.ImageUrl);
+
+	private bool isWished => product is not null && Wish.Contains(product.Id);
+
+	private bool inCart => product is not null && Cart.Contains(product.Id);
+
+	protected override void OnInitialized()
+	{
+		Wish.OnChange += HandleStateChange;
+		Cart.OnChange += HandleStateChange;
+		Filter.OnChange += HandleStateChange;
+	}
+
+	private void HandleStateChange()
+	{
+		// Каталог міг оновитися (залишки, нові товари), тож «Схожі товари» перераховуємо
+		RecomputeSimilar();
+		InvokeAsync(StateHasChanged);
+	}
+
+	public void Dispose()
+	{
+		Wish.OnChange -= HandleStateChange;
+		Cart.OnChange -= HandleStateChange;
+		Filter.OnChange -= HandleStateChange;
+	}
+
+	// Схожі товари: з тієї ж категорії, без поточного
+	private void RecomputeSimilar()
+	{
+		similar = product is null
+			? []
+			: Filter.Products
+				.Where(p => p.Id != product.Id && p.Category == product.Category)
+				.Take(4)
+				.ToList();
+	}
+
+	// Перший клік додає вибрану кількість у кошик, повторний веде до кошика
+	private async Task CartClickAsync()
+	{
+		if (product is null) return;
+
+		if (inCart)
+		{
+			Nav.NavigateTo("/cart");
+			return;
+		}
+
+		buyError = null;
+		var result = await Cart.AddAsync(product, quantity);
+		if (result == CartAddResult.LimitReached) buyError = "У кошик додано максимальну доступну кількість.";
+	}
+
+	private async Task ToggleWishAsync()
+	{
+		if (product is null) return;
+
+		buyError = null;
+		var error = await Wish.ToggleAsync(product);
+		if (error is not null) buyError = $"Не вдалося оновити вподобання: {error}";
+	}
+
+	private string StockClass => product switch
+	{
+		{ Stock: <= 0 } => "stock-badge--out",
+		{ Stock: <= 3 } => "stock-badge--low",
+		_ => "stock-badge--ok"
+	};
+
+	private string StockText => product switch
+	{
+		{ Stock: <= 0 } => "Немає в наявності",
+		{ Stock: <= 3 } => $"Залишилось мало: {product.Stock} шт.",
+		_ => $"В наявності, {product!.Stock} шт."
+	};
+
+	// Перехід на іншу сторінку товару (наприклад, зі схожих) не створює компонент заново, тому слідкуємо за Id
+	protected override async Task OnParametersSetAsync()
+	{
+		if (Id == loadedId) return;
+
+		loadedId = Id;
+		quantity = 1;
+		showConfirm = false;
+		buyError = null;
+		placedOrder = null;
+		isExpanded = false;
+
+		await LoadAsync(showLoading: true);
+	}
+
+	private async Task LoadAsync(bool showLoading)
+	{
+		if (showLoading) isLoading = true;
+
+		var response = await Catalog.GetProductAsync(Id);
+		product = response.Success ? response.Data : null;
+
+		if (product is not null)
+		{
+			var wasLoaded = Filter.IsLoaded;
+			await Filter.EnsureLoadedAsync();
+			RecomputeSimilar();
+
+			quantity = Math.Clamp(quantity, 1, Math.Max(product.Stock, 1));
+
+			// Каталог кешується на сеанс, тому тихо підтягуємо свіжі залишки для «Схожих товарів»
+			if (wasLoaded) _ = Filter.RefreshAsync();
+		}
+
+		isLoading = false;
+	}
+
+	// Хлібна крихта категорії: застосовує фільтр за категорією й повертає на головну
+	private void OpenCategory()
+	{
+		if (product is null) return;
+
+		Filter.Apply(new ProductFilter { Category = product.Category });
+		Nav.NavigateTo("/");
+	}
+
+	private void Decrease()
+	{
+		if (quantity > 1) quantity--;
+	}
+
+	private void Increase()
+	{
+		if (product is not null && quantity < product.Stock) quantity++;
+	}
+
+	private async Task StartBuyAsync()
+	{
+		buyError = null;
+
+		// Гість спершу входить, потім оформлює замовлення
+		var state = await AuthProvider.GetAuthenticationStateAsync();
+		if (state.User.Identity?.IsAuthenticated != true)
+		{
+			UiState.Show(Modal.Login);
+			return;
+		}
+
+		showConfirm = true;
+	}
+
+	private void CancelBuy()
+	{
+		if (isBuying) return;
+		showConfirm = false;
+	}
+
+	private async Task ConfirmBuyAsync()
+	{
+		if (isBuying || product is null) return;
+		isBuying = true;
+
+		var (order, error) = await Shop.BuyNowAsync(product.Id, quantity);
+
+		isBuying = false;
+		showConfirm = false;
+
+		if (order is not null)
+		{
+			placedOrder = order;
+			quantity = 1;
+
+			// Залишок зменшився, тож оновлюємо товар і каталог (картки на головній)
+			await LoadAsync(showLoading: false);
+			await Filter.RefreshAsync();
+			return;
+		}
+
+		// Сесія завершилась: просимо увійти знову
+		if (error == ApiClientBase.SessionExpiredMessage)
+		{
+			UiState.Show(Modal.Login);
+			return;
+		}
+
+		buyError = $"Не вдалося оформити замовлення: {error}";
+	}
+}
