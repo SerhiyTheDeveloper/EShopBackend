@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Web;
 using Web.Components;
 using Web.Extensions;
+using Web.Middleware;
 using Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,7 +35,6 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<UiStateService>();
 builder.Services.AddScoped<TokenStorageService>();
-builder.Services.AddScoped<AuthHttpMessageHandler>();
 builder.Services.AddScoped<CookieAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
     sp.GetRequiredService<CookieAuthenticationStateProvider>());
@@ -49,15 +49,17 @@ builder.Services.AddHttpClient<AuthApiClient>(client =>
     client.DefaultRequestHeaders.Accept.Clear();
     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 });
-builder.Services.AddHttpClient("API", client =>
+builder.Services.AddHttpClient<UserApiClient>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["BaseUrl"]!);
-})
-.AddHttpMessageHandler<AuthHttpMessageHandler>();
-builder.Services.AddHttpClient("NoAuth", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["BaseUrl"]!);
+
+    client.Timeout = TimeSpan.FromSeconds(10);
+
+    client.DefaultRequestHeaders.Accept.Clear();
+    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 });
+builder.Services.AddScoped<UserProfileService>();
+builder.Services.AddScoped<TokenRefreshService>();
 
 var app = builder.Build();
 
@@ -71,12 +73,15 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<TokenRefreshMiddleware>();
+
 app.UseAntiforgery();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndpoints();
+app.MapUserEndpoints();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

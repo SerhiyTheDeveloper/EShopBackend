@@ -33,14 +33,7 @@ namespace Web.Extensions
                 }
             }
 
-           var options = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict
-            };
-            httpContext.Response.Cookies.Delete(tokenOptions.Value.AccessToken, options);
-            httpContext.Response.Cookies.Delete(tokenOptions.Value.RefreshToken, options);
+            AuthCookies.Delete(httpContext.Response, tokenOptions.Value);
 
             return Results.Ok();
         }
@@ -63,20 +56,7 @@ namespace Web.Extensions
                     }
                     else
                     {
-                        httpContext.Response.Cookies.Append(tokenOptions.Value.AccessToken, response.Data.AccessToken, new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true,
-                            SameSite = SameSiteMode.Strict,
-                            Expires = DateTimeOffset.UtcNow.AddMinutes(tokenOptions.Value.ExpiresInMinutes)
-                        });
-                        httpContext.Response.Cookies.Append(tokenOptions.Value.RefreshToken, response.Data.RefreshToken, new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true,
-                            SameSite = SameSiteMode.Strict,
-                            Expires = response.Data.ExpiresDate
-                        });
+                        AuthCookies.Set(httpContext.Response, tokenOptions.Value, response.Data);
                     }
                 }
                 else
@@ -169,20 +149,7 @@ namespace Web.Extensions
                     }
                     else
                     {
-                        httpContext.Response.Cookies.Append(tokenOptions.Value.AccessToken, response.Data.LoginResponse.AccessToken, new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true,
-                            SameSite = SameSiteMode.Strict,
-                            Expires = DateTimeOffset.UtcNow.AddMinutes(tokenOptions.Value.ExpiresInMinutes)
-                        });
-                        httpContext.Response.Cookies.Append(tokenOptions.Value.RefreshToken, response.Data.LoginResponse.RefreshToken, new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true,
-                            SameSite = SameSiteMode.Strict,
-                            Expires = response.Data.LoginResponse.ExpiresDate
-                        });
+                        AuthCookies.Set(httpContext.Response, tokenOptions.Value, response.Data.LoginResponse);
                     }
                 }
                 else

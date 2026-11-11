@@ -25,20 +25,6 @@ namespace Web
             return Task.FromResult(new AuthenticationState(user));
         }
 
-        public void NotifyUserLoggedIn(string accessToken)
-        {
-            var claims = GetClaimsFromJwt(accessToken);
-            var identity = new ClaimsIdentity(claims, "cookie");
-            var user = new ClaimsPrincipal(identity);
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
-        }
-
-        public void NotifyUserLoggedOut()
-        {
-            var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(anonymous)));
-        }
-
         private static List<Claim> GetClaimsFromJwt(string jwt)
         {
             var handler = new JwtSecurityTokenHandler();
