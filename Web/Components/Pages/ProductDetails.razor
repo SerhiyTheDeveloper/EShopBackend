@@ -1,9 +1,11 @@
 @page "/product/{Id:guid}"
 @rendermode InteractiveServer
+@implements IDisposable
 @using Microsoft.AspNetCore.Components.Authorization
 @inject CatalogApiClient Catalog
 @inject ProductFilterService Filter
 @inject ShopService Shop
+@inject WishListStateService Wish
 @inject UiStateService UiState
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthProvider
@@ -79,6 +81,14 @@
 
 						<button type="button" class="btn btn--primary" @onclick="StartBuyAsync">Купити зараз</button>
 					}
+
+					<button type="button" class="btn-wish @(isWished ? "btn-wish--active" : "")"
+							aria-pressed="@isWished" aria-label="@(isWished ? "Прибрати з вподобань" : "Додати до вподобань")"
+							@onclick="ToggleWishAsync">
+						<svg class="icon" viewBox="0 0 24 24">
+							<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+						</svg>
+					</button>
 
 					@if (!string.IsNullOrEmpty(buyError))
 					{
@@ -168,6 +178,23 @@
 		&& (text.Length > 500 || text.Count(c => c == '\n') > 6);
 
 	private bool HasImage => product is not null && !string.IsNullOrWhiteSpace(product.ImageUrl);
+
+	private bool isWished => product is not null && Wish.Contains(product.Id);
+
+	protected override void OnInitialized() => Wish.OnChange += HandleWishChange;
+
+	private void HandleWishChange() => InvokeAsync(StateHasChanged);
+
+	public void Dispose() => Wish.OnChange -= HandleWishChange;
+
+	private async Task ToggleWishAsync()
+	{
+		if (product is null) return;
+
+		buyError = null;
+		var error = await Wish.ToggleAsync(product);
+		if (error is not null) buyError = $"Не вдалося оновити вподобання: {error}";
+	}
 
 	private string StockClass => product switch
 	{

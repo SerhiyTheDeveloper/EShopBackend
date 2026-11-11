@@ -5,6 +5,7 @@
 @inject UiStateService UiState
 @inject ProductFilterService Filter
 @inject NavigationManager Nav
+@inject WishListStateService Wish
 
 <header class="topbar">
 	<div class="topbar__inner">
@@ -83,11 +84,14 @@
 			<AuthorizeView>
 				<Authorized>
 					@* іконки вподобань і замовлень *@
-					<a href="/wishlist" class="icon-btn" id="wishlist" aria-label="Вподобання">
+					<a href="/account/wishlist" class="icon-btn" id="wishlist" aria-label="Вподобання">
 						<svg class="icon icon--lg" viewBox="0 0 24 24">
 							<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
 						</svg>
-						@*<span class="icon-btn__badge">@wishlistCount</span> *@
+						@if (Wish.Count > 0)
+						{
+							<span class="icon-btn__badge">@Wish.Count</span>
+						}
 					</a>
 					<a href="/orders" class="icon-btn" id="orders" aria-label="Замовлення">
 						<svg class="icon icon--lg" viewBox="0 0 24 24">
@@ -156,7 +160,16 @@
 		searchText = Filter.Applied.Search ?? string.Empty;
 		lastAppliedSearch = Filter.Applied.Search;
 		Filter.OnChange += HandleFilterChange;
+		Wish.OnChange += HandleWishChange;
 	}
+
+	// Список вподобань завантажується один раз на circuit (для гостя нічого не робиться)
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender) await Wish.EnsureLoadedAsync();
+	}
+
+	private void HandleWishChange() => InvokeAsync(StateHasChanged);
 
 	private void HandleFilterChange()
 	{
@@ -244,7 +257,11 @@
 		if (new Uri(Nav.Uri).AbsolutePath != "/") Nav.NavigateTo("/");
 	}
 
-	public void Dispose() => Filter.OnChange -= HandleFilterChange;
+	public void Dispose()
+	{
+		Filter.OnChange -= HandleFilterChange;
+		Wish.OnChange -= HandleWishChange;
+	}
 
 	private void ShowFilter() => UiState.Show(Modal.Filter);
 	private void ShowLogin() => UiState.Show(Modal.Login);

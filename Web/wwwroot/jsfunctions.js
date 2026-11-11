@@ -122,3 +122,7 @@ function callManagerApi(method, path, request) {
 function callShopApi(method, path, request) {
     return callApi(method, '/api/shop/' + path, request);
 }
+
+function callWishListApi(method, path) {
+    return callApi(method, '/api/wishlist' + (path ? '/' + path : ''));
+}

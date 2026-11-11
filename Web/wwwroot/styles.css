@@ -1187,6 +1187,42 @@ input, select, textarea {
     color: var(--coral-600);
 }
 
+/* Заповнене серце для товарів у вподобаннях */
+.product-card__wish--active .icon,
+.btn-wish--active .icon {
+    fill: currentColor;
+}
+
+.btn-wish {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    border: 1.5px solid var(--line-200);
+    border-radius: 50%;
+    background: var(--white);
+    color: var(--slate-500);
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+
+    .btn-wish .icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .btn-wish:hover {
+        border-color: var(--coral-600);
+        color: var(--coral-600);
+    }
+
+.btn-wish--active {
+    background: var(--coral-50);
+    border-color: var(--coral-600);
+    color: var(--coral-600);
+}
+
 .product-card__tag {
     position: absolute;
     top: 14px;

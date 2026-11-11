@@ -1,8 +1,13 @@
+@implements IDisposable
+@inject WishListStateService Wish
+
 @* Картка товару. Назва це посилання на сторінку товару; через ::after воно розтягується на всю картку,
    а серце та кнопка «У кошик» лежать вище й працюють окремо *@
 
 <article class="product-card">
-	<button class="product-card__wish" aria-label="Додати до вподобань">
+	<button type="button" class="product-card__wish @(isWished ? "product-card__wish--active" : "")"
+			aria-pressed="@isWished" aria-label="@(isWished ? "Прибрати з вподобань" : "Додати до вподобань")"
+			@onclick="ToggleWishAsync">
 		<svg class="icon icon--sm" viewBox="0 0 24 24">
 			<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
 		</svg>
@@ -30,4 +35,15 @@
 	[Parameter, EditorRequired] public ProductResponse Product { get; set; } = null!;
 
 	private bool HasImage => !string.IsNullOrWhiteSpace(Product.ImageUrl);
+
+	private bool isWished => Wish.Contains(Product.Id);
+
+	protected override void OnInitialized() => Wish.OnChange += HandleWishChange;
+
+	private void HandleWishChange() => InvokeAsync(StateHasChanged);
+
+	// Гостя просить увійти, помилку API сервіс відкочує сам (серце повертається до попереднього стану)
+	private Task ToggleWishAsync() => Wish.ToggleAsync(Product);
+
+	public void Dispose() => Wish.OnChange -= HandleWishChange;
 }

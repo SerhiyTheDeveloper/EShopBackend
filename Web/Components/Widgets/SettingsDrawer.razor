@@ -2,6 +2,7 @@
 @implements IDisposable
 @inject UiStateService UiState
 @inject UserProfileService Profile
+@inject WishListStateService Wish
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
@@ -44,8 +45,10 @@
                             </svg>
                         </span>
                         Вподобання
-                        <span class="drawer__item-count">3</span>
-                        @* замінити 3 на @wishlistCount *@
+                        @if (Wish.Count > 0)
+                        {
+                            <span class="drawer__item-count">@Wish.Count</span>
+                        }
                     </a>
                     <a href="/cart" class="drawer__item" @onclick="Close">
                         <span class="drawer__item-icon">
@@ -205,6 +208,7 @@
     {
         UiState.OnChange += HandleChange;
         Profile.OnChange += HandleChange;
+        Wish.OnChange += HandleChange;
 
         await Profile.LoadAsync();
     }
@@ -226,5 +230,6 @@
     {
         UiState.OnChange -= HandleChange;
         Profile.OnChange -= HandleChange;
+        Wish.OnChange -= HandleChange;
     }
 }
