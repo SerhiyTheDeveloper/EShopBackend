@@ -17,6 +17,12 @@
 		@if (Filter.Applied.IsActive)
 		{
 			<div class="active-filters">
+				@if (Filter.Applied.HasSearch)
+				{
+					<button type="button" class="filter-tag" @onclick="Filter.RemoveSearch" aria-label="Прибрати пошуковий запит">
+						Пошук: «@Filter.Applied.Search» <span class="filter-tag__x">×</span>
+					</button>
+				}
 				@if (Filter.Applied.HasPrice)
 				{
 					<button type="button" class="filter-tag" @onclick="Filter.RemovePrice" aria-label="Прибрати фільтр за ціною">

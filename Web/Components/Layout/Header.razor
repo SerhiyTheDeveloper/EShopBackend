@@ -4,6 +4,7 @@
 @implements IDisposable
 @inject UiStateService UiState
 @inject ProductFilterService Filter
+@inject NavigationManager Nav
 
 <header class="topbar">
 	<div class="topbar__inner">
@@ -25,14 +26,47 @@
 			}
 		</button>
 
-		<form class="search" role="search">
-			<input class="search__input" type="text" placeholder="Я шукаю..." />
+		<form class="search" role="search" @onsubmit="SubmitSearch" @onsubmit:preventDefault>
+			<input class="search__input" type="text" placeholder="Я шукаю..." aria-label="Пошук товарів" autocomplete="off"
+				   role="combobox" aria-autocomplete="list" aria-expanded="@isSuggestOpen"
+				   @bind="searchText" @bind:event="oninput" @bind:after="OnSearchInput"
+				   @onfocus="OpenSuggestions" @onblur="CloseSuggestions" @onkeydown="OnSearchKeyDown" />
 			<button class="search__btn" type="submit" aria-label="Пошук">
 				<svg class="icon" viewBox="0 0 24 24">
 					<circle cx="11" cy="11" r="7" />
 					<line x1="21" y1="21" x2="16.65" y2="16.65" />
 				</svg>
 			</button>
+
+			@if (isSuggestOpen && searchText.Trim().Length > 0)
+			{
+				var suggestions = Suggestions;
+				<ul class="search-suggest" role="listbox">
+					@if (!Filter.IsLoaded)
+					{
+						<li class="search-suggest__empty">Завантаження...</li>
+					}
+					else if (suggestions.Count == 0)
+					{
+						<li class="search-suggest__empty">Нічого не знайдено</li>
+					}
+					else
+					{
+						@for (var i = 0; i < suggestions.Count; i++)
+						{
+							var product = suggestions[i];
+							var index = i;
+							<li role="option" aria-selected="@(index == highlight)"
+								class="search-suggest__item @(index == highlight ? "search-suggest__item--active" : "")"
+								@onmousedown="() => PickSuggestion(product)" @onmousedown:preventDefault
+								@onmouseenter="() => highlight = index">
+								<span class="search-suggest__name">@product.Name</span>
+								<span class="search-suggest__meta">@product.Category · @product.Producer</span>
+							</li>
+						}
+					}
+				</ul>
+			}
 		</form>
 
 		<div class="topbar__actions">
@@ -92,9 +126,123 @@
 </header>
 
 @code {
-	protected override void OnInitialized() => Filter.OnChange += HandleFilterChange;
+	private const int MaxSuggestions = 6;
 
-	private void HandleFilterChange() => InvokeAsync(StateHasChanged);
+	private string searchText = string.Empty;
+	private string? lastAppliedSearch;
+	private bool isSuggestOpen;
+	private int highlight = -1;
+
+	// Підказки: товари, що підходять під введений текст (ті самі правила, що й у пошуку); спершу ті, що починаються з нього
+	private IReadOnlyList<ProductResponse> Suggestions
+	{
+		get
+		{
+			var text = searchText.Trim();
+			if (text.Length == 0 || !Filter.IsLoaded) return [];
+
+			var matcher = new ProductFilter { Search = text };
+			return Filter.Products
+				.Where(matcher.Matches)
+				.OrderByDescending(p => p.Name.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+				.ThenBy(p => p.Name)
+				.Take(MaxSuggestions)
+				.ToList();
+		}
+	}
+
+	protected override void OnInitialized()
+	{
+		searchText = Filter.Applied.Search ?? string.Empty;
+		lastAppliedSearch = Filter.Applied.Search;
+		Filter.OnChange += HandleFilterChange;
+	}
+
+	private void HandleFilterChange()
+	{
+		// Поле оновлюємо лише коли застосований пошук справді змінився (× на головній, «Скинути все»),
+		// інакше завантаження каталогу чи зміна фільтра стерли б текст, який користувач ще вводить
+		if (Filter.Applied.Search != lastAppliedSearch)
+		{
+			lastAppliedSearch = Filter.Applied.Search;
+			searchText = lastAppliedSearch ?? string.Empty;
+		}
+
+		InvokeAsync(StateHasChanged);
+	}
+
+	// Під час введення лише показуємо підказки, список на головній не змінюється
+	private void OnSearchInput()
+	{
+		isSuggestOpen = true;
+		highlight = -1;
+		_ = Filter.EnsureLoadedAsync();
+	}
+
+	private void OpenSuggestions()
+	{
+		isSuggestOpen = true;
+		_ = Filter.EnsureLoadedAsync();
+	}
+
+	private void CloseSuggestions()
+	{
+		isSuggestOpen = false;
+		highlight = -1;
+	}
+
+	private void OnSearchKeyDown(KeyboardEventArgs e)
+	{
+		var count = Suggestions.Count;
+
+		switch (e.Key)
+		{
+			case "ArrowDown":
+				if (count > 0)
+				{
+					isSuggestOpen = true;
+					highlight = (highlight + 1) % count;
+				}
+				break;
+			case "ArrowUp":
+				if (count > 0)
+				{
+					isSuggestOpen = true;
+					highlight = highlight <= 0 ? count - 1 : highlight - 1;
+				}
+				break;
+			case "Escape":
+				CloseSuggestions();
+				break;
+		}
+	}
+
+	// Enter або кнопка з лупою: якщо підказку підсвічено стрілками, шукаємо її назву, інакше введений текст
+	private void SubmitSearch()
+	{
+		var suggestions = Suggestions;
+		if (isSuggestOpen && highlight >= 0 && highlight < suggestions.Count)
+		{
+			searchText = suggestions[highlight].Name;
+		}
+
+		ApplySearch();
+	}
+
+	private void PickSuggestion(ProductResponse product)
+	{
+		searchText = product.Name;
+		ApplySearch();
+	}
+
+	private void ApplySearch()
+	{
+		Filter.SetSearch(searchText);
+		CloseSuggestions();
+
+		// Результати видно на головній: якщо шукали з іншої сторінки, переходимо туди
+		if (new Uri(Nav.Uri).AbsolutePath != "/") Nav.NavigateTo("/");
+	}
 
 	public void Dispose() => Filter.OnChange -= HandleFilterChange;
 

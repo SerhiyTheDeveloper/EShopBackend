@@ -267,6 +267,62 @@ input, select, textarea {
         height: 17px;
     }
 
+/* ---------- Search suggestions under the header search bar ---------- */
+.search-suggest {
+    position: absolute;
+    z-index: 90;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: var(--white);
+    border: 1px solid var(--line-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    animation: search-select-in .14s ease-out;
+}
+
+.search-suggest__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background .15s ease;
+}
+
+    .search-suggest__item:hover,
+    .search-suggest__item--active {
+        background: var(--purple-50);
+    }
+
+.search-suggest__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-900);
+    overflow-wrap: anywhere;
+    transition: color .15s ease;
+}
+
+.search-suggest__item:hover .search-suggest__name,
+.search-suggest__item--active .search-suggest__name {
+    color: var(--purple-700);
+}
+
+.search-suggest__meta {
+    font-size: 12px;
+    color: var(--slate-500);
+}
+
+.search-suggest__empty {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--slate-500);
+}
+
 .topbar__actions {
     display: flex;
     align-items: center;
