@@ -1,6 +1,8 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MINT.EShop.API.Wrappers;
 using System.Net;
+using Npgsql;
 using System.Text.Json;
 
 namespace MINT.EShop.API.Middlewares
@@ -22,6 +24,22 @@ namespace MINT.EShop.API.Middlewares
             }
         }
 
+        private static (HttpStatusCode Status, string Message, string Code)? MapDatabaseError(Exception ex)
+        {
+            if (ex is not DbUpdateException { InnerException: PostgresException postgresError }) return null;
+
+            return postgresError.SqlState switch
+            {
+                PostgresErrorCodes.UniqueViolation =>
+                    (HttpStatusCode.Conflict, "A record with the same unique value already exists.", "unique_violation"),
+                PostgresErrorCodes.ForeignKeyViolation =>
+                    (HttpStatusCode.Conflict, "The operation conflicts with related records.", "foreign_key_violation"),
+                PostgresErrorCodes.CheckViolation =>
+                    (HttpStatusCode.BadRequest, "The value violates a database constraint.", "check_violation"),
+                _ => null
+            };
+        }
+
         private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
             context.Response.ContentType = "application/json";
@@ -34,18 +52,22 @@ namespace MINT.EShop.API.Middlewares
                 _ => HttpStatusCode.InternalServerError
             };
 
+            // Помилки бази даних (дублікат, пов'язані записи) віддаємо як 409/400 з кодом замість 500
+            var dbError = MapDatabaseError(ex);
+            if (dbError is not null) statusCode = dbError.Value.Status;
+
             context.Response.StatusCode = (int)statusCode;
 
-            var errorList = new List<string> { ex.GetType().Name };
+            var errorList = new List<string> { dbError?.Code ?? ex.GetType().Name };
 
             if (env.IsDevelopment())
             {
                 errorList.Add(ex.StackTrace ?? string.Empty);
             }
 
-            string message = (statusCode == HttpStatusCode.InternalServerError && !env.IsDevelopment())
+            string message = dbError?.Message ?? ((statusCode == HttpStatusCode.InternalServerError && !env.IsDevelopment())
                 ? "An unexpected error occurred. Please try again later." 
-                : ex.Message;
+                : ex.Message);
 
             var response = APIResponse.FailureResponse(message, errorList);
 

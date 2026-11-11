@@ -103,7 +103,7 @@ namespace MINT.EShop.API.Controllers
         /// Оновити інформацію про існуючий товар за його ідентифікатором. (Manager)
         /// </summary>
         /// <param name="id">Унікальний ідентифікатор товару (GUID).</param>
-        /// <param name="request">UpdateProductRequest (поля: Name, Description, Price).</param>
+        /// <param name="request">UpdateProductRequest (поля: Name, Description, Price, Stock, ImageUrl).</param>
         /// <returns>Повертає оновлений товар у форматі APIResponse.</returns>
         /// <response code="200">Товар успішно оновлено.</response>
         /// <response code="404">Товар з таким ID не існує в базі.</response>

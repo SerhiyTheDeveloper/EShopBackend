@@ -89,9 +89,14 @@ function updateCurrentUser(request) {
     return callUserApi('PUT', request);
 }
 
-async function callApi(method, url) {
+async function callApi(method, url, request) {
     try {
-        const response = await fetch(url, { method: method, credentials: 'include' });
+        const options = { method: method, credentials: 'include' };
+        if (request) {
+            options.headers = { 'Content-Type': 'application/json' };
+            options.body = JSON.stringify(request);
+        }
+        const response = await fetch(url, options);
         return await response.json();
     } catch (error) {
         return { success: false, message: "Помилка з'єднання. Спробуйте ще раз" };
@@ -108,4 +113,8 @@ function changeUserRole(userId, promote) {
 
 function deleteUser(userId) {
     return callApi('DELETE', '/api/admin/users/' + userId);
+}
+
+function callManagerApi(method, path, request) {
+    return callApi(method, '/api/manager/' + path, request);
 }
