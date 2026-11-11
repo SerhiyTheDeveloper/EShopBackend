@@ -1,0 +1,151 @@
+@page "/manager"
+@rendermode InteractiveServer
+@using MINT.EShop.Business.DTOs.Category
+@using MINT.EShop.Business.DTOs.Producers
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ManagerService Api
+@inject AuthenticationStateProvider AuthProvider
+
+<PageTitle>Shopik — Керування каталогом</PageTitle>
+
+<AuthorizeView Roles="Manager" Context="auth">
+	<Authorized>
+		<main class="container">
+			<div class="admin-page">
+				<div class="page-head">
+					<div class="breadcrumb">
+						<a href="/">Головна</a>
+						<svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18" /></svg>
+						<span>Керування каталогом</span>
+					</div>
+					<h1>Керування каталогом</h1>
+					<p class="page-head__sub">Створюйте та змінюйте товари, категорії й виробників.</p>
+				</div>
+
+				<div class="tabs" role="tablist">
+					<button type="button" role="tab" class="tab @(tab == Tab.Products ? "tab--active" : "")"
+							@onclick="() => tab = Tab.Products">Товари</button>
+					<button type="button" role="tab" class="tab @(tab == Tab.Categories ? "tab--active" : "")"
+							@onclick="() => tab = Tab.Categories">Категорії</button>
+					<button type="button" role="tab" class="tab @(tab == Tab.Producers ? "tab--active" : "")"
+							@onclick="() => tab = Tab.Producers">Виробники</button>
+				</div>
+
+				@if (isLoading)
+				{
+					<div class="settings-card"><p class="settings-card__desc">Завантаження...</p></div>
+				}
+				else if (loadError is not null)
+				{
+					<div class="settings-card">
+						<p class="field__error">@loadError</p>
+						<div class="settings-card__actions">
+							<button type="button" class="btn btn--outline" @onclick="() => LoadAsync(showLoading: true)">Спробувати ще раз</button>
+						</div>
+					</div>
+				}
+				else if (tab == Tab.Products)
+				{
+					<ManagerProducts Products="products" Categories="categories" Producers="producers"
+									 OnChanged="ReloadAsync" />
+				}
+				else if (tab == Tab.Categories)
+				{
+					<ManagerDictionary IsCategory="true" Items="categoryItems" ProductCount="CategoryProductCount"
+									   OnCreate="CreateCategory" OnUpdate="UpdateCategory" OnDelete="DeleteCategory" OnChanged="ReloadAsync" />
+				}
+				else
+				{
+					<ManagerDictionary IsCategory="false" Items="producerItems" ProductCount="ProducerProductCount"
+									   OnCreate="CreateProducer" OnUpdate="UpdateProducer" OnDelete="DeleteProducer" OnChanged="ReloadAsync" />
+				}
+			</div>
+		</main>
+	</Authorized>
+	<NotAuthorized>
+		@* Для не-менеджерів показуємо 404, щоб не розкривати існування сторінки *@
+		<main class="container">
+			<div class="page-head">
+				<h1>Сторінку не знайдено</h1>
+				<p class="page-head__sub">Такої сторінки не існує.</p>
+			</div>
+		</main>
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+	private enum Tab { Products, Categories, Producers }
+
+	private Tab tab = Tab.Products;
+	private bool isLoading = true;
+	private string? loadError;
+
+	private List<ProductResponse> products = [];
+	private List<CategoryResponse> categories = [];
+	private List<ProducerResponse> producers = [];
+	private List<CatalogItem> categoryItems = [];
+	private List<CatalogItem> producerItems = [];
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+
+		// Дані завантажуються лише в circuit (під час prerender JS недоступний) і лише для менеджера
+		var state = await AuthProvider.GetAuthenticationStateAsync();
+		if (!state.User.IsInRole("Manager")) return;
+
+		await LoadAsync(showLoading: true);
+		StateHasChanged();
+	}
+
+	private async Task LoadAsync(bool showLoading)
+	{
+		if (showLoading) isLoading = true;
+
+		var productsResponse = await Api.GetProductsAsync();
+		var categoriesResponse = await Api.GetCategoriesAsync();
+		var producersResponse = await Api.GetProducersAsync();
+
+		if (productsResponse.Data is not null && categoriesResponse.Data is not null && producersResponse.Data is not null
+			&& productsResponse.Success && categoriesResponse.Success && producersResponse.Success)
+		{
+			products = productsResponse.Data;
+			categories = categoriesResponse.Data;
+			producers = producersResponse.Data;
+			categoryItems = categories.Select(c => new CatalogItem(c.Id, c.Name, c.Slug)).ToList();
+			producerItems = producers.Select(p => new CatalogItem(p.Id, p.Name, p.Slug)).ToList();
+			loadError = null;
+		}
+		else
+		{
+			var failed = new[] { productsResponse.Message, categoriesResponse.Message, producersResponse.Message }
+				.FirstOrDefault(m => !string.IsNullOrWhiteSpace(m));
+			loadError = failed ?? "Не вдалося завантажити каталог.";
+		}
+
+		isLoading = false;
+	}
+
+	private Task ReloadAsync() => LoadAsync(showLoading: false);
+
+	// У відповіді товару є лише назви категорії та виробника, тому рахуємо за назвою
+	private int CategoryProductCount(CatalogItem item) => products.Count(p => p.Category == item.Name);
+
+	private int ProducerProductCount(CatalogItem item) => products.Count(p => p.Producer == item.Name);
+
+	private Task<string?> CreateCategory(string name, string slug)
+		=> Api.CreateCategoryAsync(new CreateCategoryRequest { Name = name, Slug = slug });
+
+	private Task<string?> UpdateCategory(Guid id, string name, string slug)
+		=> Api.UpdateCategoryAsync(id, new UpdateCategoryRequest { Name = name, Slug = slug });
+
+	private Task<string?> DeleteCategory(Guid id) => Api.DeleteCategoryAsync(id);
+
+	private Task<string?> CreateProducer(string name, string slug)
+		=> Api.CreateProducerAsync(new CreateProducerRequest { Name = name, Slug = slug });
+
+	private Task<string?> UpdateProducer(Guid id, string name, string slug)
+		=> Api.UpdateProducerAsync(id, new UpdateProducerRequest { Name = name, Slug = slug });
+
+	private Task<string?> DeleteProducer(Guid id) => Api.DeleteProducerAsync(id);
+}

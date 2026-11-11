@@ -1,0 +1,197 @@
+@* Вибір зі списку з пошуком: вводите початок слова, список фільтрується, обирається кліком або клавіатурою *@
+
+<div class="search-select @(isOpen ? "search-select--open" : "")">
+	<div class="search-select__field">
+		@* form="search-select-none": поле не належить жодній формі, тож Enter не відправляє форму, а обирає варіант *@
+		<input class="input input--with-icon" type="text" form="search-select-none" role="combobox" autocomplete="off"
+			   id="@Id" placeholder="@Placeholder" aria-expanded="@isOpen" aria-autocomplete="list"
+			   value="@query"
+			   @oninput="OnInputAsync" @onfocus="OpenList" @onclick="OpenList"
+			   @onblur="OnBlurAsync" @onkeydown="OnKeyDownAsync" />
+		<svg class="search-select__chevron" viewBox="0 0 24 24" aria-hidden="true">
+			<polyline points="6 9 12 15 18 9" />
+		</svg>
+	</div>
+
+	@if (isOpen)
+	{
+		<ul class="search-select__list" role="listbox">
+			@if (visible.Count == 0)
+			{
+				<li class="search-select__empty">Нічого не знайдено</li>
+			}
+			else
+			{
+				@for (var i = 0; i < visible.Count; i++)
+				{
+					var option = visible[i];
+					var index = i;
+					var isSelected = option.Item.Id == Value;
+					<li role="option" aria-selected="@isSelected"
+						class="search-select__option @(index == highlight ? "search-select__option--active" : "") @(isSelected ? "search-select__option--selected" : "")"
+						@onmousedown="() => SelectAsync(option.Item)" @onmousedown:preventDefault
+						@onmouseenter="() => highlight = index">
+						<span class="search-select__text">@Before(option)<strong>@Matched(option)</strong>@After(option)</span>
+						@if (isSelected)
+						{
+							<svg class="search-select__check" viewBox="0 0 24 24" aria-hidden="true">
+								<polyline points="4 12 9 17 20 6" />
+							</svg>
+						}
+					</li>
+				}
+				@if (hiddenCount > 0)
+				{
+					<li class="search-select__empty">Ще @hiddenCount, уточніть пошук</li>
+				}
+			}
+		</ul>
+	}
+</div>
+
+@code {
+	private const int MaxVisible = 50;
+
+	// Start: де в назві починається введений текст (-1, якщо тексту немає)
+	private sealed record Option(CatalogItem Item, int Start, int Rank);
+
+	[Parameter] public IReadOnlyList<CatalogItem> Items { get; set; } = [];
+	[Parameter] public Guid Value { get; set; }
+	[Parameter] public EventCallback<Guid> ValueChanged { get; set; }
+	[Parameter] public string? Id { get; set; }
+	[Parameter] public string? Placeholder { get; set; }
+
+	private string query = string.Empty;
+	private bool isOpen;
+	private int highlight;
+	private Guid lastValue;
+	private List<Option> visible = [];
+	private int hiddenCount;
+	private int matchLength;
+
+	protected override void OnParametersSet()
+	{
+		// Значення змінили ззовні (наприклад, форму скинули): оновлюємо текст у полі
+		if (Value != lastValue)
+		{
+			lastValue = Value;
+			query = Items.FirstOrDefault(i => i.Id == Value)?.Name ?? string.Empty;
+		}
+
+		Refresh();
+	}
+
+	private void Refresh()
+	{
+		// Коли варіант обрано, при відкритті показуємо весь список, а не лише збіг із назвою
+		var text = Value == Guid.Empty ? query.Trim() : string.Empty;
+		matchLength = text.Length;
+
+		var matches = new List<Option>();
+		foreach (var item in Items)
+		{
+			if (text.Length == 0)
+			{
+				matches.Add(new Option(item, -1, 0));
+				continue;
+			}
+
+			var start = FindWordStart(item.Name, text);
+			if (start >= 0) matches.Add(new Option(item, start, start == 0 ? 0 : 1));
+		}
+
+		// Спершу назви, що починаються з тексту, потім ті, де з нього починається інше слово
+		var ordered = matches.OrderBy(o => o.Rank).ThenBy(o => o.Item.Name).ToList();
+		visible = ordered.Take(MaxVisible).ToList();
+		hiddenCount = ordered.Count - visible.Count;
+		highlight = Math.Clamp(highlight, 0, Math.Max(visible.Count - 1, 0));
+	}
+
+	// Індекс початку збігу: з початку назви або з початку будь-якого слова (після пробілу, дефіса, дужки)
+	private static int FindWordStart(string name, string text)
+	{
+		if (name.StartsWith(text, StringComparison.OrdinalIgnoreCase)) return 0;
+
+		for (var i = 1; i < name.Length; i++)
+		{
+			if (!char.IsLetterOrDigit(name[i - 1])
+				&& name.AsSpan(i).StartsWith(text, StringComparison.OrdinalIgnoreCase))
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	private string Before(Option option) => option.Start > 0 ? option.Item.Name[..option.Start] : string.Empty;
+
+	private string Matched(Option option) => option.Start >= 0 ? option.Item.Name.Substring(option.Start, matchLength) : string.Empty;
+
+	private string After(Option option)
+		=> option.Start >= 0 ? option.Item.Name[(option.Start + matchLength)..] : option.Item.Name;
+
+	private void OpenList()
+	{
+		isOpen = true;
+		Refresh();
+	}
+
+	private async Task OnInputAsync(ChangeEventArgs e)
+	{
+		query = e.Value?.ToString() ?? string.Empty;
+		isOpen = true;
+		highlight = 0;
+
+		// Текст змінили після вибору: попередній вибір скасовується, доки не оберуть знову
+		if (Value != Guid.Empty)
+		{
+			lastValue = Guid.Empty;
+			await ValueChanged.InvokeAsync(Guid.Empty);
+		}
+
+		Refresh();
+	}
+
+	private async Task OnBlurAsync()
+	{
+		isOpen = false;
+
+		// Якщо ввели назву повністю, але не клікнули варіант, обираємо її автоматично
+		if (Value == Guid.Empty && query.Trim().Length > 0)
+		{
+			var exact = Items.FirstOrDefault(i => i.Name.Equals(query.Trim(), StringComparison.OrdinalIgnoreCase));
+			if (exact is not null) await SelectAsync(exact);
+		}
+	}
+
+	private async Task OnKeyDownAsync(KeyboardEventArgs e)
+	{
+		switch (e.Key)
+		{
+			case "ArrowDown":
+				isOpen = true;
+				if (visible.Count > 0) highlight = (highlight + 1) % visible.Count;
+				break;
+			case "ArrowUp":
+				isOpen = true;
+				if (visible.Count > 0) highlight = (highlight - 1 + visible.Count) % visible.Count;
+				break;
+			case "Enter":
+				if (isOpen && visible.Count > 0) await SelectAsync(visible[highlight].Item);
+				break;
+			case "Escape":
+				isOpen = false;
+				break;
+		}
+	}
+
+	private async Task SelectAsync(CatalogItem item)
+	{
+		query = item.Name;
+		lastValue = item.Id;
+		isOpen = false;
+		await ValueChanged.InvokeAsync(item.Id);
+		Refresh();
+	}
+}

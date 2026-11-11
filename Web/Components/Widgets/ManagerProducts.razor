@@ -1,0 +1,398 @@
+@using System.Globalization
+@using MINT.EShop.Business.DTOs.Category
+@using MINT.EShop.Business.DTOs.Producers
+@inject ManagerService Api
+
+<div class="settings-card">
+	<div class="manager-head">
+		<div>
+			<h2>Товари</h2>
+			<p class="settings-card__desc">Показано @FilteredProducts.Count() із @Products.Count</p>
+		</div>
+		<button type="button" class="btn btn--primary" @onclick="StartCreate">Додати товар</button>
+	</div>
+
+	<div class="admin-toolbar">
+		<input class="input" type="search" placeholder="Пошук товару за назвою" aria-label="Пошук товарів"
+			   @bind="search" @bind:event="oninput" />
+		<select class="input" aria-label="Фільтр за категорією" @bind="categoryFilter">
+			<option value="">Усі категорії</option>
+			@foreach (var category in Categories.OrderBy(c => c.Name))
+			{
+				<option value="@category.Name">@category.Name</option>
+			}
+		</select>
+		<select class="input" aria-label="Фільтр за виробником" @bind="producerFilter">
+			<option value="">Усі виробники</option>
+			@foreach (var producer in Producers.OrderBy(p => p.Name))
+			{
+				<option value="@producer.Name">@producer.Name</option>
+			}
+		</select>
+	</div>
+
+	@if (!string.IsNullOrEmpty(actionError))
+	{
+		<p class="field__error" style="margin-bottom:14px;">@actionError</p>
+	}
+	@if (!string.IsNullOrEmpty(actionSuccess))
+	{
+		<p class="field__hint" style="margin-bottom:14px;">@actionSuccess</p>
+	}
+
+	@if (!FilteredProducts.Any())
+	{
+		<p class="settings-card__desc">@(Products.Count == 0 ? "Товарів ще немає." : "Нічого не знайдено.")</p>
+	}
+	else
+	{
+		<div class="admin-table-wrap">
+			<table class="admin-table">
+				<thead>
+					<tr>
+						<th></th>
+						<th>Назва</th>
+						<th class="admin-col-hide-sm">Категорія</th>
+						<th class="admin-col-hide-sm">Виробник</th>
+						<th>Ціна, ₴</th>
+						<th>К-сть</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var product in FilteredProducts)
+					{
+						<tr>
+							<td>
+								@if (HasImage(product.ImageUrl))
+								{
+									<img class="manager-thumb" src="@product.ImageUrl" alt="" loading="lazy" referrerpolicy="no-referrer"
+										 onerror="this.style.display='none'" />
+								}
+								else
+								{
+									<span class="manager-thumb manager-thumb--empty"></span>
+								}
+							</td>
+							<td><div class="admin-user__name">@product.Name</div></td>
+							<td class="admin-col-hide-sm">@product.Category</td>
+							<td class="admin-col-hide-sm">@product.Producer</td>
+							<td>@product.Price.ToString("0.00", CultureInfo.InvariantCulture)</td>
+							<td class="@(product.Stock == 0 ? "manager-stock--zero" : "")">@product.Stock</td>
+							<td class="admin-table__actions">
+								<div class="admin-actions">
+									<button type="button" class="btn btn--outline btn--sm" @onclick="() => StartEdit(product)">Змінити</button>
+									<button type="button" class="btn btn--danger-outline btn--sm" @onclick="() => AskDelete(product)">Видалити</button>
+								</div>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+</div>
+
+@if (isFormOpen)
+{
+	<div class="overlay">
+		<div class="modal modal--wide">
+			<button type="button" class="modal__close" aria-label="Закрити" @onclick="CloseForm">
+				<svg class="icon" viewBox="0 0 24 24">
+					<line x1="6" y1="6" x2="18" y2="18" />
+					<line x1="18" y1="6" x2="6" y2="18" />
+				</svg>
+			</button>
+
+			<h2 class="modal__title">@(isCreating ? "Новий товар" : "Редагування товару")</h2>
+
+			<EditForm Model="form" OnValidSubmit="SaveAsync" novalidate>
+				<DataAnnotationsValidator />
+
+				<div class="field">
+					<label class="field__label" for="prod-name">Назва</label>
+					<InputText class="input" id="prod-name" @bind-Value="form.Name" />
+					<ValidationMessage For="() => form.Name" class="field__error" />
+				</div>
+
+				<div class="field">
+					<label class="field__label" for="prod-desc">Опис</label>
+					<InputTextArea class="input input--textarea" id="prod-desc" @bind-Value="form.Description" />
+					<ValidationMessage For="() => form.Description" class="field__error" />
+				</div>
+
+				<div class="manager-form-grid">
+					<div class="field">
+						<label class="field__label" for="prod-price">Ціна, ₴</label>
+						<InputNumber class="input" id="prod-price" @bind-Value="form.Price" />
+						<ValidationMessage For="() => form.Price" class="field__error" />
+					</div>
+					<div class="field">
+						<label class="field__label" for="prod-stock">Кількість</label>
+						<InputNumber class="input" id="prod-stock" @bind-Value="form.Stock" />
+						<ValidationMessage For="() => form.Stock" class="field__error" />
+					</div>
+				</div>
+
+				@if (isCreating)
+				{
+					<div class="manager-form-grid">
+						<div class="field">
+							<label class="field__label" for="prod-category">Категорія</label>
+							<SearchSelect Id="prod-category" Items="categoryItems" @bind-Value="form.CategoryId" Placeholder="Оберіть або введіть…" />
+						</div>
+						<div class="field">
+							<label class="field__label" for="prod-producer">Виробник</label>
+							<SearchSelect Id="prod-producer" Items="producerItems" @bind-Value="form.ProducerId" Placeholder="Оберіть або введіть…" />
+						</div>
+					</div>
+					@if (Categories.Count == 0 || Producers.Count == 0)
+					{
+						<p class="field__hint" style="margin-bottom:14px;">Спершу додайте хоча б одну категорію та одного виробника.</p>
+					}
+				}
+				else
+				{
+					<p class="field__hint" style="margin-bottom:14px;">
+						Категорія: @editingCategory, виробник: @editingProducer. Їх змінити не можна.
+					</p>
+				}
+
+				<div class="field">
+					<label class="field__label" for="prod-image">Посилання на фото (необов'язково)</label>
+					<InputText class="input" id="prod-image" placeholder="https://... або /images/products/phone.jpg"
+							   @bind-Value="form.ImageUrl" />
+					<p class="field__hint">Підійде посилання на https-зображення або шлях до файлу в папці images/products.</p>
+				</div>
+				@if (HasImage(form.ImageUrl.Trim()))
+				{
+					<img class="manager-preview" src="@form.ImageUrl.Trim()" alt="Попередній перегляд" referrerpolicy="no-referrer" />
+				}
+
+				@if (!string.IsNullOrEmpty(formError))
+				{
+					<p class="field__error" style="margin-bottom:10px;">@formError</p>
+				}
+
+				<div class="settings-card__actions">
+					<button type="button" class="btn btn--outline" @onclick="CloseForm" disabled="@isSaving">Скасувати</button>
+					<button type="submit" class="btn btn--primary" disabled="@isSaving">
+						@if (isSaving)
+						{
+							<span>Зачекайте...</span>
+						}
+						else
+						{
+							<span>@(isCreating ? "Створити" : "Зберегти")</span>
+						}
+					</button>
+				</div>
+			</EditForm>
+		</div>
+	</div>
+}
+
+@if (deleting is not null)
+{
+	<div class="overlay" @onclick="CancelDelete">
+		<div class="modal" @onclick:stopPropagation>
+			<button type="button" class="modal__close" aria-label="Закрити" @onclick="CancelDelete">
+				<svg class="icon" viewBox="0 0 24 24">
+					<line x1="6" y1="6" x2="18" y2="18" />
+					<line x1="18" y1="6" x2="6" y2="18" />
+				</svg>
+			</button>
+
+			<h2 class="modal__title">Видалити товар?</h2>
+			<p class="modal__subtitle">
+				«@deleting.Name» буде видалено. Якщо товар є в замовленнях, видалення не вдасться. Цю дію не можна скасувати.
+			</p>
+
+			<div class="settings-card__actions">
+				<button type="button" class="btn btn--outline" @onclick="CancelDelete" disabled="@isDeleting">Скасувати</button>
+				<button type="button" class="btn btn--danger-outline" @onclick="ConfirmDeleteAsync" disabled="@isDeleting">
+					@if (isDeleting)
+					{
+						<span>Зачекайте...</span>
+					}
+					else
+					{
+						<span>Видалити</span>
+					}
+				</button>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public IReadOnlyList<ProductResponse> Products { get; set; } = [];
+	[Parameter] public IReadOnlyList<CategoryResponse> Categories { get; set; } = [];
+	[Parameter] public IReadOnlyList<ProducerResponse> Producers { get; set; } = [];
+	[Parameter] public EventCallback OnChanged { get; set; }
+
+	private IReadOnlyList<CatalogItem> categoryItems = [];
+	private IReadOnlyList<CatalogItem> producerItems = [];
+
+	private string search = string.Empty;
+	private string categoryFilter = string.Empty;
+	private string producerFilter = string.Empty;
+	private string? actionError;
+	private string? actionSuccess;
+
+	private readonly ProductFormModel form = new();
+	private bool isFormOpen;
+	private bool isCreating;
+	private bool isSaving;
+	private Guid editingId;
+	private string editingCategory = string.Empty;
+	private string editingProducer = string.Empty;
+	private string? formError;
+
+	private ProductResponse? deleting;
+	private bool isDeleting;
+
+	protected override void OnParametersSet()
+	{
+		categoryItems = Categories.Select(c => new CatalogItem(c.Id, c.Name, c.Slug)).ToList();
+		producerItems = Producers.Select(p => new CatalogItem(p.Id, p.Name, p.Slug)).ToList();
+	}
+
+	private IEnumerable<ProductResponse> FilteredProducts => Products
+		.Where(p => categoryFilter.Length == 0 || p.Category == categoryFilter)
+		.Where(p => producerFilter.Length == 0 || p.Producer == producerFilter)
+		.Where(p => search.Trim().Length == 0 || p.Name.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase))
+		.OrderBy(p => p.Name);
+
+	// Посилання приймаємо лише https або шлях до папки images (http на https-сайті браузер блокує)
+	private static bool HasImage(string? url) => IsValidImageUrl(url) && !string.IsNullOrWhiteSpace(url);
+
+	private static bool IsValidImageUrl(string? url)
+		=> string.IsNullOrWhiteSpace(url)
+			|| url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+			|| url.StartsWith("/images/", StringComparison.Ordinal);
+
+	private void StartCreate()
+	{
+		form.Reset();
+		isCreating = true;
+		isFormOpen = true;
+		formError = null;
+		actionError = null;
+		actionSuccess = null;
+	}
+
+	private void StartEdit(ProductResponse product)
+	{
+		form.LoadFrom(product);
+		isCreating = false;
+		editingId = product.Id;
+		editingCategory = product.Category;
+		editingProducer = product.Producer;
+		isFormOpen = true;
+		formError = null;
+		actionError = null;
+		actionSuccess = null;
+	}
+
+	private void CloseForm()
+	{
+		if (isSaving) return;
+		isFormOpen = false;
+	}
+
+	private string? ValidateExtra()
+	{
+		if (isCreating)
+		{
+			if (form.CategoryId == Guid.Empty) return "Оберіть категорію.";
+			if (form.ProducerId == Guid.Empty) return "Оберіть виробника.";
+			if (form.Stock < 1) return "Кількість при створенні має бути не менше 1.";
+		}
+
+		if (!IsValidImageUrl(form.ImageUrl.Trim()))
+		{
+			return "Посилання на фото має починатися з https:// або /images/.";
+		}
+
+		return null;
+	}
+
+	private async Task SaveAsync()
+	{
+		if (isSaving) return;
+
+		formError = ValidateExtra();
+		if (formError is not null) return;
+
+		isSaving = true;
+
+		var name = form.Name.Trim();
+		var imageUrl = form.ImageUrl.Trim();
+		var error = isCreating
+			? await Api.CreateProductAsync(new CreateProductRequest
+			{
+				Name = name,
+				Description = form.Description.Trim(),
+				Price = form.Price,
+				Stock = form.Stock,
+				CategoryId = form.CategoryId,
+				ProducerId = form.ProducerId,
+				ImageUrl = imageUrl
+			})
+			: await Api.UpdateProductAsync(editingId, new UpdateProductRequest
+			{
+				Name = name,
+				Description = form.Description.Trim(),
+				Price = form.Price,
+				Stock = form.Stock,
+				ImageUrl = imageUrl
+			});
+
+		isSaving = false;
+
+		if (error is not null)
+		{
+			formError = error;
+			return;
+		}
+
+		actionSuccess = isCreating ? $"Товар «{name}» створено." : $"Товар «{name}» оновлено.";
+		isFormOpen = false;
+		await OnChanged.InvokeAsync();
+	}
+
+	private void AskDelete(ProductResponse product)
+	{
+		deleting = product;
+		actionError = null;
+		actionSuccess = null;
+	}
+
+	private void CancelDelete()
+	{
+		if (isDeleting) return;
+		deleting = null;
+	}
+
+	private async Task ConfirmDeleteAsync()
+	{
+		if (deleting is null || isDeleting) return;
+		isDeleting = true;
+
+		var product = deleting;
+		var error = await Api.DeleteProductAsync(product.Id);
+
+		deleting = null;
+		isDeleting = false;
+
+		if (error is not null)
+		{
+			actionError = $"Не вдалося видалити «{product.Name}»: {error}";
+			return;
+		}
+
+		actionSuccess = $"Товар «{product.Name}» видалено.";
+		await OnChanged.InvokeAsync();
+	}
+}

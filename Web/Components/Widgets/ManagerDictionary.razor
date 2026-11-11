@@ -1,0 +1,347 @@
+@* Керування довідником: категорії або виробники (однакові поля Name і Slug) *@
+
+<div class="settings-card">
+	<h2>@Title</h2>
+	<p class="settings-card__desc">Усього: @Items.Count</p>
+
+	<div class="manager-add">
+		<input class="input" type="text" placeholder="@NamePlaceholder" aria-label="Назва"
+			   @bind="name" @bind:event="oninput" @bind:after="OnNameChanged" />
+		<input class="input" type="text" placeholder="slug" aria-label="Slug"
+			   @bind="slug" @bind:event="oninput" @bind:after="OnSlugEdited" />
+		<button type="button" class="btn btn--primary" @onclick="CreateAsync" disabled="@isSaving">
+			@if (isSaving)
+			{
+				<span>Зачекайте...</span>
+			}
+			else
+			{
+				<span>Додати</span>
+			}
+		</button>
+	</div>
+	<p class="field__hint" style="margin-bottom:14px;">Slug створюється з назви автоматично (латиницею), його можна змінити вручну.</p>
+
+	@if (!string.IsNullOrEmpty(createError))
+	{
+		<p class="field__error" style="margin-bottom:14px;">@createError</p>
+	}
+	@if (!string.IsNullOrEmpty(actionError))
+	{
+		<p class="field__error" style="margin-bottom:14px;">@actionError</p>
+	}
+	@if (!string.IsNullOrEmpty(actionSuccess))
+	{
+		<p class="field__hint" style="margin-bottom:14px;">@actionSuccess</p>
+	}
+
+	@if (Items.Count == 0)
+	{
+		<p class="settings-card__desc">@EmptyText</p>
+	}
+	else
+	{
+		<div class="admin-table-wrap">
+			<table class="admin-table">
+				<thead>
+					<tr>
+						<th>Назва</th>
+						<th class="admin-col-hide-sm">Slug</th>
+						<th>Товарів</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var item in Items.OrderBy(i => i.Name))
+					{
+						<tr>
+							<td><div class="admin-user__name">@item.Name</div></td>
+							<td class="admin-col-hide-sm"><span class="admin-user__email">@item.Slug</span></td>
+							<td>@ProductCount(item)</td>
+							<td class="admin-table__actions">
+								<div class="admin-actions">
+									<button type="button" class="btn btn--outline btn--sm" @onclick="() => StartEdit(item)">Змінити</button>
+									<button type="button" class="btn btn--danger-outline btn--sm" @onclick="() => AskDelete(item)">Видалити</button>
+								</div>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+</div>
+
+@if (editing is not null)
+{
+	<div class="overlay">
+		<div class="modal">
+			<button type="button" class="modal__close" aria-label="Закрити" @onclick="CancelEdit">
+				<svg class="icon" viewBox="0 0 24 24">
+					<line x1="6" y1="6" x2="18" y2="18" />
+					<line x1="18" y1="6" x2="6" y2="18" />
+				</svg>
+			</button>
+
+			<h2 class="modal__title">@EditTitle</h2>
+
+			<div class="field">
+				<label class="field__label" for="dict-edit-name">Назва</label>
+				<input class="input" id="dict-edit-name" type="text" @bind="editName" @bind:event="oninput" />
+			</div>
+			<div class="field">
+				<label class="field__label" for="dict-edit-slug">Slug</label>
+				<input class="input" id="dict-edit-slug" type="text" @bind="editSlug" @bind:event="oninput" />
+				@if (SlugChanged)
+				{
+					<p class="field__error">
+						Ви змінюєте slug «@editing.Slug». Фільтри та посилання, що його використовують, перестануть працювати.
+					</p>
+				}
+				else
+				{
+					<p class="field__hint">Slug використовується у фільтрах товарів, змінюйте його лише за потреби.</p>
+				}
+			</div>
+
+			@if (!string.IsNullOrEmpty(editError))
+			{
+				<p class="field__error" style="margin-bottom:10px;">@editError</p>
+			}
+
+			<div class="settings-card__actions">
+				<button type="button" class="btn btn--outline" @onclick="CancelEdit" disabled="@isEditSaving">Скасувати</button>
+				<button type="button" class="btn btn--primary" @onclick="SaveEditAsync" disabled="@isEditSaving">
+					@if (isEditSaving)
+					{
+						<span>Зачекайте...</span>
+					}
+					else
+					{
+						<span>Зберегти</span>
+					}
+				</button>
+			</div>
+		</div>
+	</div>
+}
+
+@if (deleting is not null)
+{
+	<div class="overlay" @onclick="CancelDelete">
+		<div class="modal" @onclick:stopPropagation>
+			<button type="button" class="modal__close" aria-label="Закрити" @onclick="CancelDelete">
+				<svg class="icon" viewBox="0 0 24 24">
+					<line x1="6" y1="6" x2="18" y2="18" />
+					<line x1="18" y1="6" x2="6" y2="18" />
+				</svg>
+			</button>
+
+			<h2 class="modal__title">@DeleteTitle</h2>
+			<p class="modal__subtitle">
+				«@deleting.Name» буде видалено.
+				@if (ProductCount(deleting) > 0)
+				{
+					<span> Разом з ним буде видалено всі його товари (@ProductCount(deleting)). Якщо хоч один із них є в замовленнях, видалення не вдасться.</span>
+				}
+				<span> Цю дію не можна скасувати.</span>
+			</p>
+
+			<div class="settings-card__actions">
+				<button type="button" class="btn btn--outline" @onclick="CancelDelete" disabled="@isDeleting">Скасувати</button>
+				<button type="button" class="btn btn--danger-outline" @onclick="ConfirmDeleteAsync" disabled="@isDeleting">
+					@if (isDeleting)
+					{
+						<span>Зачекайте...</span>
+					}
+					else
+					{
+						<span>Видалити</span>
+					}
+				</button>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public bool IsCategory { get; set; }
+	[Parameter] public IReadOnlyList<CatalogItem> Items { get; set; } = [];
+	[Parameter] public Func<CatalogItem, int> ProductCount { get; set; } = _ => 0;
+	[Parameter] public Func<string, string, Task<string?>> OnCreate { get; set; } = (_, _) => Task.FromResult<string?>(null);
+	[Parameter] public Func<Guid, string, string, Task<string?>> OnUpdate { get; set; } = (_, _, _) => Task.FromResult<string?>(null);
+	[Parameter] public Func<Guid, Task<string?>> OnDelete { get; set; } = _ => Task.FromResult<string?>(null);
+	[Parameter] public EventCallback OnChanged { get; set; }
+
+	// Додавання
+	private string name = string.Empty;
+	private string slug = string.Empty;
+	private bool slugEditedByUser;
+	private bool isSaving;
+	private string? createError;
+
+	// Редагування
+	private CatalogItem? editing;
+	private string editName = string.Empty;
+	private string editSlug = string.Empty;
+	private bool isEditSaving;
+	private string? editError;
+
+	// Видалення
+	private CatalogItem? deleting;
+	private bool isDeleting;
+
+	private string? actionError;
+	private string? actionSuccess;
+
+	private string Title => IsCategory ? "Категорії" : "Виробники";
+	private string NamePlaceholder => IsCategory ? "Назва нової категорії" : "Назва нового виробника";
+	private string EmptyText => IsCategory ? "Категорій ще немає." : "Виробників ще немає.";
+	private string EditTitle => IsCategory ? "Редагування категорії" : "Редагування виробника";
+	private string DeleteTitle => IsCategory ? "Видалити категорію?" : "Видалити виробника?";
+
+	private bool SlugChanged => editing is not null
+		&& !editSlug.Trim().Equals(editing.Slug, StringComparison.OrdinalIgnoreCase);
+
+	private void OnNameChanged()
+	{
+		// Поки slug не правили вручну, він повторює назву
+		if (!slugEditedByUser) slug = SlugHelper.FromName(name);
+	}
+
+	private void OnSlugEdited() => slugEditedByUser = true;
+
+	// Спільна перевірка для додавання та редагування; excludeId виключає сам запис з перевірки дубліката
+	private string? Validate(string newName, string newSlug, Guid? excludeId)
+	{
+		if (newName.Length == 0) return "Введіть назву.";
+
+		if (!SlugHelper.IsValid(newSlug))
+		{
+			return "Slug має містити лише латинські літери, цифри та дефіси (наприклад, smartphones).";
+		}
+
+		if (Items.Any(i => i.Id != excludeId && i.Slug.Equals(newSlug, StringComparison.OrdinalIgnoreCase)))
+		{
+			return "Такий slug уже існує.";
+		}
+
+		return null;
+	}
+
+	private async Task CreateAsync()
+	{
+		if (isSaving) return;
+		createError = null;
+		actionError = null;
+		actionSuccess = null;
+
+		var newName = name.Trim();
+		var newSlug = slug.Trim().ToLowerInvariant();
+
+		createError = Validate(newName, newSlug, null);
+		if (createError is not null) return;
+
+		isSaving = true;
+		var error = await OnCreate(newName, newSlug);
+		isSaving = false;
+
+		if (error is not null)
+		{
+			createError = error;
+			return;
+		}
+
+		actionSuccess = IsCategory ? $"Категорію «{newName}» додано." : $"Виробника «{newName}» додано.";
+		name = string.Empty;
+		slug = string.Empty;
+		slugEditedByUser = false;
+		await OnChanged.InvokeAsync();
+	}
+
+	private void StartEdit(CatalogItem item)
+	{
+		editing = item;
+		editName = item.Name;
+		editSlug = item.Slug;
+		editError = null;
+		createError = null;
+		actionError = null;
+		actionSuccess = null;
+	}
+
+	private void CancelEdit()
+	{
+		if (isEditSaving) return;
+		editing = null;
+	}
+
+	private async Task SaveEditAsync()
+	{
+		if (editing is null || isEditSaving) return;
+		editError = null;
+
+		var item = editing;
+		var newName = editName.Trim();
+		var newSlug = editSlug.Trim().ToLowerInvariant();
+
+		editError = Validate(newName, newSlug, item.Id);
+		if (editError is not null) return;
+
+		// Нічого не змінилось: просто закриваємо
+		if (newName == item.Name && newSlug == item.Slug)
+		{
+			editing = null;
+			return;
+		}
+
+		isEditSaving = true;
+		var error = await OnUpdate(item.Id, newName, newSlug);
+		isEditSaving = false;
+
+		if (error is not null)
+		{
+			editError = error;
+			return;
+		}
+
+		actionSuccess = $"«{newName}» оновлено.";
+		editing = null;
+		await OnChanged.InvokeAsync();
+	}
+
+	private void AskDelete(CatalogItem item)
+	{
+		deleting = item;
+		createError = null;
+		actionError = null;
+		actionSuccess = null;
+	}
+
+	private void CancelDelete()
+	{
+		if (isDeleting) return;
+		deleting = null;
+	}
+
+	private async Task ConfirmDeleteAsync()
+	{
+		if (deleting is null || isDeleting) return;
+		isDeleting = true;
+
+		var item = deleting;
+		var error = await OnDelete(item.Id);
+
+		deleting = null;
+		isDeleting = false;
+
+		if (error is not null)
+		{
+			actionError = $"Не вдалося видалити «{item.Name}»: {error}";
+			return;
+		}
+
+		actionSuccess = $"«{item.Name}» видалено.";
+		await OnChanged.InvokeAsync();
+	}
+}

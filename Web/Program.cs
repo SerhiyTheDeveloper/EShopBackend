@@ -53,8 +53,11 @@ Action<HttpClient> configureApiClient = client =>
 builder.Services.AddHttpClient<AuthApiClient>(configureApiClient);
 builder.Services.AddHttpClient<UserApiClient>(configureApiClient);
 builder.Services.AddHttpClient<AdminApiClient>(configureApiClient);
+builder.Services.AddHttpClient<CatalogApiClient>(configureApiClient);
+builder.Services.AddHttpClient<ManagerApiClient>(configureApiClient);
 builder.Services.AddScoped<UserProfileService>();
 builder.Services.AddScoped<AdminUsersService>();
+builder.Services.AddScoped<ManagerService>();
 builder.Services.AddScoped<TokenRefreshService>();
 
 var app = builder.Build();
@@ -79,6 +82,7 @@ app.UseAuthorization();
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapAdminEndpoints();
+app.MapManagerEndpoints();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

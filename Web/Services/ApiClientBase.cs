@@ -22,12 +22,15 @@ namespace Web.Services
             PropertyNameCaseInsensitive = true
         };
 
-        protected async Task<APIResponse<T>> SendAsync<T>(HttpMethod method, string url, string accessToken, object? body, CancellationToken cancToken)
+        protected async Task<APIResponse<T>> SendAsync<T>(HttpMethod method, string url, string? accessToken, object? body, CancellationToken cancToken)
         {
             try
             {
                 using var request = new HttpRequestMessage(method, url);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                }
                 if (body is not null)
                 {
                     request.Content = JsonContent.Create(body, body.GetType(), options: _jsonOptions);
@@ -50,7 +53,7 @@ namespace Web.Services
                     var errorResult = await response.Content.ReadFromJsonAsync<APIResponse<T>>(_jsonOptions, cancToken);
                     if (errorResult != null)
                     {
-                        return errorResult;
+                        return LocalizeDatabaseError(errorResult);
                     }
                 }
                 catch (JsonException)
@@ -80,6 +83,23 @@ namespace Web.Services
             {
                 return APIResponse<T>.FailureResponse($"Сталася непередбачувана помилка: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// API повертає код помилки бази в Errors (див. GlobalExceptionHandler);
+        /// замінюємо англійський текст на зрозумілий користувачу.
+        /// </summary>
+        private static APIResponse<T> LocalizeDatabaseError<T>(APIResponse<T> error)
+        {
+            var message = error.Errors?.FirstOrDefault() switch
+            {
+                "unique_violation" => "Такий запис уже існує (значення має бути унікальним).",
+                "foreign_key_violation" => "Дію неможливо виконати: запис пов'язаний з іншими даними (наприклад, товар є в замовленнях).",
+                "check_violation" => "Некоректне значення.",
+                _ => null
+            };
+
+            return message is null ? error : APIResponse<T>.FailureResponse(message, error.Errors);
         }
     }
 }
