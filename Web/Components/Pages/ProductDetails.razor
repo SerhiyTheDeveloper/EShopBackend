@@ -6,6 +6,7 @@
 @inject ProductFilterService Filter
 @inject ShopService Shop
 @inject WishListStateService Wish
+@inject CartService Cart
 @inject UiStateService UiState
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthProvider
@@ -79,6 +80,7 @@
 							</button>
 						</div>
 
+						<button type="button" class="btn btn--outline" @onclick="CartClickAsync">@(inCart ? "У кошику" : "У кошик")</button>
 						<button type="button" class="btn btn--primary" @onclick="StartBuyAsync">Купити зараз</button>
 					}
 
@@ -181,11 +183,55 @@
 
 	private bool isWished => product is not null && Wish.Contains(product.Id);
 
-	protected override void OnInitialized() => Wish.OnChange += HandleWishChange;
+	private bool inCart => product is not null && Cart.Contains(product.Id);
 
-	private void HandleWishChange() => InvokeAsync(StateHasChanged);
+	protected override void OnInitialized()
+	{
+		Wish.OnChange += HandleStateChange;
+		Cart.OnChange += HandleStateChange;
+		Filter.OnChange += HandleStateChange;
+	}
 
-	public void Dispose() => Wish.OnChange -= HandleWishChange;
+	private void HandleStateChange()
+	{
+		// Каталог міг оновитися (залишки, нові товари), тож «Схожі товари» перераховуємо
+		RecomputeSimilar();
+		InvokeAsync(StateHasChanged);
+	}
+
+	public void Dispose()
+	{
+		Wish.OnChange -= HandleStateChange;
+		Cart.OnChange -= HandleStateChange;
+		Filter.OnChange -= HandleStateChange;
+	}
+
+	// Схожі товари: з тієї ж категорії, без поточного
+	private void RecomputeSimilar()
+	{
+		similar = product is null
+			? []
+			: Filter.Products
+				.Where(p => p.Id != product.Id && p.Category == product.Category)
+				.Take(4)
+				.ToList();
+	}
+
+	// Перший клік додає вибрану кількість у кошик, повторний веде до кошика
+	private async Task CartClickAsync()
+	{
+		if (product is null) return;
+
+		if (inCart)
+		{
+			Nav.NavigateTo("/cart");
+			return;
+		}
+
+		buyError = null;
+		var result = await Cart.AddAsync(product, quantity);
+		if (result == CartAddResult.LimitReached) buyError = "У кошик додано максимальну доступну кількість.";
+	}
 
 	private async Task ToggleWishAsync()
 	{
@@ -234,14 +280,14 @@
 
 		if (product is not null)
 		{
-			// Схожі товари: з тієї ж категорії, без поточного
+			var wasLoaded = Filter.IsLoaded;
 			await Filter.EnsureLoadedAsync();
-			similar = Filter.Products
-				.Where(p => p.Id != product.Id && p.Category == product.Category)
-				.Take(4)
-				.ToList();
+			RecomputeSimilar();
 
 			quantity = Math.Clamp(quantity, 1, Math.Max(product.Stock, 1));
+
+			// Каталог кешується на сеанс, тому тихо підтягуємо свіжі залишки для «Схожих товарів»
+			if (wasLoaded) _ = Filter.RefreshAsync();
 		}
 
 		isLoading = false;
@@ -302,8 +348,9 @@
 			placedOrder = order;
 			quantity = 1;
 
-			// Залишок зменшився, тож оновлюємо товар
+			// Залишок зменшився, тож оновлюємо товар і каталог (картки на головній)
 			await LoadAsync(showLoading: false);
+			await Filter.RefreshAsync();
 			return;
 		}
 

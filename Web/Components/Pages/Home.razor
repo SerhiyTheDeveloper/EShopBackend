@@ -96,7 +96,11 @@
 	protected override async Task OnInitializedAsync()
 	{
 		Filter.OnChange += HandleChange;
+
+		// Каталог кешується на сеанс, тому при поверненні на головну тихо підтягуємо свіжі залишки
+		var wasLoaded = Filter.IsLoaded;
 		await Filter.EnsureLoadedAsync();
+		if (wasLoaded) _ = Filter.RefreshAsync();
 	}
 
 	private void HandleChange() => InvokeAsync(StateHasChanged);

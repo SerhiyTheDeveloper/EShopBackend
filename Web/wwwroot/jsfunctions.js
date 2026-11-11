@@ -126,3 +126,38 @@ function callShopApi(method, path, request) {
 function callWishListApi(method, path) {
     return callApi(method, '/api/wishlist' + (path ? '/' + path : ''));
 }
+
+function cartLoad() {
+    try {
+        return JSON.parse(localStorage.getItem('shopik.cart') || '[]');
+    } catch (error) {
+        return [];
+    }
+}
+
+function cartSave(items) {
+    localStorage.setItem('shopik.cart', JSON.stringify(items));
+}
+
+// Клік на посилання поточної сторінки (іконка кошика, пункт меню, «Головна») не має додавати в історію
+// браузера ще один запис із тією самою адресою. Обробник у фазі перехоплення скасовує лише перехід за таким
+// посиланням, а решта обробників (наприклад, закриття меню по @onclick) спрацьовує як зазвичай.
+(function () {
+    if (window.__sameUrlGuard) return;
+    window.__sameUrlGuard = true;
+
+    document.addEventListener('click', function (e) {
+        if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+
+        const link = e.target.closest && e.target.closest('a[href]');
+        if (!link || (link.target && link.target !== '_self') || link.hasAttribute('download')) return;
+
+        const url = new URL(link.href, location.href);
+        const sameUrl = url.origin === location.origin
+            && url.pathname === location.pathname
+            && url.search === location.search
+            && (!url.hash || url.hash === location.hash);
+
+        if (sameUrl) e.preventDefault();
+    }, true);
+})();

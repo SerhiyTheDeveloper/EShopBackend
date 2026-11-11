@@ -1,0 +1,35 @@
+@* Порожній стан сторінки: іконка в «блобі» бренду, заголовок, пояснення та дії (ChildContent) *@
+
+<div class="empty-panel">
+	<div class="empty-panel__icon" aria-hidden="true">
+		@if (Icon == EmptyStateIcon.Cart)
+		{
+			<svg class="icon" viewBox="0 0 24 24">
+				<circle cx="9" cy="21" r="1.4" fill="currentColor" stroke="none" />
+				<circle cx="19" cy="21" r="1.4" fill="currentColor" stroke="none" />
+				<path d="M1.5 2h2.6l2.2 12.6a2.2 2.2 0 0 0 2.2 1.8h9.6a2.2 2.2 0 0 0 2.2-1.8L22 7H6" />
+			</svg>
+		}
+		else
+		{
+			<svg class="icon" viewBox="0 0 24 24">
+				<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+			</svg>
+		}
+	</div>
+	<h2 class="empty-panel__title">@Title</h2>
+	<p class="empty-panel__text">@Description</p>
+	@if (ChildContent is not null)
+	{
+		<div class="empty-panel__actions">@ChildContent</div>
+	}
+</div>
+
+@code {
+	public enum EmptyStateIcon { Heart, Cart }
+
+	[Parameter] public EmptyStateIcon Icon { get; set; } = EmptyStateIcon.Heart;
+	[Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+	[Parameter] public string? Description { get; set; }
+	[Parameter] public RenderFragment? ChildContent { get; set; }
+}

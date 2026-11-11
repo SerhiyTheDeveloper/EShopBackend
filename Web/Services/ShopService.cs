@@ -17,11 +17,19 @@ namespace Web.Services
         /// <summary>
         /// Оформлює замовлення з одного товару. Повертає створене замовлення або текст помилки.
         /// </summary>
-        public async Task<(OrderCreatedResponse? Order, string? Error)> BuyNowAsync(Guid productId, int quantity)
+        public Task<(OrderCreatedResponse? Order, string? Error)> BuyNowAsync(Guid productId, int quantity)
+            => PlaceOrderAsync([new CartItem(productId, quantity)]);
+
+        /// <summary>
+        /// Оформлює замовлення з кількох позицій (кошик). Повертає створене замовлення або текст помилки.
+        /// </summary>
+        public async Task<(OrderCreatedResponse? Order, string? Error)> PlaceOrderAsync(IEnumerable<CartItem> items)
         {
             var request = new CreateOrderRequest
             {
-                OrderItems = [new CreateOrderItemRequest { ProductId = productId, Quantity = quantity }]
+                OrderItems = items
+                    .Select(i => new CreateOrderItemRequest { ProductId = i.ProductId, Quantity = i.Quantity })
+                    .ToList()
             };
 
             try

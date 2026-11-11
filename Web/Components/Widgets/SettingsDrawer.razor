@@ -3,6 +3,7 @@
 @inject UiStateService UiState
 @inject UserProfileService Profile
 @inject WishListStateService Wish
+@inject CartService Cart
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
@@ -59,8 +60,10 @@
                             </svg>
                         </span>
                         Кошик
-                        <span class="drawer__item-count">2</span>
-                        @* замінити 2 на @cartCount *@
+                        @if (Cart.Count > 0)
+                        {
+                            <span class="drawer__item-count">@Cart.Count</span>
+                        }
                     </a>
                     <a href="/account" class="drawer__item" @onclick="Close">
                         <span class="drawer__item-icon">
@@ -149,6 +152,10 @@
                             </svg>
                         </span>
                         Кошик
+                        @if (Cart.Count > 0)
+                        {
+                            <span class="drawer__item-count">@Cart.Count</span>
+                        }
                     </a>
                     <span class="drawer__item drawer__item--locked">
                         <span class="drawer__item-icon">
@@ -209,6 +216,7 @@
         UiState.OnChange += HandleChange;
         Profile.OnChange += HandleChange;
         Wish.OnChange += HandleChange;
+        Cart.OnChange += HandleChange;
 
         await Profile.LoadAsync();
     }
@@ -231,5 +239,6 @@
         UiState.OnChange -= HandleChange;
         Profile.OnChange -= HandleChange;
         Wish.OnChange -= HandleChange;
+        Cart.OnChange -= HandleChange;
     }
 }

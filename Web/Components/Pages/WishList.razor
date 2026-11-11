@@ -7,38 +7,22 @@
 
 <PageTitle>Shopik — Вподобання</PageTitle>
 
-<main class="container">
-	<div class="page-head">
-		<div class="breadcrumb">
-			<a href="/">Головна</a>
-			<svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"></polyline></svg>
-			<span>Вподобання</span>
-		</div>
-		<h1>Вподобання</h1>
-		<AuthorizeView Context="auth">
-			<Authorized>
-				@if (Wish.IsLoaded)
-				{
-					<p class="page-head__sub">@CountText</p>
-				}
-			</Authorized>
-		</AuthorizeView>
-	</div>
+<AuthorizeView Context="auth">
+	<Authorized>
+		<main class="container">
+			@PageHead(Wish.IsLoaded && Wish.Count > 0 ? CountText : null)
 
-	<section style="padding-top:6px;">
-		<AuthorizeView Context="auth">
-			<Authorized>
+			<section style="padding-top:6px;">
 				@if (!Wish.IsLoaded)
 				{
 					<div class="loading">Завантаження...</div>
 				}
 				else if (Wish.Count == 0)
 				{
-					<div class="empty">
-						<p>У вподобаннях поки порожньо.</p>
-						<p class="settings-card__desc">Натисніть на серце біля товару, щоб зберегти його тут.</p>
-						<a href="/" class="btn btn--primary btn--sm" style="margin-top:12px;">До каталогу</a>
-					</div>
+					<EmptyState Icon="EmptyState.EmptyStateIcon.Heart" Title="У вподобаннях поки порожньо"
+								Description="Натисніть на серце біля товару, і він з'явиться тут.">
+						<a href="/" class="btn btn--primary">До каталогу</a>
+					</EmptyState>
 				}
 				else
 				{
@@ -49,34 +33,38 @@
 						}
 					</div>
 				}
-			</Authorized>
-			<NotAuthorized>
-				<div class="empty">
-					<p>Увійдіть, щоб бачити збережені товари.</p>
-					<button type="button" class="btn btn--primary btn--sm" style="margin-top:12px;" @onclick="ShowLogin">Увійти</button>
-				</div>
-			</NotAuthorized>
-		</AuthorizeView>
-	</section>
-</main>
+			</section>
+		</main>
+	</Authorized>
+	<NotAuthorized>
+		<main class="container">
+			@PageHead(null)
+
+			<section style="padding-top:6px;">
+				<EmptyState Icon="EmptyState.EmptyStateIcon.Heart" Title="Увійдіть, щоб бачити вподобання"
+							Description="Збережені товари доступні після входу в акаунт.">
+					<button type="button" class="btn btn--primary" @onclick="ShowLogin">Увійти</button>
+				</EmptyState>
+			</section>
+		</main>
+	</NotAuthorized>
+</AuthorizeView>
 
 @code {
-	private string CountText => $"{Wish.Count} {Plural(Wish.Count)}, які ви зберегли";
-
-	// Укр. відмінювання: 1 товар, 2-4 товари, 5-20 товарів, 21 товар...
-	private static string Plural(int count)
-	{
-		var lastTwo = count % 100;
-		var last = count % 10;
-
-		if (lastTwo is >= 11 and <= 14) return "товарів";
-		return last switch
+	private RenderFragment PageHead(string? subtitle) => @<div class="page-head">
+		<div class="breadcrumb">
+			<a href="/">Головна</a>
+			<svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"></polyline></svg>
+			<span>Вподобання</span>
+		</div>
+		<h1>Вподобання</h1>
+		@if (subtitle is not null)
 		{
-			1 => "товар",
-			>= 2 and <= 4 => "товари",
-			_ => "товарів"
-		};
-	}
+			<p class="page-head__sub">@subtitle</p>
+		}
+	</div>;
+
+	private string CountText => $"{Wish.Count} {UkrainianPlural.Goods(Wish.Count)}, які ви зберегли";
 
 	protected override void OnInitialized() => Wish.OnChange += HandleWishChange;
 

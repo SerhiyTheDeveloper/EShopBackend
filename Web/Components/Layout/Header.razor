@@ -6,6 +6,7 @@
 @inject ProductFilterService Filter
 @inject NavigationManager Nav
 @inject WishListStateService Wish
+@inject CartService Cart
 
 <header class="topbar">
 	<div class="topbar__inner">
@@ -78,7 +79,10 @@
 					<circle cx="19" cy="21" r="1.4" fill="currentColor" stroke="none" />
 					<path d="M1.5 2h2.6l2.2 12.6a2.2 2.2 0 0 0 2.2 1.8h9.6a2.2 2.2 0 0 0 2.2-1.8L22 7H6" />
 				</svg>
-				@* <span class="icon-btn__badge">@cartCount</span> *@
+				@if (Cart.Count > 0)
+				{
+					<span class="icon-btn__badge">@Cart.Count</span>
+				}
 			</a>
 
 			<AuthorizeView>
@@ -161,12 +165,16 @@
 		lastAppliedSearch = Filter.Applied.Search;
 		Filter.OnChange += HandleFilterChange;
 		Wish.OnChange += HandleWishChange;
+		Cart.OnChange += HandleWishChange;
 	}
 
 	// Список вподобань завантажується один раз на circuit (для гостя нічого не робиться)
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender) await Wish.EnsureLoadedAsync();
+		if (!firstRender) return;
+
+		await Wish.EnsureLoadedAsync();
+		await Cart.EnsureLoadedAsync();
 	}
 
 	private void HandleWishChange() => InvokeAsync(StateHasChanged);
@@ -261,6 +269,7 @@
 	{
 		Filter.OnChange -= HandleFilterChange;
 		Wish.OnChange -= HandleWishChange;
+		Cart.OnChange -= HandleWishChange;
 	}
 
 	private void ShowFilter() => UiState.Show(Modal.Filter);

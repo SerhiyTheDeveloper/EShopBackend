@@ -14,6 +14,7 @@ namespace Web.Services
     {
         private readonly CatalogApiClient _catalog = catalog;
         private Task? _loadTask;
+        private Task? _refreshTask;
 
         public IReadOnlyList<ProductResponse> Products { get; private set; } = [];
         public IReadOnlyList<CategoryResponse> Categories { get; private set; } = [];
@@ -40,6 +41,18 @@ namespace Web.Services
         {
             IsLoaded = false;
             return EnsureLoadedAsync();
+        }
+
+        /// <summary>
+        /// Тихо оновлює каталог (залишки, ціни, нові товари) без скидання стану «завантажено»: користувач
+        /// бачить уже завантажений список, а свіжі дані підставляються, щойно прийдуть. При помилці лишаються попередні дані.
+        /// </summary>
+        public Task RefreshAsync()
+        {
+            if (!IsLoaded) return EnsureLoadedAsync();
+            if (_refreshTask is { IsCompleted: false }) return _refreshTask;
+
+            return _refreshTask = RefreshCoreAsync();
         }
 
         public void Apply(ProductFilter filter)
@@ -99,6 +112,18 @@ namespace Web.Services
         /// <summary>Найменша та найбільша ціна в каталозі (для підказок у полях ціни).</summary>
         public (decimal Min, decimal Max)? PriceBounds()
             => Products.Count == 0 ? null : (Products.Min(p => p.Price), Products.Max(p => p.Price));
+
+        private async Task RefreshCoreAsync()
+        {
+            var products = await _catalog.GetProductsAsync();
+            var categories = await _catalog.GetCategoriesAsync();
+
+            if (!products.Success || products.Data is null || !categories.Success || categories.Data is null) return;
+
+            Products = products.Data;
+            Categories = categories.Data;
+            OnChange?.Invoke();
+        }
 
         private async Task LoadAsync()
         {

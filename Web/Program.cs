@@ -61,6 +61,7 @@ builder.Services.AddScoped<UserProfileService>();
 builder.Services.AddScoped<AdminUsersService>();
 builder.Services.AddScoped<ManagerService>();
 builder.Services.AddScoped<ShopService>();
+builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<WishListStateService>();
 builder.Services.AddScoped<ProductFilterService>();
 builder.Services.AddScoped<TokenRefreshService>();

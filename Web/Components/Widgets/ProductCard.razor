@@ -1,5 +1,7 @@
 @implements IDisposable
 @inject WishListStateService Wish
+@inject CartService Cart
+@inject NavigationManager Nav
 
 @* Картка товару. Назва це посилання на сторінку товару; через ::after воно розтягується на всю картку,
    а серце та кнопка «У кошик» лежать вище й працюють окремо *@
@@ -28,7 +30,14 @@
 	<div class="product-card__price-row">
 		<span class="price">@Product.Price ₴</span>
 	</div>
-	<button class="btn-add">У кошик</button>
+	@if (Product.Stock <= 0)
+	{
+		<button type="button" class="btn-add" disabled>Немає в наявності</button>
+	}
+	else
+	{
+		<button type="button" class="btn-add @(inCart ? "btn-add--active" : "")" @onclick="CartClickAsync">@(inCart ? "У кошику" : "У кошик")</button>
+	}
 </article>
 
 @code {
@@ -38,12 +47,34 @@
 
 	private bool isWished => Wish.Contains(Product.Id);
 
-	protected override void OnInitialized() => Wish.OnChange += HandleWishChange;
+	private bool inCart => Cart.Contains(Product.Id);
 
-	private void HandleWishChange() => InvokeAsync(StateHasChanged);
+	protected override void OnInitialized()
+	{
+		Wish.OnChange += HandleStateChange;
+		Cart.OnChange += HandleStateChange;
+	}
+
+	private void HandleStateChange() => InvokeAsync(StateHasChanged);
+
+	// Перший клік додає товар у кошик, повторний веде до кошика
+	private async Task CartClickAsync()
+	{
+		if (inCart)
+		{
+			Nav.NavigateTo("/cart");
+			return;
+		}
+
+		await Cart.AddAsync(Product);
+	}
 
 	// Гостя просить увійти, помилку API сервіс відкочує сам (серце повертається до попереднього стану)
 	private Task ToggleWishAsync() => Wish.ToggleAsync(Product);
 
-	public void Dispose() => Wish.OnChange -= HandleWishChange;
+	public void Dispose()
+	{
+		Wish.OnChange -= HandleStateChange;
+		Cart.OnChange -= HandleStateChange;
+	}
 }
