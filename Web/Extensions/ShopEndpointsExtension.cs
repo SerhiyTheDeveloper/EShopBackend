@@ -15,6 +15,13 @@ namespace Web.Extensions
                 TokenRefreshService refresher, ShopApiClient apiClient) =>
                 AuthorizedCall.RunAsync(context, refresher, token => apiClient.CreateOrderAsync(token, request)));
 
+            app.MapGet("/api/shop/orders/my", (HttpContext context, TokenRefreshService refresher, ShopApiClient apiClient) =>
+                AuthorizedCall.RunAsync(context, refresher, token => apiClient.GetMyOrdersAsync(token)));
+
+            app.MapPut("/api/shop/orders/my/{id:guid}/cancel", (Guid id, HttpContext context,
+                TokenRefreshService refresher, ShopApiClient apiClient) =>
+                AuthorizedCall.RunAsync(context, refresher, token => apiClient.CancelMyOrderAsync(token, id)));
+
             return app;
         }
     }

@@ -188,7 +188,7 @@ namespace MINT.EShop.API.Controllers
         public async Task<IActionResult> CancelMyOrder(Guid id)
         {
             // Викликаємо бізнес-логіку для скасування замовлення з перевіркою існування замовлення та прав користувача
-            bool isCancelled = await orderService.CancelMyAsync(CurrentUserId, id);
+            bool isCancelled = await orderService.CancelMyAsync(CurrentClientAccountId, id);
             if (isCancelled == false) return NotFound(APIResponse.FailureResponse("Order not found"));
 
             // Отримуємо оновлену інформацію про замовлення

@@ -33,7 +33,13 @@ namespace MINT.EShop.Business.Services
                 ClientAccountId = user.ClientAccount.Id,
                 OrderDate = DateTime.UtcNow,
                 TotalAmount = 0,
-                Status = OrderStatus.Pending
+                Status = OrderStatus.Pending,
+                Region = request.Region.Trim(),
+                City = request.City.Trim(),
+                DeliveryService = request.DeliveryService,
+                DeliveryPoint = request.DeliveryPoint.Trim(),
+                PaymentMethod = request.PaymentMethod,
+                RecipientPhone = request.RecipientPhone.Trim()
             };
 
             // Додаємо позиції замовлення та обчислюємо загальну суму замовлення
@@ -80,6 +86,12 @@ namespace MINT.EShop.Business.Services
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
+                Region = order.Region,
+                City = order.City,
+                DeliveryService = order.DeliveryService,
+                DeliveryPoint = order.DeliveryPoint,
+                PaymentMethod = order.PaymentMethod,
+                RecipientPhone = order.RecipientPhone,
                 OrderItems = [.. order.OrderItems.Select(oi => new OrderItemResponse
                 {
                     Id = oi.Id,
@@ -104,6 +116,12 @@ namespace MINT.EShop.Business.Services
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
+                Region = order.Region,
+                City = order.City,
+                DeliveryService = order.DeliveryService,
+                DeliveryPoint = order.DeliveryPoint,
+                PaymentMethod = order.PaymentMethod,
+                RecipientPhone = order.RecipientPhone,
                 OrderItems = [.. order.OrderItems.Select(oi => new OrderItemResponse
                 {
                     Id = oi.Id,
@@ -135,6 +153,12 @@ namespace MINT.EShop.Business.Services
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
+                Region = order.Region,
+                City = order.City,
+                DeliveryService = order.DeliveryService,
+                DeliveryPoint = order.DeliveryPoint,
+                PaymentMethod = order.PaymentMethod,
+                RecipientPhone = order.RecipientPhone,
                 OrderItems = [.. order.OrderItems.Select(oi => new OrderItemResponse
                 {
                     Id = oi.Id,
@@ -151,6 +175,18 @@ namespace MINT.EShop.Business.Services
             // Отримуємо замовлення за ID та перевіряємо його на null
             var order = await unitOfWork.Orders.GetByIdAsync(orderId);
             if (order == null) return false;
+
+            // Скасоване замовлення не можна повернути в роботу: залишок уже повернуто на склад
+            if (order.Status == OrderStatus.Cancelled && newStatus != OrderStatus.Cancelled)
+            {
+                throw new InvalidOperationException("A cancelled order cannot be reopened.");
+            }
+
+            // Скасування до відправлення повертає товари на склад (повторне скасування нічого не повертає)
+            if (newStatus == OrderStatus.Cancelled && (order.Status is OrderStatus.Pending or OrderStatus.Paid))
+            {
+                await RestockAsync(order);
+            }
 
             // Змінюємо статус замовлення
             order.Status = newStatus;
@@ -175,6 +211,15 @@ namespace MINT.EShop.Business.Services
             if (order.Status == OrderStatus.Paid)
             {
                 throw new InvalidOperationException("You can`t cancel this order.");
+            }
+
+            // Повторне скасування нічого не змінює
+            if (order.Status == OrderStatus.Cancelled) return true;
+
+            // Замовлення ще не відправлено: повертаємо товари на склад
+            if (order.Status == OrderStatus.Pending)
+            {
+                await RestockAsync(order);
             }
 
             // Скасовуємо замовлення
@@ -220,6 +265,12 @@ namespace MINT.EShop.Business.Services
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
+                Region = order.Region,
+                City = order.City,
+                DeliveryService = order.DeliveryService,
+                DeliveryPoint = order.DeliveryPoint,
+                PaymentMethod = order.PaymentMethod,
+                RecipientPhone = order.RecipientPhone,
                 OrderItems = [.. order.OrderItems.Select(oi => new OrderItemResponse
                 {
                     Id = oi.Id,
@@ -271,6 +322,12 @@ namespace MINT.EShop.Business.Services
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
+                Region = order.Region,
+                City = order.City,
+                DeliveryService = order.DeliveryService,
+                DeliveryPoint = order.DeliveryPoint,
+                PaymentMethod = order.PaymentMethod,
+                RecipientPhone = order.RecipientPhone,
                 OrderItems = [.. order.OrderItems.Select(oi => new OrderItemResponse
                 {
                     Id = oi.Id,
@@ -340,6 +397,12 @@ namespace MINT.EShop.Business.Services
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status,
+                Region = order.Region,
+                City = order.City,
+                DeliveryService = order.DeliveryService,
+                DeliveryPoint = order.DeliveryPoint,
+                PaymentMethod = order.PaymentMethod,
+                RecipientPhone = order.RecipientPhone,
                 OrderItems = [.. order.OrderItems.Select(oi => new OrderItemResponse
                 {
                     Id = oi.Id,
@@ -379,6 +442,21 @@ namespace MINT.EShop.Business.Services
 
             // Повертаємо відповідь про успішне завершення операції
             return true;
+        }
+
+        // Повертає на склад кількість товарів зі скасованого замовлення
+        private async Task RestockAsync(Order order)
+        {
+            var products = await unitOfWork.Products.GetByIdsAsync(order.OrderItems.Select(oi => oi.ProductId));
+            var productsDict = products.ToDictionary(p => p.Id);
+
+            foreach (var item in order.OrderItems)
+            {
+                if (productsDict.TryGetValue(item.ProductId, out var product))
+                {
+                    product.Stock += item.Quantity;
+                }
+            }
         }
     }
 }

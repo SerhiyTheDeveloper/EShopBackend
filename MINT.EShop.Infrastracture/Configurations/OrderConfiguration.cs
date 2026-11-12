@@ -17,6 +17,22 @@ namespace MINT.EShop.Infrastracture.Configurations
             builder.Property(o => o.OrderDate)
                 .IsRequired();
 
+            builder.Property(o => o.Region)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            builder.Property(o => o.City)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            builder.Property(o => o.DeliveryPoint)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            builder.Property(o => o.RecipientPhone)
+                .IsRequired()
+                .HasMaxLength(20);
+
             builder.HasOne(o => o.ClientAccount)
                 .WithMany(o => o.Orders)
                 .HasForeignKey(o => o.ClientAccountId)
