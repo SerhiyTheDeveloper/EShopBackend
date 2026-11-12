@@ -1,0 +1,220 @@
+@using MINT.EShop.Core.Enums
+@inject ShopService Shop
+@inject UserProfileService Profile
+@inject UiStateService UiState
+
+<div class="overlay" @onclick="CloseAsync">
+	<div class="modal modal--wide" @onclick:stopPropagation="true">
+		<button type="button" class="modal__close" aria-label="Закрити" @onclick="CloseAsync">
+			<svg class="icon" viewBox="0 0 24 24">
+				<line x1="6" y1="6" x2="18" y2="18" />
+				<line x1="18" y1="6" x2="6" y2="18" />
+			</svg>
+		</button>
+
+		<h2 class="modal__title">Оформлення замовлення</h2>
+		<p class="modal__subtitle">Вкажіть, куди й як доставити замовлення.</p>
+
+		<EditForm EditContext="editContext" OnSubmit="SubmitAsync" novalidate>
+			<DataAnnotationsValidator />
+
+			<div class="field">
+				<label class="field__label" for="co-phone">Номер телефону одержувача</label>
+				<div class="phone-wrap">
+					<input class="phone-code" type="text" value="+380" readonly aria-label="Код країни" />
+					<InputText class="input" id="co-phone" type="tel" placeholder="00 000 00 00" @bind-Value="model.Phone" />
+				</div>
+				@if (phoneError is not null)
+				{
+					<p class="field__error">@phoneError</p>
+				}
+				else if (phoneFromProfile)
+				{
+					<p class="field__hint">Підставлено з вашого профілю. Змініть, якщо замовлення отримуватиме інша людина.</p>
+				}
+			</div>
+
+			<div class="manager-form-grid">
+				<div class="field">
+					<label class="field__label" for="co-region">Область</label>
+					<SearchSelect Id="co-region" Items="UkraineRegions.Items" @bind-Value="model.RegionId" Placeholder="Оберіть область" />
+					@if (regionError is not null)
+					{
+						<p class="field__error">@regionError</p>
+					}
+				</div>
+				<div class="field">
+					<label class="field__label" for="co-city">Місто</label>
+					<InputText class="input" id="co-city" placeholder="Наприклад, Львів" @bind-Value="model.City" />
+					<ValidationMessage For="() => model.City" class="field__error" />
+				</div>
+			</div>
+
+			<div class="field">
+				<div class="field__label">Доставка</div>
+				<div class="choice-grid">
+					<button type="button" class="choice-card @(model.DeliveryService == DeliveryService.NovaPoshta ? "choice-card--active" : "")"
+							aria-pressed="@(model.DeliveryService == DeliveryService.NovaPoshta)"
+							@onclick="() => model.DeliveryService = DeliveryService.NovaPoshta">
+						<svg class="icon icon--sm" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+						Нова пошта
+					</button>
+					<button type="button" class="choice-card @(model.DeliveryService == DeliveryService.UkrPoshta ? "choice-card--active" : "")"
+							aria-pressed="@(model.DeliveryService == DeliveryService.UkrPoshta)"
+							@onclick="() => model.DeliveryService = DeliveryService.UkrPoshta">
+						<svg class="icon icon--sm" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path><polyline points="22 6 12 13 2 6"></polyline></svg>
+						Укрпошта
+					</button>
+				</div>
+			</div>
+
+			<div class="field">
+				<label class="field__label" for="co-point">@PointLabel</label>
+				<InputText class="input" id="co-point" placeholder="@PointPlaceholder" @bind-Value="model.DeliveryPoint" />
+				<ValidationMessage For="() => model.DeliveryPoint" class="field__error" />
+			</div>
+
+			<div class="field">
+				<div class="field__label">Оплата</div>
+				<div class="choice-grid">
+					<button type="button" class="choice-card @(model.PaymentMethod == PaymentMethod.Prepaid ? "choice-card--active" : "")"
+							aria-pressed="@(model.PaymentMethod == PaymentMethod.Prepaid)"
+							@onclick="() => model.PaymentMethod = PaymentMethod.Prepaid">
+						<svg class="icon icon--sm" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+						Оплата зараз
+					</button>
+					<button type="button" class="choice-card @(model.PaymentMethod == PaymentMethod.CashOnDelivery ? "choice-card--active" : "")"
+							aria-pressed="@(model.PaymentMethod == PaymentMethod.CashOnDelivery)"
+							@onclick="() => model.PaymentMethod = PaymentMethod.CashOnDelivery">
+						<svg class="icon icon--sm" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle></svg>
+						При отриманні
+					</button>
+				</div>
+				@if (model.PaymentMethod == PaymentMethod.Prepaid)
+				{
+					<p class="field__hint">Оплату підтвердить менеджер після оформлення замовлення.</p>
+				}
+			</div>
+
+			<div class="checkout-summary">
+				<span>@TotalUnits @UkrainianPlural.Goods(TotalUnits)</span>
+				<span class="price">@Total ₴</span>
+			</div>
+
+			@if (!string.IsNullOrEmpty(submitError))
+			{
+				<p class="field__error" style="margin-bottom:10px;">@submitError</p>
+			}
+
+			<div class="settings-card__actions">
+				<button type="button" class="btn btn--outline" @onclick="CloseAsync" disabled="@isSubmitting">Скасувати</button>
+				<button type="submit" class="btn btn--primary" disabled="@isSubmitting">
+					@if (isSubmitting)
+					{
+						<span>Зачекайте...</span>
+					}
+					else
+					{
+						<span>Підтвердити замовлення</span>
+					}
+				</button>
+			</div>
+		</EditForm>
+	</div>
+</div>
+
+@code {
+	[Parameter, EditorRequired] public IReadOnlyList<CartItem> Items { get; set; } = [];
+	[Parameter] public decimal Total { get; set; }
+	[Parameter] public int TotalUnits { get; set; }
+	[Parameter] public EventCallback OnClose { get; set; }
+	[Parameter] public EventCallback<OrderCreatedResponse> OnPlaced { get; set; }
+
+	private readonly CheckoutFormModel model = new();
+	private EditContext editContext = default!;
+	private bool phoneFromProfile;
+	private bool isSubmitting;
+	private string? phoneError;
+	private string? regionError;
+	private string? submitError;
+
+	private string PointLabel => model.DeliveryService == DeliveryService.NovaPoshta
+		? "Відділення або поштомат Нової пошти"
+		: "Відділення Укрпошти або адреса";
+
+	private string PointPlaceholder => model.DeliveryService == DeliveryService.NovaPoshta
+		? "Наприклад, відділення №12"
+		: "Індекс і номер відділення чи адреса";
+
+	protected override async Task OnInitializedAsync()
+	{
+		editContext = new EditContext(model);
+
+		// Телефон підтягується з профілю, щоб покупець перевірив його і за потреби вказав інший
+		await Profile.LoadAsync();
+		var national = NormalizePhone(Profile.User?.PhoneNumber);
+		if (national.Length > 0)
+		{
+			model.Phone = FormatNational(national);
+			phoneFromProfile = true;
+		}
+	}
+
+	// Лише цифри національної частини: без +380, 380 і початкового 0 (у профілі номер може бути записаний по-різному)
+	private static string NormalizePhone(string? raw)
+	{
+		var digits = new string((raw ?? string.Empty).Where(char.IsDigit).ToArray());
+		if (digits.StartsWith("380")) digits = digits[3..];
+		if (digits.StartsWith('0')) digits = digits[1..];
+		return digits;
+	}
+
+	private static string FormatNational(string digits)
+		=> digits.Length == 9 ? $"{digits[..2]} {digits[2..5]} {digits[5..7]} {digits[7..]}" : digits;
+
+	private Task CloseAsync() => isSubmitting ? Task.CompletedTask : OnClose.InvokeAsync();
+
+	private async Task SubmitAsync()
+	{
+		if (isSubmitting) return;
+		submitError = null;
+
+		var valid = editContext.Validate();
+
+		var regionName = UkraineRegions.NameOf(model.RegionId);
+		regionError = regionName is null ? "Оберіть область зі списку" : null;
+
+		var national = NormalizePhone(model.Phone);
+		phoneError = national.Length == 9 ? null : "Введіть 9 цифр номера після +380";
+
+		if (!valid || regionError is not null || phoneError is not null) return;
+
+		isSubmitting = true;
+		var details = new CheckoutDetails(
+			regionName!,
+			model.City.Trim(),
+			model.DeliveryService,
+			model.DeliveryPoint.Trim(),
+			model.PaymentMethod,
+			"+380" + national);
+
+		var (order, error) = await Shop.PlaceOrderAsync(Items, details);
+		isSubmitting = false;
+
+		if (order is not null)
+		{
+			await OnPlaced.InvokeAsync(order);
+			return;
+		}
+
+		// Сесія завершилась: закриваємо вікно і просимо увійти знову
+		if (error == ApiClientBase.SessionExpiredMessage)
+		{
+			await OnClose.InvokeAsync();
+			UiState.Show(Modal.Login);
+			return;
+		}
+
+		submitError = $"Не вдалося оформити замовлення: {error}";
+	}
+}

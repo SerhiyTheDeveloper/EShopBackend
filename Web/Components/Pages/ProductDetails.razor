@@ -4,7 +4,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject CatalogApiClient Catalog
 @inject ProductFilterService Filter
-@inject ShopService Shop
 @inject WishListStateService Wish
 @inject CartService Cart
 @inject UiStateService UiState
@@ -129,35 +128,10 @@
 	}
 </main>
 
-@if (showConfirm && product is not null)
+@if (showCheckout && product is not null)
 {
-	<div class="overlay" @onclick="CancelBuy">
-		<div class="modal" @onclick:stopPropagation>
-			<button type="button" class="modal__close" aria-label="Закрити" @onclick="CancelBuy">
-				<svg class="icon" viewBox="0 0 24 24">
-					<line x1="6" y1="6" x2="18" y2="18" />
-					<line x1="18" y1="6" x2="6" y2="18" />
-				</svg>
-			</button>
-
-			<h2 class="modal__title">Оформити замовлення?</h2>
-			<p class="modal__subtitle">@product.Name × @quantity = @(product.Price * quantity) ₴</p>
-
-			<div class="settings-card__actions">
-				<button type="button" class="btn btn--outline" @onclick="CancelBuy" disabled="@isBuying">Скасувати</button>
-				<button type="button" class="btn btn--primary" @onclick="ConfirmBuyAsync" disabled="@isBuying">
-					@if (isBuying)
-					{
-						<span>Зачекайте...</span>
-					}
-					else
-					{
-						<span>Підтвердити</span>
-					}
-				</button>
-			</div>
-		</div>
-	</div>
+	<CheckoutModal Items="checkoutItems" Total="product.Price * quantity" TotalUnits="quantity"
+				   OnClose="CloseCheckout" OnPlaced="OnOrderPlacedAsync" />
 }
 
 @code {
@@ -169,8 +143,8 @@
 	private Guid loadedId;
 
 	private int quantity = 1;
-	private bool showConfirm;
-	private bool isBuying;
+	private bool showCheckout;
+	private IReadOnlyList<CartItem> checkoutItems = [];
 	private string? buyError;
 	private OrderCreatedResponse? placedOrder;
 	private bool isExpanded;
@@ -263,7 +237,7 @@
 
 		loadedId = Id;
 		quantity = 1;
-		showConfirm = false;
+		showCheckout = false;
 		buyError = null;
 		placedOrder = null;
 		isExpanded = false;
@@ -324,43 +298,21 @@
 			return;
 		}
 
-		showConfirm = true;
+		// Вікно оформлення збирає телефон, адресу, доставку й оплату
+		checkoutItems = [new CartItem(product!.Id, quantity)];
+		showCheckout = true;
 	}
 
-	private void CancelBuy()
+	private void CloseCheckout() => showCheckout = false;
+
+	private async Task OnOrderPlacedAsync(OrderCreatedResponse order)
 	{
-		if (isBuying) return;
-		showConfirm = false;
-	}
+		showCheckout = false;
+		placedOrder = order;
+		quantity = 1;
 
-	private async Task ConfirmBuyAsync()
-	{
-		if (isBuying || product is null) return;
-		isBuying = true;
-
-		var (order, error) = await Shop.BuyNowAsync(product.Id, quantity);
-
-		isBuying = false;
-		showConfirm = false;
-
-		if (order is not null)
-		{
-			placedOrder = order;
-			quantity = 1;
-
-			// Залишок зменшився, тож оновлюємо товар і каталог (картки на головній)
-			await LoadAsync(showLoading: false);
-			await Filter.RefreshAsync();
-			return;
-		}
-
-		// Сесія завершилась: просимо увійти знову
-		if (error == ApiClientBase.SessionExpiredMessage)
-		{
-			UiState.Show(Modal.Login);
-			return;
-		}
-
-		buyError = $"Не вдалося оформити замовлення: {error}";
+		// Залишок зменшився, тож оновлюємо товар і каталог (картки на головній)
+		await LoadAsync(showLoading: false);
+		await Filter.RefreshAsync();
 	}
 }

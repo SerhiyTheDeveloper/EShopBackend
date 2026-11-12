@@ -10,6 +10,12 @@ namespace MINT.EShop.Core.Entities.Order
         public required DateTime OrderDate { get; set; }
         public required decimal TotalAmount { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        public required string Region { get; set; }
+        public required string City { get; set; }
+        public required DeliveryService DeliveryService { get; set; }
+        public required string DeliveryPoint { get; set; }
+        public required PaymentMethod PaymentMethod { get; set; }
+        public required string RecipientPhone { get; set; }
         public ClientAccount ClientAccount { get; set; } = null!;
         public List<OrderItem> OrderItems { get; set; } = [];
     }

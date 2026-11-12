@@ -4,7 +4,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject CartService CartState
 @inject CatalogApiClient Catalog
-@inject ShopService Shop
 @inject ProductFilterService Filter
 @inject UiStateService UiState
 @inject AuthenticationStateProvider AuthProvider
@@ -136,18 +135,17 @@
 				}
 
 				<button type="button" class="btn btn--primary btn--block" style="margin-top:18px;"
-						@onclick="CheckoutAsync" disabled="@(isOrdering || hasUnavailable || available.Count == 0)">
-					@if (isOrdering)
-					{
-						<span>Зачекайте...</span>
-					}
-					else
-					{
-						<span>Оформити замовлення</span>
-					}
+						@onclick="StartCheckoutAsync" disabled="@(hasUnavailable || available.Count == 0)">
+					<span>Оформити замовлення</span>
 				</button>
 			</div>
 		</div>
+	}
+
+	@if (showCheckout)
+	{
+		<CheckoutModal Items="CartState.Items" Total="total" TotalUnits="totalUnits"
+					   OnClose="CloseCheckout" OnPlaced="OnOrderPlacedAsync" />
 	}
 </main>
 
@@ -157,7 +155,7 @@
 	private Dictionary<Guid, ProductResponse> products = [];
 	private bool isLoading = true;
 	private string? loadError;
-	private bool isOrdering;
+	private bool showCheckout;
 	private string? checkoutError;
 	private OrderCreatedResponse? placedOrder;
 
@@ -227,9 +225,8 @@
 		await CartState.RemoveAsync(line.Product.Id);
 	}
 
-	private async Task CheckoutAsync()
+	private async Task StartCheckoutAsync()
 	{
-		if (isOrdering) return;
 		checkoutError = null;
 
 		// Гість спершу входить: кошик при цьому зберігається в браузері
@@ -240,27 +237,20 @@
 			return;
 		}
 
-		isOrdering = true;
-		var (order, error) = await Shop.PlaceOrderAsync(CartState.Items);
-		isOrdering = false;
+		// Вікно оформлення збирає телефон, адресу, доставку й оплату
+		showCheckout = true;
+	}
 
-		if (order is not null)
-		{
-			placedOrder = order;
-			await CartState.ClearAsync();
+	private void CloseCheckout() => showCheckout = false;
 
-			// Залишки змінилися: оновлюємо каталог, щоб картки на головній показували актуальну наявність
-			await Filter.RefreshAsync();
-			return;
-		}
+	private async Task OnOrderPlacedAsync(OrderCreatedResponse order)
+	{
+		showCheckout = false;
+		placedOrder = order;
+		await CartState.ClearAsync();
 
-		if (error == ApiClientBase.SessionExpiredMessage)
-		{
-			UiState.Show(Modal.Login);
-			return;
-		}
-
-		checkoutError = $"Не вдалося оформити замовлення: {error}";
+		// Залишки змінилися: оновлюємо каталог, щоб картки на головній показували актуальну наявність
+		await Filter.RefreshAsync();
 	}
 
 	public void Dispose() => CartState.OnChange -= HandleChange;

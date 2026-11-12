@@ -1,5 +1,6 @@
 ﻿using MINT.EShop.Business.DTOs.OrderItems;
 using MINT.EShop.Core.Enums;
+using System.Text.Json.Serialization;
 
 namespace MINT.EShop.Business.DTOs.Orders
 {
@@ -27,7 +28,34 @@ namespace MINT.EShop.Business.DTOs.Orders
         /// Стан замовлення.
         /// </summary>
         /// <example>Pending</example>
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public required OrderStatus Status { get; init; }
+        /// <summary>
+        /// Область доставки.
+        /// </summary>
+        public required string Region { get; init; }
+        /// <summary>
+        /// Місто доставки.
+        /// </summary>
+        public required string City { get; init; }
+        /// <summary>
+        /// Служба доставки (NovaPoshta або UkrPoshta).
+        /// </summary>
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public required DeliveryService DeliveryService { get; init; }
+        /// <summary>
+        /// Номер відділення або адреса доставки.
+        /// </summary>
+        public required string DeliveryPoint { get; init; }
+        /// <summary>
+        /// Спосіб оплати (Prepaid, CashOnDelivery).
+        /// </summary>
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public required PaymentMethod PaymentMethod { get; init; }
+        /// <summary>
+        /// Номер телефону одержувача.
+        /// </summary>
+        public required string RecipientPhone { get; init; }
         /// <summary>
         /// Список товарів, включених до замовлення. (Тільки для читання)
         /// </summary>

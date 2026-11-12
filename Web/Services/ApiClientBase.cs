@@ -39,7 +39,7 @@ namespace Web.Services
                 using var response = await _httpClient.SendAsync(request, cancToken);
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    return APIResponse<T>.FailureResponse(SessionExpiredMessage);
+                    return await ReadUnauthorizedAsync<T>(response, cancToken);
                 }
 
                 if (response.IsSuccessStatusCode)
@@ -83,6 +83,31 @@ namespace Web.Services
             {
                 return APIResponse<T>.FailureResponse($"Сталася непередбачувана помилка: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 401 без тіла або із загальним «Unauthorized» від автентифікації означає втрату входу.
+        /// Якщо ж API відмовив із конкретним повідомленням (наприклад, немає прав на цей ресурс),
+        /// показуємо його, а не «сесія завершилась».
+        /// </summary>
+        private async Task<APIResponse<T>> ReadUnauthorizedAsync<T>(HttpResponseMessage response, CancellationToken cancToken)
+        {
+            try
+            {
+                var body = await response.Content.ReadFromJsonAsync<APIResponse<T>>(_jsonOptions, cancToken);
+                if (body is not null
+                    && !string.IsNullOrWhiteSpace(body.Message)
+                    && !body.Message.Equals("Unauthorized", StringComparison.OrdinalIgnoreCase))
+                {
+                    return body;
+                }
+            }
+            catch (JsonException)
+            {
+                // Порожнє або не JSON-тіло: звичайна втрата входу
+            }
+
+            return APIResponse<T>.FailureResponse(SessionExpiredMessage);
         }
 
         /// <summary>

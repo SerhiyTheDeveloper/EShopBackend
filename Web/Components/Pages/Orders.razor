@@ -1,40 +1,328 @@
 ﻿@page "/account/orders"
-@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+@using MINT.EShop.Business.DTOs.Orders
+@using MINT.EShop.Core.Enums
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ShopService Shop
+@inject CatalogApiClient Catalog
+@inject UiStateService UiState
+@inject AuthenticationStateProvider AuthProvider
+
+<PageTitle>Shopik — Мої замовлення</PageTitle>
 
 <main class="container">
 	<div class="page-head">
 		<div class="breadcrumb">
-			<a href="index-logged-in.html">Головна</a>
+			<a href="/">Головна</a>
 			<svg class="icon" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"></polyline></svg>
-			<span>Список замовлень</span>
+			<span>Мої замовлення</span>
 		</div>
-		<h1>Список замовлень</h1>
-		<p class="page-head__sub">4 замовлення за весь час</p>
+		<h1>Мої замовлення</h1>
+		@if (!isLoading && loadError is null && orders.Count > 0)
+		{
+			<p class="page-head__sub">@orders.Count @UkrainianPlural.Orders(orders.Count) за весь час</p>
+		}
 	</div>
 
-	<div class="order-list">
-
-		<div class="order-card">
-			<div class="order-card__head">
-				<div>
-					<div class="order-card__num">Замовлення #SH-10482</div>
-					<div class="order-card__date">12 червня 2026</div>
+	<AuthorizeView Context="auth">
+		<Authorized>
+			@if (isLoading)
+			{
+				<div class="loading">Завантаження замовлень...</div>
+			}
+			else if (loadError is not null)
+			{
+				<div class="empty">
+					<p>@loadError</p>
+					<button type="button" class="btn btn--outline btn--sm" style="margin-top:12px;" @onclick="LoadAsync">Спробувати ще раз</button>
 				</div>
-				<span class="order-status order-status--delivered">Доставлено</span>
-			</div>
-			<div class="order-card__items">
-				<div class="order-thumb"><svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.4"></rect><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"></line></svg></div>
-				<div class="order-thumb"><svg class="icon" viewBox="0 0 24 24"><path d="M3 13a9 9 0 0 1 18 0"></path><rect x="2.4" y="13" width="4" height="7" rx="1.6"></rect><rect x="17.6" y="13" width="4" height="7" rx="1.6"></rect></svg></div>
-			</div>
-			<div class="order-card__foot">
-				<div class="order-card__total">Разом: <span class="price">35 198 ₴</span></div>
-				<a href="#" class="btn btn--outline btn--sm">Деталі</a>
-			</div>
-		</div>
-	</div>
+			}
+			else if (orders.Count == 0)
+			{
+				<EmptyState Icon="EmptyState.EmptyStateIcon.Box" Title="У вас ще немає замовлень"
+							Description="Оформіть перше замовлення, і воно з'явиться тут.">
+					<a href="/" class="btn btn--primary">До каталогу</a>
+				</EmptyState>
+			}
+			else
+			{
+				<div class="tabs" role="tablist">
+					<button type="button" role="tab" class="tab @(statusFilter is null ? "tab--active" : "")"
+							@onclick="() => statusFilter = null">Усі (@orders.Count)</button>
+					@foreach (var status in StatusesPresent)
+					{
+						<button type="button" role="tab" class="tab @(statusFilter == status ? "tab--active" : "")"
+								@onclick="() => statusFilter = status">@StatusText(status) (@orders.Count(o => o.Status == status))</button>
+					}
+				</div>
+
+				<div class="order-list">
+					@foreach (var order in FilteredOrders)
+					{
+						var isOpen = expanded.Contains(order.Id);
+						var items = order.OrderItems;
+
+						<div class="order-card">
+							<div class="order-card__head">
+								<div>
+									<div class="order-card__num">Замовлення №@ShortId(order.Id)</div>
+									<div class="order-card__date">@DateText(order.OrderDate)</div>
+								</div>
+								<span class="order-status @StatusClass(order.Status)">@StatusText(order.Status)</span>
+							</div>
+
+							<div class="order-card__items">
+								@foreach (var item in items.Take(5))
+								{
+									products.TryGetValue(item.ProductId, out var product);
+									var hasImage = product is not null && !string.IsNullOrWhiteSpace(product.ImageUrl);
+
+									<a href="/product/@item.ProductId" class="order-thumb @(hasImage ? "order-thumb--has-image" : "")"
+									   title="@(product?.Name ?? "Товар недоступний")">
+										<svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.4"></rect><line x1="10.5" y1="18.3" x2="13.5" y2="18.3"></line></svg>
+										@if (hasImage)
+										{
+											<img class="order-thumb__img" src="@product!.ImageUrl" alt="" loading="lazy" referrerpolicy="no-referrer"
+												 onerror="this.parentElement.classList.remove('order-thumb--has-image')" />
+										}
+									</a>
+								}
+								@if (items.Count > 5)
+								{
+									<div class="order-thumb order-thumb--more">+@(items.Count - 5)</div>
+								}
+							</div>
+
+							<div class="order-card__foot">
+								<div class="order-card__total">Разом: <span class="price">@order.TotalAmount ₴</span></div>
+								<div class="admin-actions">
+									@if (order.Status == OrderStatus.Pending)
+									{
+										<button type="button" class="btn btn--danger-outline btn--sm" @onclick="() => AskCancel(order)">Скасувати</button>
+									}
+									<button type="button" class="btn btn--outline btn--sm" aria-expanded="@isOpen" @onclick="() => ToggleDetails(order.Id)">
+										@(isOpen ? "Сховати" : "Деталі")
+									</button>
+								</div>
+							</div>
+
+							@if (isOpen)
+							{
+								<div class="order-details">
+									<div class="order-details__items">
+										<h4>Товари</h4>
+										@foreach (var item in items)
+										{
+											products.TryGetValue(item.ProductId, out var product);
+											<div class="order-line">
+												<span>@(product?.Name ?? "Товар недоступний") × @item.Quantity</span>
+												<span>@(item.UnitPrice * item.Quantity) ₴</span>
+											</div>
+										}
+									</div>
+									<div>
+										<h4>Доставка</h4>
+										<p>@DeliveryText(order.DeliveryService)</p>
+										<p>@Or(order.Region), @Or(order.City)</p>
+										<p>@Or(order.DeliveryPoint)</p>
+									</div>
+									<div>
+										<h4>Оплата та одержувач</h4>
+										<p>@PaymentText(order.PaymentMethod)</p>
+										<p>Телефон: @Or(order.RecipientPhone)</p>
+									</div>
+								</div>
+							}
+						</div>
+					}
+				</div>
+			}
+		</Authorized>
+		<NotAuthorized>
+			<EmptyState Icon="EmptyState.EmptyStateIcon.Box" Title="Увійдіть, щоб бачити замовлення"
+						Description="Історія замовлень доступна після входу в акаунт.">
+				<button type="button" class="btn btn--primary" @onclick="ShowLogin">Увійти</button>
+			</EmptyState>
+		</NotAuthorized>
+	</AuthorizeView>
 </main>
 
-@code {
+@if (cancelling is not null)
+{
+	<div class="overlay" @onclick="CancelDialog">
+		<div class="modal" @onclick:stopPropagation>
+			<button type="button" class="modal__close" aria-label="Закрити" @onclick="CancelDialog">
+				<svg class="icon" viewBox="0 0 24 24">
+					<line x1="6" y1="6" x2="18" y2="18" />
+					<line x1="18" y1="6" x2="6" y2="18" />
+				</svg>
+			</button>
 
+			<h2 class="modal__title">Скасувати замовлення?</h2>
+			<p class="modal__subtitle">Замовлення №@ShortId(cancelling.Id) на суму @cancelling.TotalAmount ₴ буде скасовано. Цю дію не можна відмінити.</p>
+
+			@if (!string.IsNullOrEmpty(cancelError))
+			{
+				<p class="field__error" style="margin-bottom:10px;">@cancelError</p>
+			}
+
+			<div class="settings-card__actions">
+				<button type="button" class="btn btn--outline" @onclick="CancelDialog" disabled="@isCancelling">Назад</button>
+				<button type="button" class="btn btn--danger-outline" @onclick="ConfirmCancelAsync" disabled="@isCancelling">
+					@if (isCancelling)
+					{
+						<span>Зачекайте...</span>
+					}
+					else
+					{
+						<span>Скасувати замовлення</span>
+					}
+				</button>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	private static readonly CultureInfo Ukrainian = new("uk-UA");
+
+	private List<OrderResponse> orders = [];
+	private Dictionary<Guid, ProductResponse> products = [];
+	private readonly HashSet<Guid> expanded = [];
+	private OrderStatus? statusFilter;
+	private bool isLoading = true;
+	private string? loadError;
+
+	private OrderResponse? cancelling;
+	private bool isCancelling;
+	private string? cancelError;
+
+	private IEnumerable<OrderResponse> FilteredOrders => orders.Where(o => statusFilter is null || o.Status == statusFilter);
+
+	// Вкладки лише для статусів, які в користувача є, у логічному порядку життєвого циклу
+	private IEnumerable<OrderStatus> StatusesPresent => new[]
+		{
+			OrderStatus.Pending, OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Delivered, OrderStatus.Cancelled
+		}
+		.Where(status => orders.Any(o => o.Status == status));
+
+	// Дані читаються лише в circuit (під час prerender JS недоступний) і лише для авторизованого
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+
+		var state = await AuthProvider.GetAuthenticationStateAsync();
+		if (state.User.Identity?.IsAuthenticated != true)
+		{
+			isLoading = false;
+			StateHasChanged();
+			return;
+		}
+
+		await LoadAsync();
+	}
+
+	private async Task LoadAsync()
+	{
+		isLoading = true;
+		loadError = null;
+		StateHasChanged();
+
+		var response = await Shop.GetMyOrdersAsync();
+		if (!response.Success || response.Data is null)
+		{
+			if (response.Message == ApiClientBase.SessionExpiredMessage) UiState.Show(Modal.Login);
+
+			loadError = string.IsNullOrWhiteSpace(response.Message) ? "Не вдалося завантажити замовлення." : response.Message;
+			isLoading = false;
+			StateHasChanged();
+			return;
+		}
+
+		orders = response.Data.OrderByDescending(o => o.OrderDate).ToList();
+
+		// У замовленні є лише Id товарів, тому назви й фото беремо з каталогу
+		var ids = orders.SelectMany(o => o.OrderItems).Select(i => i.ProductId).Distinct().ToList();
+		products = [];
+		if (ids.Count > 0)
+		{
+			var productsResponse = await Catalog.GetProductsByIdsAsync(ids);
+			if (productsResponse.Success && productsResponse.Data is not null)
+			{
+				products = productsResponse.Data.ToDictionary(p => p.Id);
+			}
+		}
+
+		isLoading = false;
+		StateHasChanged();
+	}
+
+	private void ToggleDetails(Guid orderId)
+	{
+		if (!expanded.Remove(orderId)) expanded.Add(orderId);
+	}
+
+	private void AskCancel(OrderResponse order)
+	{
+		cancelling = order;
+		cancelError = null;
+	}
+
+	private void CancelDialog()
+	{
+		if (isCancelling) return;
+		cancelling = null;
+	}
+
+	private async Task ConfirmCancelAsync()
+	{
+		if (cancelling is null || isCancelling) return;
+		isCancelling = true;
+
+		var error = await Shop.CancelOrderAsync(cancelling.Id);
+		isCancelling = false;
+
+		if (error is not null)
+		{
+			cancelError = $"Не вдалося скасувати замовлення: {error}";
+			return;
+		}
+
+		cancelling = null;
+		await LoadAsync();
+	}
+
+	private void ShowLogin() => UiState.Show(Modal.Login);
+
+	private static string ShortId(Guid id) => id.ToString("N")[..8].ToUpperInvariant();
+
+	private static string DateText(DateTime date)
+		=> (date.Kind == DateTimeKind.Utc ? date.ToLocalTime() : date).ToString("d MMMM yyyy, HH:mm", Ukrainian);
+
+	private static string Or(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
+
+	private static string StatusText(OrderStatus status) => status switch
+	{
+		OrderStatus.Pending => "Очікує",
+		OrderStatus.Paid => "Оплачено",
+		OrderStatus.Shipped => "Відправлено",
+		OrderStatus.Delivered => "Доставлено",
+		_ => "Скасовано"
+	};
+
+	private static string StatusClass(OrderStatus status) => status switch
+	{
+		OrderStatus.Pending => "order-status--pending",
+		OrderStatus.Paid => "order-status--paid",
+		OrderStatus.Shipped => "order-status--shipped",
+		OrderStatus.Delivered => "order-status--delivered",
+		_ => "order-status--cancelled"
+	};
+
+	private static string DeliveryText(DeliveryService service)
+		=> service == DeliveryService.NovaPoshta ? "Нова пошта" : "Укрпошта";
+
+	private static string PaymentText(PaymentMethod method)
+		=> method == PaymentMethod.Prepaid ? "Оплата зараз" : "Оплата при отриманні";
 }
