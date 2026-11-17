@@ -8,7 +8,7 @@ using MINT.EShop.API.Filters;
 using MINT.EShop.API.Wrappers;
 using MINT.EShop.Core.Enums;
 using MINT.EShop.Core.Interfaces;
-using MINT.EShop.Infrastracture;
+using MINT.EShop.Infrastructure;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;

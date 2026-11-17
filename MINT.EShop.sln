@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MINT.EShop.Core", "MINT.ESh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MINT.EShop.Business", "MINT.EShop.Business\MINT.EShop.Business.csproj", "{E9AD9A93-9698-4B88-891D-8E56C33042F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MINT.EShop.Infrastracture", "MINT.EShop.Infrastracture\MINT.EShop.Infrastracture.csproj", "{9359CAE4-2C2A-407C-BDF3-459178988DB2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MINT.EShop.Infrastructure", "MINT.EShop.Infrastructure\MINT.EShop.Infrastructure.csproj", "{9359CAE4-2C2A-407C-BDF3-459178988DB2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web", "Web\Web.csproj", "{46C5F183-DA87-40CF-9EAB-37028269A976}"
 EndProject

@@ -5,7 +5,7 @@ using MINT.EShop.Business.Services;
 using MINT.EShop.Core.Enums;
 using MINT.EShop.Core.Interfaces;
 using MINT.EShop.Core.Options;
-using MINT.EShop.Infrastracture;
+using MINT.EShop.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
