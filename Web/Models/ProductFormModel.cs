@@ -6,6 +6,7 @@ namespace Web.Models
     public class ProductFormModel
     {
         [Required(ErrorMessage = "Введіть назву")]
+        [MaxLength(255, ErrorMessage = "Назва має бути не довшою за 255 символів")]
         public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Введіть опис")]

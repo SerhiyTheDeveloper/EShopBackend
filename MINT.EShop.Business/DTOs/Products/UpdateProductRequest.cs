@@ -8,6 +8,7 @@ namespace MINT.EShop.Business.DTOs.Products
         /// Назва товару.
         /// </summary>
         /// <example>iPhone 15 Pro</example>
+        [MaxLength(255, ErrorMessage = "Name must be at most 255 characters.")]
         public required string Name { get; init; }
         /// <summary>
         /// Опис товару.
